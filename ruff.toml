@@ -1,0 +1,18 @@
+
+src            = ["src"]
+target-version = "py312"
+extend-exclude = ["*__init__.py", "*.pyi"]
+
+[format]
+docstring-code-format      = true # format code in docstrings
+docstring-code-line-length = 88
+
+[lint]
+extend-select = [
+  "D", # pydocstyle, all functions and classes must have docstrings
+  "T", # mypy, type hints
+]
+extend-fixable = ["D"]
+ignore = ["T201"] # print statements OK
+pydocstyle.convention = "google"
+pycodestyle.max-doc-length = 88

@@ -1,0 +1,2 @@
+# Ignore Jupyter Notebooks from Github Linguist Stats
+*.ipynb linguist-vendored
