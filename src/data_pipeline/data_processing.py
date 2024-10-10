@@ -74,15 +74,14 @@ def load_clean_txt_csv_data(path: Path | str) -> pd.DataFrame:
 
     logger.info(f"Read {df.shape[0]} rows from txt/csv files.")
 
-    # Column names
-    assert df["term"].str.islower().all(), "All terms should be lower case."
-
     # Drop empty mnemonics
     df.dropna(subset=["mnemonic"], inplace=True)
     logger.info(f"From txt/csv files, kept {df.shape[0]} rows with mnemonics.")
 
     # Remove leading and trailing double quotes from mnemonics
     df["mnemonic"] = df["mnemonic"].str.strip('"')
+
+    assert df["term"].str.islower().all(), "All terms should be lower case."
     return df
 
 
