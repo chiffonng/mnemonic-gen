@@ -164,9 +164,10 @@ cython_debug/
 
 # Data
 /data
-.parquet
-.csv
+/temp
+*.parquet
+*.csv
 
 # Write up
 /pdf
-.pdf
+*.pdf

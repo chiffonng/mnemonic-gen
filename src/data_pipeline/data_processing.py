@@ -1,6 +1,7 @@
 """A module for processing data, combining them from various sources and load into usable format(s)."""
 
 import logging
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -20,6 +21,11 @@ def load_parquet_data(path: Path | str) -> pd.DataFrame:
     """
     df = pd.DataFrame()
     paths = Path(path).rglob("*.parquet")
+
+    if not paths:
+        logger.error("No parquet files found in the specified path.")
+        raise FileNotFoundError("No parquet files found in the specified path.")
+
     for path in paths:
         temp_data = pd.read_parquet(path, engine="pyarrow")
         df = pd.concat([df, temp_data])
@@ -76,24 +82,51 @@ def load_clean_txt_csv_data(path: Path | str) -> pd.DataFrame:
 
     # Drop empty mnemonics
     df.dropna(subset=["mnemonic"], inplace=True)
-    logger.info(f"From txt/csv files, kept {df.shape[0]} rows with mnemonics.")
 
-    # Remove leading and trailing double quotes from mnemonics
-    df["mnemonic"] = df["mnemonic"].str.strip('"')
+    # Drop mnemonics with only 2 words or less
+    df = df[df["mnemonic"].str.split().str.len() > 2]
+    logger.info(
+        f"From txt/csv files, kept {df.shape[0]} rows with meaningful mnemonics."
+    )
+
+    # Format mnemonics
+    df["mnemonic"] = df["mnemonic"].apply(format_mnemonics)
 
     assert df["term"].str.islower().all(), "All terms should be lower case."
     return df
 
 
+def format_mnemonics(text: str) -> str:
+    """Use a consistent format for mnemonics.
+
+    Args:
+        text (str): The mnemonic text to format.
+
+    Returns:
+        str: The formatted mnemonic.
+    """
+    # Remove leading and trailing spaces
+    text = text.strip()
+
+    # Remove ALL double quotes and single quotes at the beginning and end of the mnemonic, including multiple occurrences
+    text = re.sub(r'^["\']+', "", text)
+
+    # Add a period at the end of the mnemonic if it doesn't already have one
+    if text[-1] not in [".", "!", "?"]:
+        text += "."
+
+    return text
+
+
 def combine_datasets(
-    input_path: Path | str = "data/raw",
+    input_dir: Path | str = "data/raw",
     output_path: Path | str = "data/final",
     output_format: str = "csv",
 ) -> pd.DataFrame:
     """Combines an external dataset with a local dataset, cleans the data by removing duplicates, and saves the result to a specified format.
 
     Args:
-        input_path (Path | str):
+        input_dir (Path | str):
             The directory containing the local dataset. Defaults to "data/raw".
         output_path (Path | str):
             The output directory where the combined data will be saved. Defaults to "data/final".
@@ -106,15 +139,16 @@ def combine_datasets(
     Raises:
         ValueError: If the provided output format is not 'csv' or 'parquet'.
     """
-    # TODO: Add error handling for invalid input paths
+    if not Path(input_dir).exists():
+        raise FileNotFoundError(f"Directory not found at {input_dir}.")
 
     # Set up output directories and file
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     output_file = f"{output_path}.{output_format}"
 
     # Load and combine the datasets
-    external_df = load_parquet_data(input_path)
-    local_df = load_clean_txt_csv_data(input_path)
+    external_df = load_parquet_data(input_dir)
+    local_df = load_clean_txt_csv_data(input_dir)
     combined_df = pd.concat([local_df, external_df])
 
     # Clean the data
