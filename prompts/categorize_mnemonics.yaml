@@ -1,0 +1,17 @@
+prompts:
+  system: |
+    You are an expert in English mnemonics. You are given a list of terms and mnemonics to categorize as shallow-encoding (0), deep-encoding (1), or mixed (2). Think through the reasoning for categorization by yourself. Respond with a number (0, 1, or 2) for each mnemonic, seperated by commas. If unsure, skip return -1.
+  user: |
+    Categorize the mnemonics below as:\n
+    - Shallow (0): Focus on how the word sounds, looks, or rhymes.
+    - Deep (1): Focus on semantics, morphology, etymology, context (inferred meaning, imagery), related words (synonyms, antonyms, words with same roots). Repeating the word or using a similar-sounding word is NOT deep encoding.
+    - Mixed (2): Contains both shallow and deep features.
+
+    Examples:
+    - olfactory: Sounds like "old factory." The old factory had a strong smell, reminding workers of its olfactory history. The mnemonic is shallow since it's based on the sound of the word.
+    - vacuous: Same Latin root "vacare" (empty) as "vacuum, vacant". His expression was as empty as a vacuum, showing no signs of thought. The mnemonic is deep since only uses etymology and related words.
+    - malevolent: From male 'ill' + volent 'wishing' (as in "benevolent"). These male species are so violent that they always have evil plans. The mnemonic is mixed because it uses etymology and antonyms (deep), and the sounds of "male" and "violent" (shallow)\n
+
+    Respond with a number (0, 1, or 2) for each mnemonic, seperated by commas. If unsure, return -1. Don't include any other text in your response.\n
+model: "gpt-4o-mini"
+temperature: 0.4
