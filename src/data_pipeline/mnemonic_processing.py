@@ -1,8 +1,9 @@
-"""Module for processing mnemonics, including code to categorize, standardize or diversify them using OpenAI."""
+"""Module for processing mnemonics, including code to classify, standardize or diversify them using OpenAI."""
 
 import logging
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from pathlib import Path
+from warnings import UserWarning, warn
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -33,9 +34,9 @@ client = OpenAI()
 
 # Load config and prompts
 with open("prompts.categorize_mnemonics.yaml", "r") as f:
-    categorization_config = safe_load(f)
-    CATEGORIZE_SYSTEM_PROMPT = categorization_config["prompts"]["system"]
-    CATEGORIZE_USER_PROMPT = categorization_config["prompts"]["user"]
+    classification_conf = safe_load(f)
+    CLASSIFY_SYSTEM_PROMPT = classification_conf["prompts"]["system"]
+    CLASSIFY_USER_PROMPT = classification_conf["prompts"]["user"]
 
 
 def combine_key_value(path: str) -> list[str]:
@@ -45,7 +46,7 @@ def combine_key_value(path: str) -> list[str]:
         path (str): The path to the file containing the 2-column data.
 
     Returns:
-        combined_col (Iterable[str]): The combined key and value columns.
+        combined_col (list[str]): The combined key and value columns.
     """
     if not Path(path).exists():
         raise FileNotFoundError(f"File not found at {path}.")
@@ -66,7 +67,7 @@ def combine_key_value(path: str) -> list[str]:
     return combined_col.to_list()
 
 
-def build_batches(data: list[str], batch_size: int = 50) -> Sequence[list[str], int]:
+def create_batches(data: list[str], batch_size: int = 50) -> Sequence[list[str], int]:
     """Build batches of text data to send to OpenAI's API.
 
     Args:
@@ -78,19 +79,14 @@ def build_batches(data: list[str], batch_size: int = 50) -> Sequence[list[str], 
         batch_size (int): The size of each batch
 
     Raises:
-        ValueError: one of the following conditions is met:
-        - no data is provided,
-        - batch size is less than 1,
-        - batch size is greater than the number of mnemonics
+        ValueError: if no data is provided or if the batch size is invalid.
     """
     if not data:
         raise ValueError("No data to process.")
-    elif batch_size < 1:
-        raise ValueError("Batch size must be greater than 0.")
-    elif batch_size > len(data):
-        logger.warning(
-            "Batch size is greater than the number of mnemonics. Reducing batch size..."
-        )
+    elif batch_size < 1 or batch_size > len(data):
+        warning = f"Batch size must be between 1 and the number of mnemonics ({len(data)}). Adjusting batch size to {len(data)}."
+        warn(warning, category=UserWarning)
+        logger.warning(warning)
         batch_size = min(batch_size, len(data))
 
     logger.info(f"Creating batches of {batch_size} mnemonics.")
@@ -109,68 +105,56 @@ def build_batches(data: list[str], batch_size: int = 50) -> Sequence[list[str], 
     before=before_log(logger, logging.WARNING),
     after=after_log(logger, logging.WARNING),
 )
-def categorize_mnemonics(
+def classify_mnemonics_api(
     batches: list[str],
     batch_size: int,
-    n: int = 1,  # !: Currently only supports n=1
     output_path: str | Path = "data/final.csv",
 ):
-    """Categorize mnemonics using OpenAI's API, GPT-4o mini, and write results to a file (to save costs).
+    """Classify mnemonics using OpenAI's API, GPT-4o mini, and write results to a file (to save costs).
 
     Args:
         batches (list[str]): The list of batches of mnemonics to categorize.
         batch_size (int): The size of each batch.
-        n (int): The number of completions to generate for each batch. Defaults to 1.
         output_path (str): The path to the .csv (or .parquet) file to write the results to. Defaults to FINAL_DATASET_CSV.
 
     Returns:
-        categories (list[int]): The list of categories for each mnemonic.
+        responses (str): The string of responses from OpenAI's API, formatted as a string of numbers separated by commas.
 
     Raises:
         ValueError:
         - If the output file is not in parquet or csv
         - If the input (batches) is not a list or collections.abc.Iterable of strings.
     """
-    if isinstance(batches, str):
-        batches = [batches]
-    elif isinstance(batches, Iterable):
-        batches = list(batches)
-    else:
-        raise ValueError(
-            "Batches must be a list or collections.abc.Iterable of strings."
-        )
+    if not isinstance(batches, (list, str)):
+        raise ValueError("Batches must be a string or a list of strings.")
+    batches = [batches] if isinstance(batches, str) else batches
 
     logger.info(f"Processing {len(batches)} batches...")
-    res_str = ""
-    for i in tqdm(range(len(batches)), desc="Processing batches", unit="batch"):
-        completion = client.chat.completions.create(
-            model=categorization_config["model"],
+    responses = [
+        client.chat.completions.create(
+            model=classification_conf["model"],
             messages=[
-                {"role": "system", "content": CATEGORIZE_SYSTEM_PROMPT},
-                {
-                    "role": "user",
-                    "content": CATEGORIZE_USER_PROMPT + batches[i],
-                },
+                {"role": "system", "content": CLASSIFY_SYSTEM_PROMPT},
+                {"role": "user", "content": f"{CLASSIFY_USER_PROMPT}{batch}"},
             ],
             max_completion_tokens=batch_size * 2 + 3,  # 2 tokens per mnemonic
-            temperature=categorization_config["temperature"],
-            n=n,  # Generate n completions for each batch
+            temperature=classification_conf["temperature"],
+            n=classification_conf["n"],
         )
-        logger.info(f"Completed categorization for batch {i + 1}.")
-        logger.info(
-            f"Used total {completion.usage.total_tokens} tokens, including {completion.usage.prompt_tokens} prompt tokens and {completion.usage.completion_tokens} completion tokens."
-        )
-        res_str += completion.choices[0].message.content
-    return parse_write_categorization_results(res_str, output_path)
+        .choices[0]
+        .message.content
+        for batch in tqdm(batches, desc="Processing batches", unit="batch")
+    ]
+    return ",".join(responses)
 
 
-def parse_write_categorization_results(
-    str_of_nums: str, output_path: str | Path
+def parse_save_classification_results(
+    res_str: str, output_path: str | Path
 ) -> list[int]:
-    """Parse a string of numbers into a list of numbers and write to a file.
+    """Parse comma-separated categories and save them to a file.
 
     Args:
-        str_of_nums (str): The string of numbers to parse.
+        res_str (str): The string of numbers (which are the categories) separated by commas.
         output_path (str | Path): The path to .csv or .parquet file to write the parsed.
 
     Returns:
@@ -179,52 +163,47 @@ def parse_write_categorization_results(
     Raises:
         ValueError: If the output file is not in parquet or csv format.
     """
-    categories = [int(c) for c in str_of_nums.split(",")]
+    categories = [int(c) for c in res_str.split(",") if c.strip().isdigit()]
+    if not all(c in {-1, 0, 1, 2} for c in categories):
+        raise ValueError("Parsed categories must be -1, 0, 1, or 2.")
 
-    assert all(
-        c in [-1, 0, 1, 2] for c in categories
-    ), "Categories must be -1, 0, 1, or 2."
+    # Load existing data and verify the number of rows matches the number of categories
+    df = (
+        pd.read_parquet(output_path)
+        if output_path.suffix == ".parquet"
+        else pd.read_csv(output_path)
+    )
+    if len(df) != len(categories):
+        raise ValueError(
+            "Number of rows in the file does not match the number of categories."
+        )
 
-    # Add a column for categories to the final dataset, whether it's a csv or parquet file
-    if Path(output_path).suffix == ".parquet":
-        df = pd.read_parquet(output_path, engine="pyarrow")
-        if df.shape[0] != len(categories):
-            df.to_csv("temp/categories.csv", index=False)
-            raise ValueError(
-                "Number of rows in the existing file does not match the number of categories."
-            )
-        df["category"] = categories
-        df.to_parquet(output_path, engine="pyarrow")
-
-    elif Path(output_path).suffix == ".csv":
-        df = pd.read_csv(output_path, header="infer")
-        if df.shape[0] != len(categories):
-            df.to_csv("temp/categories.csv", index=False)
-            raise ValueError(
-                "Number of rows in the existing file does not match the number of categories."
-            )
-        df["category"] = categories
-        df.to_csv(output_path, index=False)
-
-    else:
-        raise ValueError("Output file must be in parquet or csv format.")
+    # Add the categories column and save to the original format
+    df["category"] = categories
+    save_func = df.to_parquet if output_path.suffix == ".parquet" else df.to_csv
+    save_func(output_path, index=False)
 
     return categories
 
 
-def standardize_mnemonics(batches):
+def standardize_mnemonics_api(batches):
     """Standardize mnemonics using OpenAI's API, GPT-4o mini."""
     raise NotImplementedError
 
 
-def diversify_mnemonics(batches):
+def diversify_mnemonics_api(batches):
     """Diversify mnemonics using OpenAI's API, GPT-4o mini."""
     raise NotImplementedError
 
 
-# Prepare data to send to OpenAI
-data = combine_key_value("data/final.csv")
-batches, batch_size = build_batches(data, batch_size=50)
+def classify_mnemonics(
+    input_path: str, output_path: str, batch_size: int = 50, n: int = 1
+) -> list[int]:
+    """End-to-end function for classifying mnemonics."""
+    data = combine_key_value(input_path)
+    batches, batch_size = create_batches(data, batch_size)
+    raw_response = classify_mnemonics_api(batches, batch_size, n)
+    return parse_save_classification_results(raw_response, Path(output_path))
 
-# Categorize mnemonics
-categorize_mnemonics(batches, batch_size, output_path="data/final.csv")
+
+classify_mnemonics("data/initial.csv", "data/final.csv")

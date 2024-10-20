@@ -15,3 +15,4 @@ prompts:
     Respond with a number (0, 1, or 2) for each mnemonic, seperated by commas. If unsure, return -1. Don't include any other text in your response.\n
 model: "gpt-4o-mini"
 temperature: 0.4
+num_outputs: 1
