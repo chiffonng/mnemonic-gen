@@ -14,10 +14,14 @@ from constants import (
     COMBINED_DATASET_CSV,
     COMBINED_DATASET_PARQUET,
 )
+from utils.error_handling import check_file_path, check_dir_path
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
+logger.handlers[0].setFormatter(
+    logging.Formatter("%(levelname)s - %(funcName)s - %(message)s")
+)
 
 
 def load_parquet_data(path: Path | str) -> pd.DataFrame:
@@ -30,14 +34,14 @@ def load_parquet_data(path: Path | str) -> pd.DataFrame:
         df (pd.DataFrame): The parquet data as a dataframe.
     """
     df = pd.DataFrame()
-    paths = Path(path).rglob("*" + PARQUET_EXT)
+    paths = check_dir_path(path, extensions=[PARQUET_EXT])
 
     if not paths:
         logger.error("No parquet files found in the specified path.")
         raise FileNotFoundError("No parquet files found in the specified path.")
 
     for path in paths:
-        temp_data = pd.read_parquet(path, engine="pyarrow")
+        temp_data = pd.read_parquet(path)
         df = pd.concat([df, temp_data])
 
     # Lowercase terms
@@ -65,12 +69,8 @@ def load_clean_txt_csv_data(path: Path | str) -> pd.DataFrame:
         FileNotFoundError: If no txt or csv files are found in the specified path.
     """
     df = pd.DataFrame()
-    paths = [p for p in Path(path).rglob("*") if p.suffix in [TXT_EXT, CSV_EXT]]
-    logger.info(f"Loading txt/csv files from {paths}.")
-
-    if not paths:
-        logger.error("No txt or csv files found in the specified path.")
-        raise FileNotFoundError("No txt or csv files found in the specified path.")
+    paths = check_dir_path(path, extensions=[TXT_EXT, CSV_EXT])
+    logger.info(f"Loading txt/csv files from {[str(p) for p in paths]}.")
 
     # Read only the first two columns, skipping the first two rows
     for path in paths:
@@ -118,11 +118,14 @@ def format_mnemonics(text: str) -> str:
     # Remove leading and trailing spaces
     text = text.strip()
 
-    # Remove ALL double quotes and single quotes at the beginning and end of the mnemonic, including multiple occurrences
-    text = re.sub(r'^["\']+', "", text)
+    # Replace all double quotes that are not at the beginning or end of the text with single quotes
+    text = re.sub(r'(?<!^)"(?!$)', "'", text)
+
+    # Replace multiple quotes (e.g., "" or '') inside the text with a single quote
+    text = re.sub(r'["\']{2,}', '"', text)
 
     # Add a period at the end of the mnemonic if it doesn't already have one
-    if text[-1] not in [".", "!", "?"]:
+    if text and text[-1] not in [".", "!", "?"]:
         text += "."
 
     return text
@@ -145,20 +148,19 @@ def combine_datasets(
     Raises:
         ValueError: If the provided output format is not 'csv' or 'parquet'.
     """
-    input_dir = Path(input_dir)
-    output_path = Path(output_path)
-    if not input_dir.exists():
-        raise FileNotFoundError(f"Directory not found {input_dir.resolve()}.")
+    input_dir = check_dir_path(input_dir)
 
     # Load and combine the datasets
     external_df = load_parquet_data(input_dir)
     local_df = load_clean_txt_csv_data(input_dir)
-    combined_df = pd.concat([local_df, external_df])
+    combined_df = pd.concat([local_df, external_df], ignore_index=True)
 
     # Clean the data
     combined_df.drop_duplicates(subset=["term"], inplace=True, keep="first")
+    combined_df["mnemonic"] = combined_df["mnemonic"].apply(format_mnemonics)
 
     # Set up output directories and file
+    output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Write to output file
@@ -169,9 +171,7 @@ def combine_datasets(
     else:
         raise ValueError("Invalid output format. Must be either 'csv' or 'parquet'.")
 
-    logger.info(
-        f"Saved combined data to '{output_path}' with {combined_df.shape[0]} unique terms."
-    )
+    logger.info(f"Saved {combined_df.shape[0]} unique terms to '{output_path}'.")
 
     return combined_df
 

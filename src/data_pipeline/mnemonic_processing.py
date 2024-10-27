@@ -1,9 +1,8 @@
 """Module for processing mnemonics, including code to classify, standardize or diversify them using OpenAI."""
 
 import logging
-from collections.abc import Sequence
 from pathlib import Path
-from warnings import UserWarning, warn
+from warnings import warn
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -19,21 +18,34 @@ from tenacity import (
 from tqdm import tqdm
 from yaml import safe_load
 
+from constants import (
+    PARQUET_EXT,
+    CSV_EXT,
+    COMBINED_DATASET_CSV,
+    COMBINED_DATASET_PARQUET,
+    CLASSIFIED_DATASET_CSV,
+    CLASSIFIED_DATASET_PARQUET,
+)
+from utils.error_handling import check_file_path, which_file_exists
+
 load_dotenv()  # Load environment variables
 
 # Set up logging to file
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler("logs/mnemonic_processing.log")
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger.addHandler(logging.FileHandler("logs/mnemonic_processing.log"))
+formatter = logging.Formatter(
+    "%(asctime)s - %(levelname)s - %(funcName)s - %(message)s"
+)
+logger.handlers[0].setFormatter(formatter)
+
+logger.addHandler(logging.StreamHandler())  # Log to console
 
 # Initialize OpenAI client
 client = OpenAI()
 
 # Load config and prompts
-with open("prompts.categorize_mnemonics.yaml", "r") as f:
+with open("prompts/classify_mnemonics.yaml", "r") as f:
     classification_conf = safe_load(f)
     CLASSIFY_SYSTEM_PROMPT = classification_conf["prompts"]["system"]
     CLASSIFY_USER_PROMPT = classification_conf["prompts"]["user"]
@@ -48,31 +60,37 @@ def combine_key_value(path: str) -> list[str]:
     Returns:
         combined_col (list[str]): The combined key and value columns.
     """
-    if not Path(path).exists():
-        raise FileNotFoundError(f"File not found at {path}.")
+    path = check_file_path(path, extensions=[PARQUET_EXT, CSV_EXT])
 
-    elif Path(path).suffix == ".parquet":
+    if path.suffix == PARQUET_EXT:
         df = pd.read_parquet(path, engine="pyarrow")
-        logger.info(f"Read {df.shape[0]} rows from parquet file.")
+    elif path.suffix == CSV_EXT:
+        df = pd.read_csv(path, header="infer", quotechar='"')
 
-    elif Path(path).suffix == ".csv":
-        df = pd.read_csv(path, header="infer")
-        logger.info(f"Read {df.shape[0]} rows from csv file.")
+    logger.info(f"Read {df.shape[0]} rows from {str(path)}.")
 
-    else:
-        raise ValueError("File must be in parquet or csv format.")
+    if df.shape[1] > 2:
+        warn(
+            "More than 2 columns detected. Only the first 2 columns will be used.",
+            category=UserWarning,
+        )
+        logger.warning(
+            "More than 2 columns detected. Only the first 2 columns will be used for processing."
+        )
+    elif df.shape[1] < 2:
+        raise ValueError("File must have at least 2 columns.")
 
     combined_col = df.iloc[:, 0] + ": " + df.iloc[:, 1]
 
     return combined_col.to_list()
 
 
-def create_batches(data: list[str], batch_size: int = 50) -> Sequence[list[str], int]:
+def create_batches(data: list[str], batch_size: int = 50) -> tuple[list[str], int]:
     """Build batches of text data to send to OpenAI's API.
 
     Args:
         data (list[str]): The list of data to process.
-        batch_size (int): The size of each batch. Defaults to 200.
+        batch_size (int): The size of each batch. Defaults to 50.
 
     Returns:
         flattened_batches (list[str]): The list of batches, each item is a batch of text data
@@ -83,7 +101,7 @@ def create_batches(data: list[str], batch_size: int = 50) -> Sequence[list[str],
     """
     if not data:
         raise ValueError("No data to process.")
-    elif batch_size < 1 or batch_size > len(data):
+    if batch_size < 1 or batch_size > len(data):
         warning = f"Batch size must be between 1 and the number of mnemonics ({len(data)}). Adjusting batch size to {len(data)}."
         warn(warning, category=UserWarning)
         logger.warning(warning)
@@ -98,7 +116,7 @@ def create_batches(data: list[str], batch_size: int = 50) -> Sequence[list[str],
 
 
 @retry(
-    retry=retry_if_exception_type(RateLimitError),
+    retry=retry_if_exception_type(RateLimitError, ValueError),
     retry_error_callback=lambda x: logger.error(f"Exception during retries: {x}"),
     stop=stop_after_attempt(3),
     wait=wait_random_exponential(multiplier=1, min=0, max=4),  # 2^0 to 2^4 seconds
@@ -108,14 +126,12 @@ def create_batches(data: list[str], batch_size: int = 50) -> Sequence[list[str],
 def classify_mnemonics_api(
     batches: list[str],
     batch_size: int,
-    output_path: str | Path = "data/final.csv",
 ):
     """Classify mnemonics using OpenAI's API, GPT-4o mini, and write results to a file (to save costs).
 
     Args:
         batches (list[str]): The list of batches of mnemonics to categorize.
         batch_size (int): The size of each batch.
-        output_path (str): The path to the .csv (or .parquet) file to write the results to. Defaults to FINAL_DATASET_CSV.
 
     Returns:
         responses (str): The string of responses from OpenAI's API, formatted as a string of numbers separated by commas.
@@ -137,9 +153,9 @@ def classify_mnemonics_api(
                 {"role": "system", "content": CLASSIFY_SYSTEM_PROMPT},
                 {"role": "user", "content": f"{CLASSIFY_USER_PROMPT}{batch}"},
             ],
-            max_completion_tokens=batch_size * 2 + 3,  # 2 tokens per mnemonic
+            max_completion_tokens=batch_size * 3 + 3,  # 3-4 tokens per mnemonic
             temperature=classification_conf["temperature"],
-            n=classification_conf["n"],
+            n=classification_conf["num_outputs"],
         )
         .choices[0]
         .message.content
@@ -163,26 +179,33 @@ def parse_save_classification_results(
     Raises:
         ValueError: If the output file is not in parquet or csv format.
     """
+    logger.info(
+        f"Received {len(res_str)} characters from OpenAI's API. Preview: {res_str[:100]}"
+    )
     categories = [int(c) for c in res_str.split(",") if c.strip().isdigit()]
     if not all(c in {-1, 0, 1, 2} for c in categories):
         raise ValueError("Parsed categories must be -1, 0, 1, or 2.")
 
-    # Load existing data and verify the number of rows matches the number of categories
-    df = (
-        pd.read_parquet(output_path)
-        if output_path.suffix == ".parquet"
-        else pd.read_csv(output_path)
-    )
+    # Set up output path
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Read initial dataset to get the number of rows
+    f = which_file_exists(COMBINED_DATASET_CSV, COMBINED_DATASET_PARQUET)
+    df = pd.read_csv(f) if f.suffix == CSV_EXT else pd.read_parquet(f)
     if len(df) != len(categories):
+        logger.error(
+            f"Number of rows in the file does not match the number of categories. Number of rows: {len(df)}, number of categories: {len(categories)}"
+        )
         raise ValueError(
-            "Number of rows in the file does not match the number of categories."
+            f"Number of rows in the file does not match the number of categories. Number of rows: {len(df)}, number of categories: {len(categories)}"
         )
 
-    # Add the categories column and save to the original format
+    # Add the categories column and save to the requested format
     df["category"] = categories
-    save_func = df.to_parquet if output_path.suffix == ".parquet" else df.to_csv
+    save_func = df.to_parquet if output_path.suffix == PARQUET_EXT else df.to_csv
     save_func(output_path, index=False)
-
+    logger.info(f"Saved classification results to {str(output_path)}.")
     return categories
 
 
@@ -199,11 +222,24 @@ def diversify_mnemonics_api(batches):
 def classify_mnemonics(
     input_path: str, output_path: str, batch_size: int = 50, n: int = 1
 ) -> list[int]:
-    """End-to-end function for classifying mnemonics."""
+    """End-to-end function for classifying mnemonics.
+
+    Args:
+        input_path (str): The path to the file containing the mnemonics.
+        output_path (str): The path to the file to save the classification results.
+        batch_size (int): The size of each batch. Defaults to 50.
+        n (int): The number of completions to generate. Defaults to 1.
+
+    Returns:
+        (list[int]): The list of parsed categories.
+
+    Raises:
+        ValueError: If the output file is not in parquet or csv format.
+    """
     data = combine_key_value(input_path)
     batches, batch_size = create_batches(data, batch_size)
-    raw_response = classify_mnemonics_api(batches, batch_size, n)
-    return parse_save_classification_results(raw_response, Path(output_path))
+    raw_response = classify_mnemonics_api(batches, batch_size)
+    return parse_save_classification_results(raw_response, output_path)
 
 
-classify_mnemonics("data/initial.csv", "data/final.csv")
+classify_mnemonics(COMBINED_DATASET_CSV, CLASSIFIED_DATASET_CSV)
