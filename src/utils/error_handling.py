@@ -3,11 +3,14 @@
 from pathlib import Path
 
 
-def check_file_path(path: Path | str, extensions: list[str] = []) -> Path:
-    """Check if the file path exists, convert it to a Path object if it is a string, and return it. Optionally, check if the file has one of the specified extensions.
+def check_file_path(
+    path: Path | str, new_ok: bool = False, extensions: list[str] = []
+) -> Path:
+    """Convert path to a Path object if it is a string, and return it. Optionally, check if the file has one of the specified extensions or if it exists.
 
     Args:
         path (Path | str): The path to the file.
+        new_ok (bool, optional): If True, the file does not have to exist. Defaults to False.
         extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
 
     Returns:
@@ -19,7 +22,7 @@ def check_file_path(path: Path | str, extensions: list[str] = []) -> Path:
     if isinstance(path, str):
         path = Path(path)
 
-    if not path.exists():
+    if not new_ok and not path.exists():
         raise FileNotFoundError(f"{path.resolve()}")
 
     if extensions and path.suffix not in extensions:

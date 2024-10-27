@@ -43,7 +43,8 @@ extend-select = [
   "D", # pydocstyle, all functions and classes must have docstrings
   "T", # mypy, type hints
 ]
-extend-fixable = ["D"]
+extend-safe-fixes = ["D", "T"] # docstring, type hints
+extend-fixable = ["B"] # bugbear
 ignore = ["T201", "F401"] # print statements OK, unused imports OK
 pydocstyle.convention = "google"
 pycodestyle.max-doc-length = 88
