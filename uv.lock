@@ -615,6 +615,7 @@ plot = [
 [package.dependency-groups]
 data = [
     { name = "pandas" },
+    { name = "pyarrow" },
 ]
 dev = [
     { name = "pytest" },
@@ -639,7 +640,10 @@ requires-dist = [
 ]
 
 [package.metadata.dependency-groups]
-data = [{ name = "pandas", specifier = ">=2.2.3" }]
+data = [
+    { name = "pandas", specifier = ">=2.2.3" },
+    { name = "pyarrow", specifier = ">=17.0.0" },
+]
 dev = [{ name = "pytest", specifier = ">=8.3.3" }]
 lint = [{ name = "ruff", specifier = ">=0.7.1" }]
 

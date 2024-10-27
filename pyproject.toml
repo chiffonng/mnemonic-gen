@@ -26,7 +26,7 @@ plot = ["matplotlib>=3.9.2"]
 [dependency-groups]
 dev  = ["pytest>=8.3.3"]
 lint = ["ruff>=0.7.1"]
-data = ["pandas>=2.2.3"]
+data = ["pandas>=2.2.3", "pyarrow>=17.0.0"]
 
 [tool.ruff]
 src            = ["src"]
@@ -48,5 +48,6 @@ pydocstyle.convention = "google"
 pycodestyle.max-doc-length = 88
 
 [tool.uv]
-managed           = true
-python-preference = "managed"
+python-downloads = "manual"         # change to "automatic" to download Python specified in .python-version
+upgrade-package  = ["ruff", "tqdm"]
+managed          = true

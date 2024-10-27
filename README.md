@@ -23,4 +23,16 @@ This project explores an alternative approach by instruction tuning the LLaMA 3 
 
 # Setup
 
-Python >= 3.10 and `requirements.txt`.
+## Installation
+
+```bash
+bash setup.sh
+```
+
+It attempts to install with `[uv](https://docs.astral.sh/uv/)` (a fast, Rust-based Python package and project manager) using `.python-version` file and `pyproject.toml` file. Otherwise, it falls back to `pip` installation.
+
+## Secrets
+
+`setup.sh` already creates a `.env`. You will need:
+
+- OpenAI API key (optional: for some modules inside `src/data_pipeline`)

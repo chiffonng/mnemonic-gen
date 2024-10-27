@@ -20,3 +20,7 @@ fi
 # Run
 # uv run main.py
 
+# Copy .env.template to .env
+if [ ! -f .env ]; then
+    cp .env.template .env
+fi
