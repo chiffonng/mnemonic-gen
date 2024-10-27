@@ -24,3 +24,7 @@ fi
 if [ ! -f .env ]; then
     cp .env.template .env
 fi
+
+# Create project directories
+mkdir -p data
+mkdir -p logs

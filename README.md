@@ -15,15 +15,15 @@ This project explores an alternative approach by instruction tuning the LLaMA 3 
 
 ---
 
-# Project components
+## Project components
 
 - [ ] A web interface (using Gradio) for the tuned model.
 - [ ] A dataset of 1200 examples (will be refined continually).
 - [ ] This documented codebase.
 
-# Setup
+## Setup
 
-## Installation
+### Installation
 
 ```bash
 bash setup.sh
@@ -31,8 +31,15 @@ bash setup.sh
 
 It attempts to install with `[uv](https://docs.astral.sh/uv/)` (a fast, Rust-based Python package and project manager) using `.python-version` file and `pyproject.toml` file. Otherwise, it falls back to `pip` installation.
 
-## Secrets
+### Secrets
 
 `setup.sh` already creates a `.env`. You will need:
 
 - OpenAI API key (optional: for some modules inside `src/data_pipeline`)
+
+## Development
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```

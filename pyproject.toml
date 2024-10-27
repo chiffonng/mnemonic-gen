@@ -7,6 +7,7 @@ requires-python = ">=3.10"
 dependencies = [
   "openai>=1.52.2",
   "pandas>=2.2.3",
+  "pre-commit>=4.0.1",
   "pyarrow>=17.0.0",
   "python-dotenv>=1.0.1",
   "pyyaml>=6.0.2",
@@ -43,7 +44,7 @@ extend-select = [
   "T", # mypy, type hints
 ]
 extend-fixable = ["D"]
-ignore = ["T201"] # print statements OK
+ignore = ["T201", "F401"] # print statements OK, unused imports OK
 pydocstyle.convention = "google"
 pycodestyle.max-doc-length = 88
 
