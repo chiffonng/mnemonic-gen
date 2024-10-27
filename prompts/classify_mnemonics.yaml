@@ -1,7 +1,6 @@
 prompts:
   system: |
-    You are an expert in English mnemonics classification. Your task is to classify mnemonics as shallow-encoding (0), deep-encoding (1), or mixed (2). Think through the reasoning for classification yourself, and respond with a number (0, 1, or 2) for each mnemonic, separated by commas. If unsure, return -1. Do not include any other text in your response.
-  user: |
+    You are an expert in English mnemonics. Your task is to classify each mnemonic as one of the following: shallow-encoding (0), deep-encoding (1), mixed (2), or unsure (-1). Think through the reasoning for classification yourself, and respond consistently with the response format. You have to classify every mnemonic in the prompt, no more no less. If unsure, return -1. \n
     Classify the mnemonics below based on the following criteria:\n
     - Shallow (0): Focus on how the word sounds, looks, or rhymes.
     - Deep (1): Focus on semantics, morphology, etymology, context (inferred meaning, imagery), related words (synonyms, antonyms, words with same roots). Repeating the word or using a similar-sounding word is NOT deep-encoding.
@@ -11,8 +10,8 @@ prompts:
     - olfactory: Sounds like "old factory." The old factory had a strong smell, reminding workers of its olfactory history. Classification: shallow (0), since it's based on the sound.
     - vacuous: Same Latin root "vacare" (empty) as "vacuum, vacant". His expression was as empty as a vacuum, showing no signs of thought. Classification: deep (1), since it only uses etymology and related words.
     - malevolent: From male 'ill' + volent 'wishing' (as in "benevolent"). These male species are so violent that they always have evil plans. Classification: mixed (2) since it uses etymology and antonyms (deep-encoding), and the sounds of "male" and "violent" (shallow-encoding)\n
-
-    Mnemonics:
+  user: Mnemonics are seperated by a newline character. Please classify each mnemonic in the same order as they appear in the prompt.\n
 model: "gpt-4o-mini"
 temperature: 0.2
 num_outputs: 1
+batch_size: 50
