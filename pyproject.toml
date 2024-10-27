@@ -1,0 +1,52 @@
+[project]
+name = "mnemonic-gen"
+version = "0.1.0"
+description = "Generate mnemonic sentences for English words"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "openai>=1.52.2",
+  "pandas>=2.2.3",
+  "pyarrow>=17.0.0",
+  "python-dotenv>=1.0.1",
+  "pyyaml>=6.0.2",
+  "ruff",
+  "tenacity>=9.0.0",
+  "torch",
+  "tqdm>=4.66.5",
+  "transformers>=4.46.0",
+]
+
+[project.urls]
+repository = "https://github.com/chiffonng/capstone"
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.9.2"]
+
+[dependency-groups]
+dev  = ["pytest>=8.3.3"]
+lint = ["ruff>=0.7.1"]
+data = ["pandas>=2.2.3"]
+
+[tool.ruff]
+src            = ["src"]
+target-version = "py312"
+extend-exclude = ["*__init__.py", "*.pyi"]
+
+[tool.ruff.format]
+docstring-code-format      = true # format code in docstrings
+docstring-code-line-length = 88
+
+[tool.ruff.lint]
+extend-select = [
+  "D", # pydocstyle, all functions and classes must have docstrings
+  "T", # mypy, type hints
+]
+extend-fixable = ["D"]
+ignore = ["T201"] # print statements OK
+pydocstyle.convention = "google"
+pycodestyle.max-doc-length = 88
+
+[tool.uv]
+managed           = true
+python-preference = "managed"
