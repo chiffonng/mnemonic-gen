@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def check_file_path(
-    path: Path | str, new_ok: bool = False, extensions: list[str] = []
+    path: Path | str, new_ok: bool = False, extensions: list[str] = None
 ) -> Path:
     """Convert path to a Path object if it is a string, and return it. Optionally, check if the file has one of the specified extensions or if it exists.
 
@@ -34,7 +34,7 @@ def check_file_path(
 
 
 def check_dir_path(
-    dir_path: Path | str, extensions: list[str] = []
+    dir_path: Path | str, extensions: list[str] = None
 ) -> Path | list[Path]:
     """Check if the directory path exists, convert it to a Path object it, and return it. Optionally, check if the directory contains files with the specified extensions.
 
@@ -65,20 +65,23 @@ def check_dir_path(
     return dir_path
 
 
-def which_file_exists(*files: list[Path] | list[str]) -> Path:
-    """Return the first file found in the list of files.
+def which_file_exists(
+    *files: list[Path] | list[str], extensions: list[str] = None
+) -> Path:
+    """Return the first file found in the list of files. Optionally, return the first file with the specified extensions.
 
     Args:
         files (list[Path] | list[str]): The list of files to check.
+        extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
 
     Returns:
         file (Path): The first file found in the list.
     """
     for file in files:
-        if isinstance(file, list):
-            for f in file:
-                if Path(f).exists():
-                    return Path(f)
-        elif Path(file).exists():
-            return Path(file)
-    raise FileNotFoundError(f"No files found in the list: {files}")
+        file = check_file_path(file, new_ok=True, extensions=extensions)
+        if file.exists():
+            return file
+
+    raise FileNotFoundError(
+        f"None of the specified files were found: {[str(p) for p in files]}."
+    )
