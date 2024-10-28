@@ -5,6 +5,7 @@ description = "Generate mnemonic sentences for English words"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+  "gradio>=5.4.0",
   "openai>=1.52.2",
   "pandas>=2.2.3",
   "pre-commit>=4.0.1",
