@@ -3,8 +3,10 @@
 import logging
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pandas as pd
+from datasets import load_dataset
 
 from constants import (
     PARQUET_EXT,
@@ -15,6 +17,9 @@ from constants import (
     COMBINED_DATASET_PARQUET,
 )
 from utils.error_handling import check_file_path, check_dir_path
+
+if TYPE_CHECKING:
+    from datasets import Dataset, DatasetDict
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -174,6 +179,21 @@ def combine_datasets(
     logger.info(f"Saved {combined_df.shape[0]} unique terms to '{output_path}'.")
 
     return combined_df
+
+
+def make_hf_dataset(path: Path) -> Dataset:
+    """Create a Hugging Face dataset from a local dataset."""
+    raise NotImplementedError
+
+
+def train_test_split(dataset: Dataset | pd.DataFrame) -> DatasetDict:
+    """Split a dataset into training and testing sets."""
+    raise NotImplementedError
+
+
+def push_to_hf_hub(dataset: DatasetDict, dataset_name: str) -> None:
+    """Push a dataset to the Hugging Face hub."""
+    raise NotImplementedError
 
 
 combine_datasets(RAW_DATA_DIR, COMBINED_DATASET_CSV)
