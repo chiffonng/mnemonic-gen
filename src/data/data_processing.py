@@ -6,21 +6,17 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
-from datasets import load_dataset
-
-from constants import (
-    PARQUET_EXT,
-    CSV_EXT,
-    TXT_EXT,
-    RAW_DATA_DIR,
-    COMBINED_DATASET_CSV,
-    COMBINED_DATASET_PARQUET,
-)
-from utils.error_handling import check_file_path, check_dir_path
+from datasets import ClassLabel, load_dataset
 
 if TYPE_CHECKING:
     from datasets import Dataset, DatasetDict
 
+import utils.constants as c
+from data.data_loaders import load_local_dataset
+from utils.common import login_hf_hub
+from utils.error_handling import check_dir_path, check_file_path
+
+# Set up logging to console
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
@@ -29,43 +25,11 @@ logger.handlers[0].setFormatter(
 )
 
 
-def load_parquet_data(path: Path | str) -> pd.DataFrame:
-    """Load parquet data into a dataframe.
-
-    Args:
-        path (Path | str): The path to the parquet data.
-
-    Returns:
-        df (pd.DataFrame): The parquet data as a dataframe.
-    """
-    df = pd.DataFrame()
-    paths = check_dir_path(path, extensions=[PARQUET_EXT])
-
-    if not paths:
-        logger.error("No parquet files found in the specified path.")
-        raise FileNotFoundError("No parquet files found in the specified path.")
-
-    for path in paths:
-        temp_data = pd.read_parquet(path)
-        df = pd.concat([df, temp_data])
-
-    # Lowercase terms
-    df["term"] = df["term"].str.lower()
-
-    logger.info(f"Read {df.shape[0]} rows from parquet files.")
-
-    assert df.shape[1] == 2, "Data must have 2 columns."
-    assert df.columns[0] == "term", "First column must be 'term'."
-    assert df.columns[1] == "mnemonic", "Second column must be 'mnemonic'."
-
-    return df
-
-
-def load_clean_txt_csv_data(path: Path | str) -> pd.DataFrame:
+def load_clean_txt_csv_data(dir_path: Path | str) -> pd.DataFrame:
     """Load txt or csv data into a dataframe and clean it.
 
     Args:
-        path (Path | str): The path to the txt or csv data.
+        dir_path (Path | str): The path to the txt or csv data.
 
     Returns:
         df (pd.DataFrame): The txt or csv data as a dataframe.
@@ -74,12 +38,12 @@ def load_clean_txt_csv_data(path: Path | str) -> pd.DataFrame:
         FileNotFoundError: If no txt or csv files are found in the specified path.
     """
     df = pd.DataFrame()
-    paths = check_dir_path(path, extensions=[TXT_EXT, CSV_EXT])
-    logger.info(f"Loading txt/csv files from {[str(p) for p in paths]}.")
+    file_paths = check_dir_path(dir_path, extensions=[c.TXT_EXT, c.CSV_EXT])
+    logger.info(f"Loading txt/csv files from {[str(p) for p in file_paths]}.")
 
     # Read only the first two columns, skipping the first two rows
-    for path in paths:
-        if path.suffix == TXT_EXT:
+    for path in file_paths:
+        if path.suffix == c.TXT_EXT:
             temp_data = pd.read_csv(
                 path,
                 sep="\t",
@@ -87,27 +51,29 @@ def load_clean_txt_csv_data(path: Path | str) -> pd.DataFrame:
                 skiprows=2,
                 usecols=[0, 1],
                 skip_blank_lines=True,
-                names=["term", "mnemonic"],
+                names=[c.TERM_COL, c.MNEMONIC_COL],
             )
         else:
-            temp_data = pd.read_csv(path, names=["term", "mnemonic"], usecols=[0, 1])
+            temp_data = pd.read_csv(
+                path, names=[c.TERM_COL, c.MNEMONIC_COL], usecols=[0, 1]
+            )
         df = pd.concat([df, temp_data])
 
     logger.info(f"Read {df.shape[0]} rows from txt/csv files.")
 
     # Drop empty mnemonics
-    df.dropna(subset=["mnemonic"], inplace=True)
+    df.dropna(subset=[c.MNEMONIC_COL], inplace=True)
 
     # Drop mnemonics with only 2 words or less
-    df = df[df["mnemonic"].str.split().str.len() > 2]
+    df = df[df[c.MNEMONIC_COL].str.split().str.len() > 2]
     logger.info(
         f"From txt/csv files, kept {df.shape[0]} rows with meaningful mnemonics."
     )
 
     # Format mnemonics
-    df["mnemonic"] = df["mnemonic"].apply(format_mnemonics)
+    df[c.MNEMONIC_COL] = df[c.MNEMONIC_COL].apply(format_mnemonics)
 
-    assert df["term"].str.islower().all(), "All terms should be lower case."
+    assert df[c.TERM_COL].str.islower().all(), "All terms should be lower case."
     return df
 
 
@@ -146,7 +112,8 @@ def combine_datasets(
         input_dir (Path | str):
             The directory containing the local dataset and the external dataset.
         output_path (Path | str):
-            The output directory where the combined data will be saved
+            The output directory where the combined data will be saved. Valid file formats are 'csv' and 'parquet'.
+
     Returns:
         pd.DataFrame: The cleaned, combined dataset.
 
@@ -156,22 +123,22 @@ def combine_datasets(
     input_dir = check_dir_path(input_dir)
 
     # Load and combine the datasets
-    external_df = load_parquet_data(input_dir)
-    local_df = load_clean_txt_csv_data(input_dir)
-    combined_df = pd.concat([local_df, external_df], ignore_index=True)
+    combined_df = load_clean_txt_csv_data(input_dir)
 
     # Clean the data
-    combined_df.drop_duplicates(subset=["term"], inplace=True, keep="first")
-    combined_df["mnemonic"] = combined_df["mnemonic"].apply(format_mnemonics)
+    combined_df.drop_duplicates(subset=[c.TERM_COL], inplace=True, keep="first")
+    combined_df[c.MNEMONIC_COL] = combined_df[c.MNEMONIC_COL].apply(format_mnemonics)
 
     # Set up output directories and file
-    output_path = Path(output_path)
+    output_path = check_file_path(
+        output_path, new_ok=True, extensions=[c.CSV_EXT, c.PARQUET_EXT]
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Write to output file
-    if output_path.suffix == CSV_EXT:
+    if output_path.suffix == c.CSV_EXT:
         combined_df.to_csv(output_path, index=False)
-    elif output_path.suffix == PARQUET_EXT:
+    elif output_path.suffix == c.PARQUET_EXT:
         combined_df.to_parquet(output_path, index=False)
     else:
         raise ValueError("Invalid output format. Must be either 'csv' or 'parquet'.")
@@ -181,19 +148,58 @@ def combine_datasets(
     return combined_df
 
 
-def make_hf_dataset(path: Path) -> Dataset:
-    """Create a Hugging Face dataset from a local dataset."""
-    raise NotImplementedError
+def train_test_split(dataset: "Dataset", test_size: float = 0.2) -> "DatasetDict":
+    """Split a dataset into training and testing sets.
+
+    Args:
+        dataset (Dataset): The dataset to split.
+        test_size (float): The proportion of the dataset to include in the test split. Defaults to 0.2.
+
+    Returns:
+        DatasetDict: A dictionary containing the training and testing sets.
+    """
+    # Split the dataset into training and testing sets
+    dataset_dict = dataset.train_test_split(
+        test_size=test_size, shuffle=True, seed=42, stratify_by_column=c.CATEGORY_COL
+    )
+    logger.info(f"\n{dataset_dict}")
+
+    # Return the training and testing sets
+    return dataset_dict
 
 
-def train_test_split(dataset: Dataset | pd.DataFrame) -> DatasetDict:
-    """Split a dataset into training and testing sets."""
-    raise NotImplementedError
+def push_to_hf_hub(
+    dataset: "Dataset",
+    repo_id: str = c.HF_DATASET_REPO,
+    private: bool = False,
+    **kwargs,
+):
+    """Push a dataset to the Hugging Face hub.
+
+    Args:
+        dataset (Dataset or DatasetDict): The dataset to push to the Hugging Face hub.
+        repo_id (str): The Hugging Face repository ID. Defaults to the value in 'utils/constants.py'.
+        private (bool): Whether to make the dataset private. Defaults to False.
+        **kwargs: Additional keyword arguments for the push_to_hub() function. See documentation: https://huggingface.co/docs/datasets/main/en/package_reference/main_classes#datasets.Dataset.push_to_hub for more details.
+    """
+    # Login to Hugging Face with a write token
+    login_hf_hub(write_permission=True)
+    dataset.push_to_hub(
+        repo_id=repo_id,
+        private=private,
+        **kwargs,
+    )
+    logger.info(
+        f"Pushed dataset to Hugging Face hub. Go to https://huggingface.co/datasets/{repo_id} to view the dataset."
+    )
 
 
-def push_to_hf_hub(dataset: DatasetDict, dataset_name: str) -> None:
-    """Push a dataset to the Hugging Face hub."""
-    raise NotImplementedError
+# combine_datasets(RAW_DATA_DIR, COMBINED_DATASET_CSV)
 
+if __name__ == "__main__":
+    local_classified_dataset: "Dataset" = load_local_dataset(
+        file_path=c.CLASSIFIED_DATASET_CSV
+    )
 
-combine_datasets(RAW_DATA_DIR, COMBINED_DATASET_CSV)
+    splits = train_test_split(local_classified_dataset)
+    push_to_hf_hub(splits, private=False)
