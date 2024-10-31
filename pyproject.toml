@@ -44,6 +44,7 @@ docstring-code-line-length = 88
 extend-select = [
   "B",   # flake8-bugbear, bugbear checks
   "D",   # pydocstyle, all functions and classes must have docstrings
+  "I",   # isort
   "PT",  # flakes8-pytest-style, pytest fixtures and style
   "PTH", # flake8-use-pathlib, use pathlib instead of os.path
 ]
@@ -59,6 +60,8 @@ extend-safe-fixes = [
 ]
 extend-fixable = ["B"]
 ignore = ["T201", "T203", "F401"] # print, pprint statements OK, unused imports OK
+isort.case-sensitive = true
+flake8-type-checking.quote-annotations = true
 pydocstyle.convention = "google"
 pycodestyle.max-doc-length = 88
 
