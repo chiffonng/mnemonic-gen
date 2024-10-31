@@ -21,6 +21,8 @@ TERM_COL = "term"
 MNEMONIC_COL = "mnemonic"
 CATEGORY_COL = "category"
 SUBCATEGORY_COL = "subcategory"
+CATEGORY_NAMES = ["unsure", "shallow-encoding", "deep-encoding", "mixed"]
+CATEGORY_DICT = {name: i - 1 for i, name in enumerate(CATEGORY_NAMES)}
 
 # Hugging Face datasets
 HF_DATASET_REPO = "chiffonng/mnemonic-sft"  # <user>/<dataset_name>
