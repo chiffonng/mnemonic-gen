@@ -1,14 +1,17 @@
 """Module for handling common errors and exceptions."""
 
 from pathlib import Path
+from typing import TypeAlias
 from warnings import warn
 
+from utils.aliases import ExtensionsType, PathLike
 
-def validate_path(path: Path | str) -> Path:
+
+def validate_path(path: PathLike) -> Path:
     """Validate path and convert it to a Path object if it is a string.
 
     Args:
-        path (Path | str): The path to validate.
+        path (PathLike): The path to validate.
 
     Returns:
         path (Path): The validated path as a Path object.
@@ -23,7 +26,7 @@ def validate_path(path: Path | str) -> Path:
     return Path(path) if isinstance(path, str) else path
 
 
-def validate_and_normalize_extensions(extensions: str | list[str] | None) -> list[str]:
+def validate_and_normalize_extensions(extensions: ExtensionsType) -> list[str]:
     """Normalize extensions to a list format, ensuring each starts with a dot.
 
     Args:
@@ -56,14 +59,14 @@ def check_extension(path: Path, extensions: list[str]):
 
 
 def check_file_path(
-    path: Path | str,
+    path: PathLike,
     new_ok: bool = False,
-    extensions: list[str] = None,
+    extensions: ExtensionsType = None,
 ) -> Path:
     """Convert path to a Path object if it is a string, and return it. Optionally, check if the file has one of the specified extensions or if it exists.
 
     Args:
-        path (Path | str): The path to the file.
+        path (PathLike): The path to the file.
         new_ok (bool, optional): If True, the file does not have to exist. Defaults to False.
         extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
 
@@ -86,14 +89,14 @@ def check_file_path(
 
 
 def check_dir_path(
-    dir_path: Path | str,
+    dir_path: PathLike,
     new_ok: bool = False,
     extensions: list[str] = None,
 ) -> Path | list[Path]:
     """Check if the directory path exists, convert it to a Path object if it is a string, and return it. Optionally, check if the directory contains files with the specified extensions.
 
     Args:
-        dir_path (Path | str): The path to the directory.
+        dir_path (PathLike): The path to the directory.
         new_ok (bool, optional): If True, the directory does not have to exist. Defaults to False.
         extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
         return_path (bool, optional): If True, return the path as a pathlib.Path object. Defaults to True.
@@ -125,7 +128,7 @@ def check_dir_path(
 
 
 def which_file_exists(
-    *files: list[Path] | list[str], extensions: list[str] = None
+    *files: list[Path] | list[str], extensions: ExtensionsType = None
 ) -> Path:
     """Return the first file found in the list of files. Optionally, return the first file with the specified extensions.
 

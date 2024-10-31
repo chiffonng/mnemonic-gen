@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from datasets import Dataset
 
 import utils.constants as c
+from utils.aliases import ExtensionsType, PathLike
 from utils.common import login_hf_hub
 from utils.error_handling import check_dir_path, check_file_path
 
@@ -22,7 +23,7 @@ logger.handlers[0].setFormatter(
 )
 
 
-def load_local_dataset(file_path: Path | str, **kwargs) -> "Dataset":
+def load_local_dataset(file_path: PathLike, **kwargs) -> "Dataset":
     """Load a dataset from a file (parquet or csv).
 
     Args:
@@ -61,7 +62,7 @@ def load_local_dataset(file_path: Path | str, **kwargs) -> "Dataset":
 def load_hf_dataset(
     repo_id: str = None,
     to_csv: bool = False,
-    file_path: Path | str = None,
+    file_path: PathLike = None,
     **kwargs,
 ) -> "DatasetDict":
     """Load a dataset from the Hugging Face hub.

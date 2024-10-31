@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 import utils.constants as c
 from data.data_loaders import load_local_dataset
+from utils.aliases import ExtensionsType, PathLike
 from utils.common import login_hf_hub
 from utils.error_handling import check_dir_path, check_file_path
 
@@ -25,11 +26,11 @@ logger.handlers[0].setFormatter(
 )
 
 
-def load_clean_txt_csv_data(dir_path: Path | str) -> pd.DataFrame:
+def load_clean_txt_csv_data(dir_path: PathLike) -> pd.DataFrame:
     """Load txt or csv data into a dataframe and clean it.
 
     Args:
-        dir_path (Path | str): The path to the txt or csv data.
+        dir_path (PathLike): The path to the txt or csv data.
 
     Returns:
         df (pd.DataFrame): The txt or csv data as a dataframe.
@@ -103,15 +104,15 @@ def format_mnemonics(text: str) -> str:
 
 
 def combine_datasets(
-    input_dir: Path | str,
-    output_path: Path | str,
+    input_dir: PathLike,
+    output_path: PathLike,
 ) -> pd.DataFrame:
     """Combines an external dataset with a local dataset, cleans the data by removing duplicates, and saves the result to a csv or parquet file.
 
     Args:
-        input_dir (Path | str):
+        input_dir (PathLike):
             The directory containing the local dataset and the external dataset.
-        output_path (Path | str):
+        output_path (PathLike):
             The output directory where the combined data will be saved. Valid file formats are 'csv' and 'parquet'.
 
     Returns:
