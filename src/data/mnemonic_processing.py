@@ -3,13 +3,12 @@
 import logging
 from pathlib import Path
 from warnings import warn
-from pydantic import BaseModel, ValidationError
-from pydantic.functional_validators import AfterValidator
-from typing_extensions import Annotated
 
 import pandas as pd
 from dotenv import load_dotenv
-from openai import OpenAI, RateLimitError, LengthFinishReasonError, OpenAIError
+from openai import LengthFinishReasonError, OpenAI, OpenAIError, RateLimitError
+from pydantic import BaseModel, ValidationError
+from pydantic.functional_validators import AfterValidator
 from tenacity import (
     after_log,
     before_log,
@@ -19,15 +18,16 @@ from tenacity import (
     wait_random_exponential,
 )
 from tqdm import tqdm
+from typing_extensions import Annotated
 from yaml import safe_load
 
-from constants import (
-    PARQUET_EXT,
-    CSV_EXT,
-    COMBINED_DATASET_CSV,
-    COMBINED_DATASET_PARQUET,
+from utils.constants import (
     CLASSIFIED_DATASET_CSV,
     CLASSIFIED_DATASET_PARQUET,
+    COMBINED_DATASET_CSV,
+    COMBINED_DATASET_PARQUET,
+    CSV_EXT,
+    PARQUET_EXT,
 )
 from utils.error_handling import check_file_path, which_file_exists
 
@@ -46,7 +46,7 @@ logger.handlers[0].setFormatter(formatter)
 client = OpenAI()
 
 # Load config and prompts
-with open("prompts/classify_mnemonics.yaml", "r") as f:
+with Path.open("prompts/classify_mnemonics.yaml", "r") as f:
     classification_conf = safe_load(f)  # dict of config
     batch_size = classification_conf["batch_size"]
 
@@ -88,6 +88,7 @@ def combine_key_value(path: str) -> list[str]:
         warn(
             "More than 2 columns detected. Only the first 2 columns will be used.",
             category=UserWarning,
+            stacklevel=2,
         )
         logger.warning(
             "More than 2 columns detected. Only the first 2 columns will be used for processing."
@@ -117,7 +118,7 @@ def create_batches(data: list[str], batch_size=batch_size) -> list[str]:
         raise ValueError("No data to process.")
     if batch_size < 1 or batch_size > len(data):
         warning = f"Batch size must be between 1 and the number of mnemonics ({len(data)}). Adjusting batch size to {len(data)}."
-        warn(warning, category=UserWarning)
+        warn(warning, category=UserWarning, stacklevel=2)
         logger.warning(warning)
         batch_size = min(batch_size, len(data))
 
@@ -223,7 +224,7 @@ def get_structured_response(
             logger.error(f"LengthFinishReasonError: {e}")
             raise ValueError(
                 "OpenAI run out of tokens. Please try: reducing the batch_size, or increasing the max_tokens parameter."
-            )
+            ) from e
         else:
             logger.error(f"Exception: {e}")
             raise e
@@ -281,7 +282,7 @@ def parse_structured_response(
         logger.error(f"ValidationError: {e}")
         raise ValueError(
             f"Batch {batch_index+1}: The response didn't match the expected format. Check the logs for more details."
-        )
+        ) from e
 
 
 def save_structured_outputs(

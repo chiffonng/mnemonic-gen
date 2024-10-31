@@ -29,7 +29,7 @@ This project explores an alternative approach by instruction tuning the LLaMA 3 
 bash setup.sh
 ```
 
-It attempts to install with `[uv](https://docs.astral.sh/uv/)` (a fast, Rust-based Python package and project manager) using `.python-version` file and `pyproject.toml` file. Otherwise, it falls back to `pip` installation.
+It attempts to install with [uv](https://docs.astral.sh/uv/) (a fast, Rust-based Python package and project manager) using `.python-version` file and `pyproject.toml` file. Otherwise, it falls back to `pip` installation.
 
 ### Secrets
 
