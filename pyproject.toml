@@ -8,9 +8,7 @@ dependencies = [
   "datasets>=3.0.2",
   "gradio>=5.4.0",
   "openai>=1.52.2",
-  "pandas>=2.2.3",
   "pre-commit>=4.0.1",
-  "pyarrow>=17.0.0",
   "python-dotenv>=1.0.1",
   "pyyaml>=6.0.2",
   "ruff",
@@ -18,6 +16,7 @@ dependencies = [
   "torch",
   "tqdm>=4.66.5",
   "transformers>=4.46.0",
+  "wandb>=0.18.5",
 ]
 
 [project.urls]
@@ -25,11 +24,8 @@ repository = "https://github.com/chiffonng/capstone"
 
 [project.optional-dependencies]
 plot = ["ipykernel>=6.29.5", "matplotlib>=3.9.2"]
-
-[dependency-groups]
-dev  = ["pytest>=8.3.3"]
-lint = ["ruff>=0.7.1"]
 data = ["pandas>=2.2.3", "pyarrow>=17.0.0"]
+all  = ["matplotlib>=3.9.2", "pandas>=2.2.3", "pyarrow>=17.0.0"]
 
 [tool.ruff]
 src            = ["src"]
