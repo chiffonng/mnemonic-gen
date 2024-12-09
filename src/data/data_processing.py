@@ -1,4 +1,9 @@
-"""A module for processing data, combining them from various sources and load into usable format(s)."""
+"""Local module for processing data, including.
+
+- Loading, cleaning, and combining data
+- Splitting datasets into training and testing sets
+- Pushing datasets to the Hugging Face hub
+"""
 
 import logging
 import re

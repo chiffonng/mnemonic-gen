@@ -1,7 +1,6 @@
 """Module for loading data using pandas and/or Hugging Face datasets / HuggingFace hub."""
 
 import logging
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from datasets import ClassLabel, DatasetDict, load_dataset
@@ -27,7 +26,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> "Dataset":
     """Load a dataset from a file (parquet or csv).
 
     Args:
-        file_path (Path or str): Path to the file.
+        file_path (PathLike): Path to the file.
         kwargs: Additional keyword arguments for the Hugging Face load_dataset() function, such as 'data_files' or 'data_dir' or 'split'. See documentation: https://huggingface.co/docs/datasets/en/loading for more details.
 
     Returns:

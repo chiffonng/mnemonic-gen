@@ -46,7 +46,7 @@ logger.handlers[0].setFormatter(formatter)
 client = OpenAI()
 
 # Load config and prompts
-with Path.open("prompts/classify_mnemonics.yaml", "r") as f:
+with Path.open("config/classify_mnemonics.yaml", "r") as f:
     classification_conf = safe_load(f)  # dict of config
     batch_size = classification_conf["batch_size"]
 
