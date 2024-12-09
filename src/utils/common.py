@@ -9,7 +9,7 @@ from huggingface_hub import login
 def login_hf_hub(write_permission: bool = False):
     """Login to the Hugging Face hub. See documentation: https://huggingface.co/docs/huggingface_hub/en/package_reference/authentication."""
     load_dotenv()
-    HF_ACCESS_TOKEN = os.getenv("HUGGINGFACE_ACCESS_TOKEN")
+    HF_ACCESS_TOKEN = os.getenv("HF_TOKEN")
     login(
         token=HF_ACCESS_TOKEN,
         add_to_git_credential=True,

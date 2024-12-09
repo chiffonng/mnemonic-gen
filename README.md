@@ -29,7 +29,17 @@ This project explores an alternative approach by instruction tuning the LLaMA 3 
 bash setup.sh
 ```
 
-It attempts to install with [uv](https://docs.astral.sh/uv/) (a fast, Rust-based Python package and project manager) using `.python-version` file and `pyproject.toml` file. Otherwise, it falls back to `pip` installation.
+It attempts to install with [uv](https://docs.astral.sh/uv/) (a fast, Rust-based Python package and project manager) using `.python-version` file and `pyproject.toml` file. This is the recommended way to manage the project, since its resolver is faster and more reliable than `pip`.
+
+Otherwise, it falls back to `pip` installation.
+
+You can also install with `conda`:
+
+```bash
+conda env create -n mnemonic-gen python=3.12
+conda activate mnemonic-gen
+pip install -r requirements.txt
+```
 
 ### Secrets
 
@@ -37,6 +47,7 @@ It attempts to install with [uv](https://docs.astral.sh/uv/) (a fast, Rust-based
 
 - OpenAI API key (optional: for some modules inside `src/data_pipeline`)
 - Hugging Face Access Token. You will need at least `read` access token to load the dataset and model from Hugging Face (see the [doc](https://huggingface.co/docs/hub/en/security-tokens)). You can get it from [here](https://huggingface.co/settings/token).
+- ClearML credentials (optional: for logging experiments). You can get it from [here](https://app.community.clear.ml/settings/credentials).
 
 ## Development
 

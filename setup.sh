@@ -24,7 +24,7 @@ then
 else
     python3 -m venv venv
     # shellcheck source=.venv/bin/activate
-    source .venv/bin/activate
+    source venv/bin/activate
     if [ "$OPTIONAL" = true ]; then
         pip install -e .[all]
     else
