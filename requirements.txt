@@ -370,8 +370,6 @@ tyro==0.9.2
     # via trl
 tzdata==2024.2
     # via pandas
-unsloth @ git+https://github.com/unslothai/unsloth.git@df808d074d307d396b8c04640ef51375d68f2ef0
-    # via mnemonic-gen (pyproject.toml)
 urllib3==1.26.20
     # via
     #   clearml

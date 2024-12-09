@@ -3,16 +3,17 @@ name: Python CI
 on:
   push:
     branches:
-      - master
       - main
   pull_request:
     branches:
-      - master
       - main
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 10
     strategy:
       matrix:
         python-version: ["3.12"]

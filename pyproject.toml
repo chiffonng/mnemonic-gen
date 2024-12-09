@@ -5,24 +5,24 @@ description = "Generate mnemonic sentences for English words"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "clearml",                                                # Tracking and monitoring experiments
-  "clearml-agent",                                          # Monitor remotely
-  "datasets",                                               # Hugging Face datasets
-  "evaluate",                                               # HF evaluation
-  "gradio>=5.4.0",                                          # Web app
-  "numpy<2.0.0",                                            # Wait for other packages to update
+  "clearml",              # Tracking and monitoring experiments
+  "clearml-agent",        # Monitor remotely
+  "datasets",             # Hugging Face datasets
+  "evaluate",             # HF evaluation
+  "gradio>=5.4.0",        # Web app
+  "numpy<2.0.0",          # Wait for other packages to update
   "openai>=1.57.0",
-  "peft",                                                   # HF parameter-efficient training
-  "pre-commit>=4.0.1",                                      # Pre-commit hooks
-  "python-dotenv>=1.0.1",                                   # Load environment variables
-  "pyyaml>=6.0.2",                                          # YAML config
-  "ruff>=0.7.1",                                            # Lint and format
-  "tenacity>=9.0.0",                                        # Retry (e.g. API calls)
-  "torch>=2.5.1",                                           # PyTorch
-  "tqdm>=4.67.1",                                           # Progress bar
-  "transformers",                                           # HF transformers
-  "trl",                                                    # HF transformer-reinforcement learning
-  "unsloth @ git+https://github.com/unslothai/unsloth.git", # Faster training by patching hardware
+  "peft",                 # HF parameter-efficient training
+  "pre-commit>=4.0.1",    # Pre-commit hooks
+  "python-dotenv>=1.0.1", # Load environment variables
+  "pyyaml>=6.0.2",        # YAML config
+  "ruff>=0.7.1",          # Lint and format
+  "tenacity>=9.0.0",      # Retry (e.g. API calls)
+  "torch>=2.5.1",         # PyTorch
+  "tqdm>=4.67.1",         # Progress bar
+  "transformers",         # HF transformers
+  "trl",                  # HF transformer-reinforcement learning
+  # "unsloth>=2024.12.4",   # Finetune LLMs (on CUDA) with less memory and compute
 ]
 
 [project.urls]
