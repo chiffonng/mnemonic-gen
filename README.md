@@ -47,7 +47,7 @@ pip install -r requirements.txt
 
 - OpenAI API key (optional: for some modules inside `src/data_pipeline`)
 - Hugging Face Access Token. You will need at least `read` access token to load the dataset and model from Hugging Face (see the [doc](https://huggingface.co/docs/hub/en/security-tokens)). You can get it from [here](https://huggingface.co/settings/token).
-- ClearML credentials (optional: for logging experiments). You can get it from [here](https://app.community.clear.ml/settings/credentials).
+- ClearML credentials (optional: for logging experiments). You can get it from [here](https://app.community.clear.ml/settings/credentials) by following the guide [here](https://clear.ml/docs/latest/docs/getting_started/ds/ds_first_steps).
 
 ## Development
 
