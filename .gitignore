@@ -77,7 +77,6 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-notebooks/
 
 # IPython
 profile_default/
@@ -172,8 +171,8 @@ cython_debug/
 *.csv
 
 # Write up
-*/pdf
-*/tex
+*pdf/
+*tex/
 *.pdf
 
 # Gradio

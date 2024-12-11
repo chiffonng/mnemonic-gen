@@ -1,5 +1,6 @@
 """Module for handling common errors and exceptions."""
 
+from enum import Enum
 from pathlib import Path
 from typing import TypeAlias
 from warnings import warn
@@ -147,3 +148,13 @@ def which_file_exists(
     raise FileNotFoundError(
         f"None of the specified files were found: {[str(p) for p in files]}."
     )
+
+
+class ExplicitEnum(str, Enum):
+    """Enum with more explicit error message for missing values."""
+
+    @classmethod
+    def _missing_(cls, value):
+        raise ValueError(
+            f"{value} is not a valid {cls.__name__}, please select one of {list(cls._value2member_map_.keys())}"
+        )

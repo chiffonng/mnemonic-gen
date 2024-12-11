@@ -5,8 +5,6 @@ description = "Generate mnemonic sentences for English words"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "clearml",              # Tracking and monitoring experiments
-  "clearml-agent",        # Monitor remotely
   "datasets",             # Hugging Face datasets
   "evaluate",             # HF evaluation
   "gradio>=4.26.0",       # Web app
@@ -23,6 +21,7 @@ dependencies = [
   "transformers",         # HF transformers
   "trl",                  # HF transformer reinforcement learning
   "unsloth>=2024.12.4",   # Finetune LLMs (on CUDA) with less memory and compute
+  "wandb",                # Weights and Biases for logging
 ]
 
 [project.urls]
