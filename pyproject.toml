@@ -45,6 +45,11 @@ extend-select = [
   "I",   # isort
   "PT",  # flakes8-pytest-style, pytest fixtures and style
   "PTH", # flake8-use-pathlib, use pathlib instead of os.path
+  "B",   # flake8-bugbear, bugbear checks
+  "D",   # pydocstyle, all functions and classes must have docstrings
+  "I",   # isort
+  "PT",  # flakes8-pytest-style, pytest fixtures and style
+  "PTH", # flake8-use-pathlib, use pathlib instead of os.path
 ]
 extend-safe-fixes = [
   "ANN",  # missing type annotation
