@@ -1,39 +1,37 @@
 [project]
 name = "mnemonic-gen"
-version = "0.1.0"
+version = "0.2.0"
 description = "Generate mnemonic sentences for English words"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "datasets>=3.0.2",
-  "gradio>=5.4.0",
-  "openai>=1.52.2",
-  "pandas>=2.2.3",
-  "pre-commit>=4.0.1",
-  "pyarrow>=17.0.0",
-  "python-dotenv>=1.0.1",
-  "pyyaml>=6.0.2",
-  "ruff",
-  "tenacity>=9.0.0",
-  "torch",
-  "tqdm>=4.66.5",
-  "transformers>=4.46.0",
+  "datasets",             # Hugging Face datasets
+  "evaluate",             # HF evaluation
+  "gradio>=4.26.0",       # Web app
+  "numpy<2.0.0",          # Wait for other packages to update
+  "openai>=1.57.0",
+  "peft",                 # HF parameter-efficient training
+  "pre-commit>=4.0.1",    # Pre-commit hooks
+  "python-dotenv>=1.0.1", # Load environment variables
+  "pyyaml>=6.0.2",        # YAML config
+  "ruff>=0.7.1",
+  "tenacity>=9.0.0",      # Retry (e.g. API calls)
+  "torch>=2.5.1",         # PyTorch
+  "tqdm>=4.67.1",         # Progress bar
+  "transformers",         # HF transformers
+  "trl",                  # HF transformer reinforcement learning
+  # TODO: Uncomment unsloth when on remote machine
+  # "unsloth>=2024.12.4",   # Finetune LLMs (on CUDA) with less memory and compute
+  "wandb", # Weights and Biases for logging
 ]
 
 [project.urls]
 repository = "https://github.com/chiffonng/capstone"
-
-[project.optional-dependencies]
-plot = ["ipykernel>=6.29.5", "matplotlib>=3.9.2"]
-
-[dependency-groups]
-dev  = ["pytest>=8.3.3"]
-lint = ["ruff>=0.7.1"]
-data = ["pandas>=2.2.3", "pyarrow>=17.0.0"]
+dataset    = "https://doi.org/10.57967/hf/3750"
 
 [tool.ruff]
 src            = ["src"]
-target-version = "py312"
+target-version = "py310"
 extend-exclude = ["*__init__.py", "*.pyi"]
 
 [tool.ruff.format]
@@ -41,7 +39,13 @@ docstring-code-format      = true # format code in docstrings
 docstring-code-line-length = 88
 
 [tool.ruff.lint]
+exclude = ["*__init__.py", "*.ipynb"] # Do not lint __init__.py and Jupyter notebooks
 extend-select = [
+  "B",   # flake8-bugbear, bugbear checks
+  "D",   # pydocstyle, all functions and classes must have docstrings
+  "I",   # isort
+  "PT",  # flakes8-pytest-style, pytest fixtures and style
+  "PTH", # flake8-use-pathlib, use pathlib instead of os.path
   "B",   # flake8-bugbear, bugbear checks
   "D",   # pydocstyle, all functions and classes must have docstrings
   "I",   # isort
@@ -58,7 +62,7 @@ extend-safe-fixes = [
   "LOG",  # logging conventions
   "Q",    # flake8-quotes
 ]
-extend-fixable = ["B"]
+extend-fixable = ["B", "D"]
 ignore = ["T201", "T203", "F401"] # print, pprint statements OK, unused imports OK
 isort.case-sensitive = true
 flake8-type-checking.quote-annotations = true
@@ -69,3 +73,6 @@ pycodestyle.max-doc-length = 88
 python-downloads = "manual"         # change to "automatic" to download Python specified in .python-version
 upgrade-package  = ["ruff", "tqdm"]
 managed          = true
+
+[dependency-groups]
+dev = ["ipykernel>=6.29.5", "matplotlib>=3.9.2", "pandas>=2.2.3", "pyarrow>=18.1.0"]
