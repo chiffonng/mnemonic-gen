@@ -20,8 +20,9 @@ dependencies = [
   "tqdm>=4.67.1",         # Progress bar
   "transformers",         # HF transformers
   "trl",                  # HF transformer reinforcement learning
-  "unsloth>=2024.12.4",   # Finetune LLMs (on CUDA) with less memory and compute
-  "wandb",                # Weights and Biases for logging
+  # TODO: Uncomment unsloth when on remote machine
+  # "unsloth>=2024.12.4",   # Finetune LLMs (on CUDA) with less memory and compute
+  "wandb", # Weights and Biases for logging
 ]
 
 [project.urls]
