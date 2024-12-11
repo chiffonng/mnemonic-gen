@@ -9,7 +9,7 @@ dependencies = [
   "clearml-agent",        # Monitor remotely
   "datasets",             # Hugging Face datasets
   "evaluate",             # HF evaluation
-  "gradio>=5.4.0",        # Web app
+  "gradio>=4.26.0",       # Web app
   "numpy<2.0.0",          # Wait for other packages to update
   "openai>=1.57.0",
   "peft",                 # HF parameter-efficient training
