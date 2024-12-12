@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 from datasets import ClassLabel, DatasetDict, load_dataset
 
 if TYPE_CHECKING:
+    from typing import Optional
+
     from datasets import Dataset
 
 import utils.constants as c
@@ -59,7 +61,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> "Dataset":
 
 
 def load_hf_dataset(
-    repo_id: str = None,
+    repo_id: Optional[str] = None,
     to_csv: bool = False,
     file_path: PathLike = None,
     **kwargs,
@@ -78,7 +80,7 @@ def load_hf_dataset(
     login_hf_hub()
 
     if repo_id is None:
-        repo_id = c.HF_DATASET_REPO
+        repo_id = c.HF_DATASET_NAME
 
     logger.info(f"Loading dataset from {repo_id}.")
     dataset = load_dataset(repo_id, **kwargs)

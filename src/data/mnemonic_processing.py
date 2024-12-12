@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING, no_type_check
 from warnings import warn
 
 import pandas as pd
@@ -21,6 +22,10 @@ from tqdm import tqdm
 from typing_extensions import Annotated
 from yaml import safe_load
 
+if TYPE_CHECKING:
+    from openai import Response
+
+from utils.aliases import PathLike
 from utils.constants import (
     CLASSIFIED_DATASET_CSV,
     CLASSIFIED_DATASET_PARQUET,
@@ -46,7 +51,7 @@ logger.handlers[0].setFormatter(formatter)
 client = OpenAI()
 
 # Load config and prompts
-with Path.open("config/classify_mnemonics.yaml", "r") as f:
+with Path("config/classify_mnemonics.yaml").open("r") as f:
     classification_conf = safe_load(f)  # dict of config
     batch_size = classification_conf["batch_size"]
 
@@ -66,20 +71,20 @@ class ClassificationSchema(BaseModel):
     classifications: list[ValidClassification]
 
 
-def combine_key_value(path: str) -> list[str]:
+def combine_key_value(path: PathLike) -> list[str]:
     """Load 2-column data from a file, to format: key: value.
 
     Args:
-        path (str): The path to the file containing the 2-column data.
+        path (PathLike): The path to the file containing the 2-column data.
 
     Returns:
         combined_col (list[str]): The combined key and value columns.
     """
-    path = check_file_path(path, extensions=[PARQUET_EXT, CSV_EXT])
+    path_obj: Path = check_file_path(path, extensions=[PARQUET_EXT, CSV_EXT])
 
-    if path.suffix == PARQUET_EXT:
+    if path_obj.suffix == PARQUET_EXT:
         df = pd.read_parquet(path, engine="pyarrow")
-    elif path.suffix == CSV_EXT:
+    elif path_obj.suffix == CSV_EXT:
         df = pd.read_csv(path, header="infer", quotechar='"')
 
     logger.info(f"Read {df.shape[0]} rows from {str(path)}.")
@@ -137,7 +142,7 @@ def create_batches(data: list[str], batch_size=batch_size) -> list[str]:
     before=before_log(logger, logging.WARNING),
     after=after_log(logger, logging.WARNING),
 )
-def classify_mnemonics_api(batches: list[str]):
+def classify_mnemonics_api(batches: str | list[str]):
     """Classify mnemonics using OpenAI's API, GPT-4o mini and return the responses as JSON array of numbers. Retry up to 3 times if rate limited.
 
     Args:
@@ -182,7 +187,7 @@ def get_structured_response(
     batch: str,
     model_config: dict,
     response_format: BaseModel = ClassificationSchema,
-):
+) -> dict:  # mypy: ignore
     """Get response from OpenAI API. Documentation: https://platform.openai.com/docs/guides/structured-outputs/how-to-use.
 
     Args:
@@ -192,7 +197,7 @@ def get_structured_response(
         response_format (BaseModel, optional): The response format. Defaults to ClassificationSchema.
 
     Returns:
-        structure_msg (message object from OpenAI's Response object): A structured message object.
+        structure_msg (dict = openai.Response...message): The structured message object.
     """
     try:
         structure_msg = (
@@ -202,7 +207,7 @@ def get_structured_response(
                     {"role": "system", "content": model_config["prompts"]["system"]},
                     {
                         "role": "user",
-                        "content": f"{model_config["prompts"]["user"]}{batch}",
+                        "content": model_config["prompts"]["user"] + batch,
                     },
                 ],
                 max_tokens=batch_size * 3 + 1,  # 3 tokens per mnemonic
@@ -230,18 +235,21 @@ def get_structured_response(
             raise e
 
 
+@no_type_check
 def parse_structured_response(
-    structure_msg: object, batch: str, batch_index: int
-) -> list[int | str]:
+    structure_msg: object,
+    batch: str,
+    batch_index: int,
+) -> list[int]:
     """Parse the structured message from OpenAI's API.
 
     Args:
-        structure_msg (message object from OpenAI's Response object): A structured message object.
+        structure_msg (openai.Response...message): The structured message object.
         batch (str): The batch of mnemonics.
         batch_index (int): The index of the batch.
 
     Returns:
-        classification_batch_i (list[int|str]): The list of parsed categories.
+        (list[int]): The list of parsed categories.
     """
     try:
         if structure_msg.parsed:
@@ -286,14 +294,14 @@ def parse_structured_response(
 
 
 def save_structured_outputs(
-    outputs: list[ValidClassification], input_path: str | Path, output_path: str | Path
+    outputs: list[ValidClassification], input_path: PathLike, output_path: PathLike
 ):
     """Save the classification results to an existing file of mnemonics.
 
     Args:
         outputs (list[ValidClassification]): The list of parsed categories.
-        input_path (str | Path): The path to the file containing the mnemonics.
-        output_path (str | Path): The path to .csv or .parquet file to write the parsed.
+        input_path (PathLike): The path to the file containing the mnemonics.
+        output_path (PathLike): The path to .csv or .parquet file to write the parsed.
 
     Raises:
         ValueError: If the output file is not in parquet or csv format.
