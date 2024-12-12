@@ -2,7 +2,7 @@
 
 from enum import Enum
 from pathlib import Path
-from typing import TypeAlias
+from typing import Optional, TypeAlias
 from warnings import warn
 
 from utils.aliases import ExtensionsType, PathLike
@@ -51,7 +51,7 @@ def validate_and_normalize_extensions(extensions: ExtensionsType) -> list[str]:
     return extensions
 
 
-def check_extension(path: Path, extensions: list[str]):
+def check_extension(path: Path, extensions: ExtensionsType) -> None:
     """Check if the path has one of the allowed extensions."""
     if extensions and path.suffix not in extensions:
         raise ValueError(
@@ -92,7 +92,7 @@ def check_file_path(
 def check_dir_path(
     dir_path: PathLike,
     new_ok: bool = False,
-    extensions: list[str] = None,
+    extensions: Optional[list[str]] = None,
 ) -> Path | list[Path]:
     """Check if the directory path exists, convert it to a Path object if it is a string, and return it. Optionally, check if the directory contains files with the specified extensions.
 
@@ -129,21 +129,21 @@ def check_dir_path(
 
 
 def which_file_exists(
-    *files: list[Path] | list[str], extensions: ExtensionsType = None
+    *files: list[PathLike], extensions: Optional[ExtensionsType] = None
 ) -> Path:
     """Return the first file found in the list of files. Optionally, return the first file with the specified extensions.
 
     Args:
-        files (list[Path] | list[str]): The list of files to check.
+        files (list[PathLike]): The list of files to check.
         extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
 
     Returns:
-        file (Path): The first file found in the list.
+        file_path (Path): The first file found in the list.
     """
     for file in files:
-        file = check_file_path(file, new_ok=True, extensions=extensions)
-        if file.exists():
-            return file
+        file_path: Path = check_file_path(file, new_ok=True, extensions=extensions)
+        if file_path.exists():
+            return file_path
 
     raise FileNotFoundError(
         f"None of the specified files were found: {[str(p) for p in files]}."

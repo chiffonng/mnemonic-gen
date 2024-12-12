@@ -24,8 +24,9 @@ SUBCATEGORY_COL = "subcategory"
 CATEGORY_NAMES = ["unsure", "shallow-encoding", "deep-encoding", "mixed"]
 CATEGORY_DICT = {name: i for i, name in enumerate(CATEGORY_NAMES)}
 
-# Hugging Face datasets
-HF_DATASET_REPO = "chiffonng/mnemonic-sft"  # <user>/<dataset_name>
+# Hugging Face collection
+HF_DATASET_NAME = "chiffonng/en-vocab-mnemonics"  # <user>/<dataset_name>
+HF_MODEL_NAME = "chiffonng/gemma2-9b-it-mnemonics"  # <user>/<model_name>
 
 # Model paths
-CHECKPOINT_DIR = "ckpt"
+OUTPUT_DIR = "output"
