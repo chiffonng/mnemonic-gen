@@ -42,7 +42,7 @@ Otherwise, you can try the setup script:
 bash setup.sh
 ```
 
-It attempts to install with [uv](https://docs.astral.sh/uv/) (a fast, Rust-based Python package and project manager) using `.python-version` file and `pyproject.toml` file. This is the recommended way to manage the project, since its resolver is faster and more reliable than `pip`.
+It attempts to install with [uv](https://docs.astral.sh/uv/) (a fast, Rust-based Python package and project manager) using `pyproject.toml` file. This is the recommended way to manage the project, since its dependency resolver is faster and more reliable than `pip`.
 
 Otherwise, it falls back to `pip` installation.
 
