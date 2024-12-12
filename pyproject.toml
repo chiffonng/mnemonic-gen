@@ -5,9 +5,11 @@ description = "Generate mnemonic sentences for English words"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+  "accelerate>=1.0.1",
   "datasets",             # Hugging Face datasets
   "evaluate",             # HF evaluation
-  "gradio>=4.26.0",       # Web app
+  "gradio>=4.26.0",
+  "hf-transfer>=0.1.8",   # Web app
   "numpy<2.0.0",          # Wait for other packages to update
   "openai>=1.57.0",
   "peft",                 # HF parameter-efficient training
@@ -15,8 +17,9 @@ dependencies = [
   "python-dotenv>=1.0.1", # Load environment variables
   "pyyaml>=6.0.2",        # YAML config
   "ruff>=0.7.1",
+  "spaces>=0.31.0",
   "tenacity>=9.0.0",      # Retry (e.g. API calls)
-  "torch>=2.5.1",         # PyTorch
+  "torch>=2.4.0",         # PyTorch
   "tqdm>=4.67.1",         # Progress bar
   "transformers",         # HF transformers
   "trl",                  # HF transformer reinforcement learning
