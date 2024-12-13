@@ -1,0 +1,401 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt, onecolumn]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[review]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+% \usepackage{biblatex}
+\usepackage{geometry}
+\setlength{\parskip}{0.3em} % space between paragraphs
+\setlength{\parindent}{0pt} % no indentation
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\newcounter{para}
+\newcommand\numpara{\par\refstepcounter{para}{\thepara}.\space\textbf}
+
+% Alternative
+%\newcommand\numpara[1]{\par\refstepcounter{para}\textbf{\thepara. \space#1\space}}
+
+\title{\textsc{MnemonicChat}: Personalizing English Vocabulary Learning through LLM-Generated Mnemonics and Student Feedback}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a separate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{My Chiffon Nguyen \\
+  Minerva University \\
+  \texttt{chiffonng@uni.minerva.edu}}
+
+%\author{
+%  \textbf{First Author\textsuperscript{1}},
+%  \textbf{Second Author\textsuperscript{1,2}},
+%  \textbf{Third T. Author\textsuperscript{1}},
+%  \textbf{Fourth Author\textsuperscript{1}},
+%\\
+%  \textbf{Fifth Author\textsuperscript{1,2}},
+%  \textbf{Sixth Author\textsuperscript{1}},
+%  \textbf{Seventh Author\textsuperscript{1}},
+%  \textbf{Eighth Author \textsuperscript{1,2,3,4}},
+%\\
+%  \textbf{Ninth Author\textsuperscript{1}},
+%  \textbf{Tenth Author\textsuperscript{1}},
+%  \textbf{Eleventh E. Author\textsuperscript{1,2,3,4,5}},
+%  \textbf{Twelfth Author\textsuperscript{1}},
+%\\
+%  \textbf{Thirteenth Author\textsuperscript{3}},
+%  \textbf{Fourteenth F. Author\textsuperscript{2,4}},
+%  \textbf{Fifteenth Author\textsuperscript{1}},
+%  \textbf{Sixteenth Author\textsuperscript{1}},
+%\\
+%  \textbf{Seventeenth S. Author\textsuperscript{4,5}},
+%  \textbf{Eighteenth Author\textsuperscript{3,4}},
+%  \textbf{Nineteenth N. Author\textsuperscript{2,5}},
+%  \textbf{Twentieth Author\textsuperscript{1}}
+%\\
+%\\
+%  \textsuperscript{1}Affiliation 1,
+%  \textsuperscript{2}Affiliation 2,
+%  \textsuperscript{3}Affiliation 3,
+%  \textsuperscript{4}Affiliation 4,
+%  \textsuperscript{5}Affiliation 5
+%\\
+%  \small{
+%    \textbf{Correspondence:} \href{mailto:email@domain}{email@domain}
+%  }
+%}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+PLACEHOLDER\footnote{\href{https://github.com/chiffonng/mnemonic-gen}{https://github.com/chiffonng/mnemonic-gen}}
+\end{abstract}
+
+\section{Introduction}
+Language learners, particularly at intermediate to advanced levels, face persistent challenges in retaining an ever-expanding vocabulary [cite]. Mnemonics are cognitive tools that help learners create associations between new vocabulary and something familiar (such as a familiar image or sounds), facilitating retention and recall. The deeper leaners cognitively engage with the connection between the mnemonic and the target term, the better they are able to remember the term in the long term [cite]. However, creating mnemonics manually is a labor-intensive process that demands both linguistic knowledge and creative effort.
+
+To ease these burdens, prior works have automated mnemonic generation through computational methods, with a focus on \textit{keyword mnemonics}. \textsc{TransPhoner}  generates mnemonic keywords by aligning phonetic similarities and semantic meanings across languages; for instance, it might link the Spanish word "correr" (to run) with the English word "corridor," encouraging learners to visualize running down a corridor. Building upon this, \textsc{SmartPhone} utilizes large language models (LLMs) to produce both verbal and visual cues, creating sentences that incorporate the target term and its mnemonic keyword, accompanied by corresponding images to strengthen the association. The \textsc{Overgenerate-and-Rank} approach prompts LLMs to generate multiple mnemonic options, which are then evaluated based on factors like imageability and coherence. The \textsc{Smart} system advances this field by fine-tuning LLaMA-2 70B on a crowdsourced dataset of mnemonics, aiming to align outputs with student preferences. By collecting both explicit ratings and data on actual learning outcomes through a flashcard application, \textsc{Smart} employs Bayesian synthesis to integrate these insights into a unified effectiveness measure. This signal guides Direct Preference Optimization to ensure that the generated mnemonics are both engaging and effective for learners.
+
+Despite their contributions, these methods have two limitations. First, they predominantly focus on keyword method, which is a common mnemonic technique in learning foreign languages.
+
+Second,
+
+limited control over the generated mnemonics, which may not align with individual learning preferences.
+
+In this paper, we propose a novel approach to mnemonic generation that addresses these limitations. We introduce \textsc{MnemonicChat}, a system that generates mnemonics for English vocabulary through a combination of LLM-generated mnemonics and student feedback. \textsc{MnemonicChat} leverages the strengths of both LLM and human intelligence, providing learners with engaging, memorable, and effective mnemonics that cater to their individual learning preferences. Our system is designed to be user-centric, allowing learners to interact with the system through a chatbot interface, providing feedback on the generated mnemonics, and receiving personalized recommendations based on their preferences. We evaluate \textsc{MnemonicChat} through a series of experiments to assess the diversity, memorability, and engagement of the generated mnemonics, as well as the effectiveness of the system in facilitating vocabulary learning.
+\section{Preliminaries}
+
+\subsection{Mnemonics}
+
+Mnemonics are cognitive strategies that facilitate memory retention by forming associations between new information and pre-existing knowledge. These techniques are categorized based on the depth of cognitive processing they engage:
+
+\paragraph{Shallow-encoding} These involve surface-level associations, such as phonetic mnemonics, where the sound of a new term is linked to familiar words or phrases.
+\paragraph{Deep-encoding} These involve meaningful connections, such as etymological cues that relate a word's origin to its meaning, fostering deeper understanding and recall.
+
+The efficacy of mnemonics is often evaluated through metrics like recall accuracy and retention rates, which can be quantified using statistical measures such as mean recall scores and retention intervals.
+
+\subsection{Neural Language Models and Transformer Architecture}
+
+Neural language models are probabilistic frameworks that assign probabilities to sequences of words. Given a sequence of tokens \( \mathbf{x} = (x_1, x_2, \ldots, x_T) \), a language model estimates the joint probability \( P(\mathbf{x}) \) as:
+
+\[
+P(\mathbf{x}) = \prod_{t=1}^T P(x_t \mid x_1, x_2, \ldots, x_{t-1})
+\]
+
+The Transformer architecture [cite] has become the foundation for many state-of-the-art language models. It employs self-attention mechanisms to capture dependencies across all positions in a sequence, enabling efficient parallelization and effective modeling of long-range relationships. The architecture consists of stacked encoder and decoder layers, each comprising multi-head self-attention and position-wise feed-forward networks.
+
+\subsection{Family of Fine-Tuning Methods}
+Fine-tuning is the process of adapting a pre-trained model to a specific task T or domain D by updating its parameters on a target dataset \(\mathcal{D}\). This process is crucial for leveraging pre-trained models' knowledge and enhancing their performance on downstream tasks.
+
+There are several approaches to fine-tuning, which can be categorized by: 1. the availability of labeled data (supervised vs unsupervised fine-tuning), 2. the extent of parameter updates (full-parameter vs parameter-efficient fine-tuning), and 3. task. We focus on supervised fine-tuning, which involves minimizing a task-specific loss function over a labeled dataset.
+
+\subsubsection{Supervised Fine-Tuning (SFT)}\label{sec:sft}
+
+SFT involves adapting a pre-trained model to a target task by minimizing a task-specific loss function over a labeled dataset. For a dataset \( \mathcal{D} = \{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{x}^{(i)} \) is the input and \( \mathbf{y}^{(i)} \) is the target output, the objective is to minimize:
+
+\[
+\mathcal{L} = \frac{1}{N} \sum_{i=1}^N \ell(f(\mathbf{x}^{(i)}; \theta), \mathbf{y}^{(i)})
+\]
+
+where \( f(\mathbf{x}; \theta) \) represents the model's output with parameters \( \theta \), and \( \ell \) is the loss function, typically cross-entropy loss.
+
+\paragraph{Instruction-Tuning}
+
+Instruction-tuning involves training models on datasets of instruction-response pairs, enabling them to generalize across various tasks described by natural language instructions. This method is effective for tasks where explicit instructions can guide the model's behavior, enhancing its ability to follow diverse prompts. Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) is the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
+
+\[
+\mathcal{L} = \frac{1}{N} \sum_{i=1}^N \ell(f(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}; \theta), \mathbf{y}^{(i)})
+\]
+
+Instruction-tuning can be viewed as a form of supervised fine-tuning where the supervision comes in the form of instructions guiding the desired behavior.
+
+\subsubsection{Parameter-Efficient Fine-Tuning}
+Full-parameter fine-tuning updates \textit{all} parameters of a pre-trained model on the target dataset, which can be computationally expensive and memory-intensive for large models. Parameter-efficient fine-tuning (PEFT) methods adjust only a subset of the parameters, reducing computational and storage requirements while maintaining performance.
+
+The most common PEFT method is Low-Rank Adaptation (LoRA), and its variants. They are used in the training process.
+
+\paragraph{Low-Rank Adaptation (LoRA)}
+It decomposes the weight updates into low-rank matrices, reducing the number of trainable parameters. Specifically, for a weight matrix \( W \in \mathbb{R}^{d \times k} \), LoRA introduces two low-rank matrices \( A \in \mathbb{R}^{d \times r} \) and \( B \in \mathbb{R}^{r \times k} \), where \( 0 < r \ll \min(d, k) \). The adapted weight is:
+
+\[
+W' = W + \alpha \cdot A B
+\]
+
+Here, \( \alpha \) is a scaling factor that controls the contribution of the low-rank adaptation. The rank \( r \) determines the capacity of the adaptation, balancing between expressiveness and efficiency.
+
+LoRA introduces \( 2dr \) trainable parameters (size of \( A \) and \( B \)), which is significantly smaller than the original \( dk \) parameters. This reduction in parameters enables efficient fine-tuning of large models on limited hardware. In practice, LoRA is applied to specific modules of the model, such as attention and feed-forward layers, to balance performance and efficiency.
+
+\subparagraph{Quantized LoRA (QLoRA)}
+
+QLoRA enhances LoRA by applying quantization to the pre-trained model's weights, enabling efficient fine-tuning of large models on limited hardware. Specifically, it utilizes 4-bit quantization to compress the model, allowing backpropagation through the quantized weights into the low-rank adapters. This approach significantly reduces memory usage while preserving performance.
+
+Quantization techniques are used to represent data with fewer bits. In QLoRA, the quantization process involves mapping the high-precision weights to a lower-precision format, which reduces the memory footprint (e.g., from 32-bit floating-point to 4-bit integer). During fine-tuning, gradients are backpropagated through these quantized weights into the low-rank adapters introduced by LoRA.
+
+\subparagraph{Rank-Stabilized LoRA (rsLoRA)}
+
+rsLoRA modifies the scaling factor in LoRA to improve performance across different ranks. The standard scaling factor \( \gamma_r = \alpha / r \) can slow learning for higher ranks. rsLoRA proposes adjusting the scaling factor to \( \gamma_r = \alpha / \sqrt{r} \), enhancing fine-tuning performance without increasing inference costs.
+
+\subsection{Hyperparameter Tuning}
+
+Hyperparameter tuning is the process of optimizing parameters that govern the training process. The goal is to find the hyperparameter set \( \Lambda \) that minimizes the validation loss:
+
+\[
+\Lambda^* = \arg\min_{\Lambda} \mathcal{L}_{\text{val}}(\theta^*(\Lambda))
+\]
+
+where \( \theta^*(\Lambda) \) are the model parameters obtained after training with hyperparameters \( \Lambda \).
+
+In the context of SFT and LoRA, relevant hyperparameters include: learning rate (\( \alpha \)) that controls the step size during gradient descent, batch size (\( B \)) that determines the number of training examples utilized in one iteration, LoRA rank (\( r \)) that determines the dimensionality of the low-rank matrices, and LoRA scaling factor (\( \alpha_{\text{LoRA}} \)) that controls the contribution of the low-rank adaptation in LoRA.
+
+\subsubsection{Population-Based Training}
+
+Population-based training (PBT) is an optimization technique for finding optimal parameters and hyperparameters. It maintains a population of hyperparameter configurations, evolving them over time based on performance. Unlike grid search, which exhaustively evaluates a predefined set of hyperparameters, population-based search explores the hyperparameter space more efficiently by exploiting and exploring promising regions, leading to faster convergence to optimal configurations.
+
+\subsection{Dialogue Systems}
+
+Dialogue systems, or conversational agents, are designed to interact with users through natural language. They can be categorized into two main types: task-oriented systems and open-domain systems. The former focuses on completing specific tasks, while the latter engages in general conversations across various topics (a notable example is OpenAI's ChatGPT).
+
+These systems are effective interface for user interaction, and could be used to collect their feedback on the responses generated by the model, to further align the model's outputs with user preferences.
+
+\section{Method}
+
+\subsection{Data Collection}
+
+To develop a robust dataset of mnemonics, I manually curated approximately 800 examples focusing on abstract and academic terms, employing various mnemonic strategies. This dataset was augmented with the SMART dataset, sourced from mnemonicdictionary.com, and deduplicated to ensure uniqueness. The combined labeled dataset comprises 1,317 examples, categorized by their encoding strategies:
+
+\paragraph{Shallow-Encoding Techniques}: Includes phonetic mnemonics that leverage sound similarities.
+\paragraph{Deep-Encoding Techniques}: Encompasses etymological cues that connect a word's origin to its meaning.
+\paragraph{Mixed Strategies}: Combines elements of both shallow and deep encoding.
+
+This diverse collection serves as a foundation for supervised fine-tuning and model evaluation, aiming to enhance the model's capability to generate effective and varied mnemonics.
+
+\subsection{Data collection}
+\subsection{Turn \textsc{SFT} data into instruction data with Self-Instruct pipeline}
+\subsection{Instruction-tuning Gemma-2}
+\subsection{Hyperparameter tuning}
+\subsection{Chatbot: Interaction with learners and collect user preferences}
+\section{Experiment Setting}
+\section{Results}
+\subsection{Experiment 0: Are mnemonics relevant to the target terms?}
+\subsection{Experiment 1: Are the generated mnemonics diverse?}
+
+\subsection{Experiment 2: Are the generated mnemonics memorable?}
+\subsection{Experiment 3: Does dialogue-based feedback improve mnemonic quality?}
+
+\section{Discussion}
+\section{Conclusion}
+\subsection{Limitations}
+\subsection{Future Work}
+
+The \verb|graphicx| package supports various optional arguments to control the
+appearance of the figure.
+You must include it explicitly in the \LaTeX{} preamble (after the
+\verb|\documentclass| declaration and before \verb|\begin{document}|) using
+\verb|\usepackage{graphicx}|.
+
+\begin{figure}[t]
+  \includegraphics[width=\columnwidth]{example-image-golden}
+  \caption{A figure with a caption that runs for more than one line.
+    Example image is usually available through the \texttt{mwe} package
+    without even mentioning it in the preamble.}
+  \label{fig:experiments}
+\end{figure}
+
+\begin{figure*}[t]
+  \includegraphics[width=0.48\linewidth]{example-image-a} \hfill
+  \includegraphics[width=0.48\linewidth]{example-image-b}
+  \caption {A minimal working example to demonstrate how to place
+    two images side-by-side.}
+\end{figure*}
+
+\subsection{Citations}
+
+\begin{table*}
+  \centering
+  \begin{tabular}{lll}
+    \hline
+    \textbf{Output}           & \textbf{natbib command} & \textbf{ACL only command} \\
+    \hline
+    \citep{Gusfield:97}       & \verb|\citep|           &                           \\
+    \citealp{Gusfield:97}     & \verb|\citealp|         &                           \\
+    \citet{Gusfield:97}       & \verb|\citet|           &                           \\
+    \citeyearpar{Gusfield:97} & \verb|\citeyearpar|     &                           \\
+    \citeposs{Gusfield:97}    &                         & \verb|\citeposs|          \\
+    \hline
+  \end{tabular}
+  \caption{\label{citation-guide}
+    Citation commands supported by the style file.
+    The style is based on the natbib package and supports all natbib citation commands.
+    It also supports commands defined in previous ACL style files for compatibility.
+  }
+\end{table*}
+
+Table~\ref{citation-guide} shows the syntax supported by the style files.
+We encourage you to use the natbib styles.
+You can use the command \verb|\citet| (cite in text) to get ``author (year)'' citations, like this citation to a paper by \citet{Gusfield:97}.
+You can use the command \verb|\citep| (cite in parentheses) to get ``(author, year)'' citations \citep{Gusfield:97}.
+You can use the command \verb|\citealp| (alternative cite without parentheses) to get ``author, year'' citations, which is useful for using citations within parentheses (e.g. \citealp{Gusfield:97}).
+
+A possessive citation can be made with the command \verb|\citeposs|.
+This is not a standard natbib command, so it is generally not compatible
+with other style files.
+
+\subsection{References}
+
+\nocite{Ando2005,andrew2007scalable,rasooli-tetrault-2015}
+
+If your own bib file is named \texttt{custom.bib}, then placing the following before any appendices in your \LaTeX{} file will generate the references section for you:
+\begin{quote}
+\begin{verbatim}
+\bibliography{custom}
+\end{verbatim}
+\end{quote}
+
+You can obtain the complete ACL Anthology as a Bib\TeX{} file from \url{https://aclweb.org/anthology/anthology.bib.gz}.
+To include both the Anthology and your own .bib file, use the following instead of the above.
+\begin{quote}
+\begin{verbatim}
+\bibliography{anthology,custom}
+\end{verbatim}
+\end{quote}
+
+Please see Section~\ref{sec:bibtex} for information on preparing Bib\TeX{} files.
+
+\subsection{Equations}
+
+An example equation is shown below:
+\begin{equation}
+  \label{eq:example}
+  A = \pi r^2
+\end{equation}
+
+Labels for equation numbers, sections, subsections, figures and tables
+are all defined with the \verb|\label{label}| command and cross references
+to them are made with the \verb|\ref{label}| command.
+
+This an example cross-reference to Equation~\ref{eq:example}.
+
+\subsection{Appendices}
+
+Use \verb|\appendix| before any appendix section to switch the section numbering over to letters.
+
+\section{Bib\TeX{} Files}
+\label{sec:bibtex}
+
+Unicode cannot be used in Bib\TeX{} entries, and some ways of typing special characters can disrupt Bib\TeX's alphabetization.
+
+Please ensure that Bib\TeX{} records contain DOIs or URLs when possible, and for all the ACL materials that you reference.
+Use the \verb|doi| field for DOIs and the \verb|url| field for URLs.
+If a Bib\TeX{} entry has a URL or DOI field, the paper title in the references section will appear as a hyperlink to the paper, using the hyperref \LaTeX{} package.
+
+\section*{Acknowledgments}
+
+% Bibliography entries for the entire Anthology, followed by custom entries
+%\bibliography{anthology,custom}
+% Custom bibliography entries only
+\bibliography{custom}
+
+\clearpage
+
+% Minerva specific
+\appendix
+
+\section{HC/LO Appendix}
+\label{sec:hclo}
+
+The first 2 LOs and the first 5 HCs are gradable.
+\subsection{LOs} \label{sec:los}
+\numpara{CS110-codeReadability}
+\numpara{CS156-MLCode}
+\numpara{CS156-MLExplanation} Write a final report that includes diagrams, charts, tables and textual explanation of the machine learning techniques used in fine-tuning
+\numpara{CS162-separationofconcerns} Write separate Python modules for different tasks (processing data, classifying mnemonics, fine-tuning models). Each function or class is designed to do one thing well.
+\numpara{CS162-communication} Document the codebase to the industry standard, including README, issues, and pull requests. Python modules will be linted and formatted by Ruff (compatible with flake8-, black- and isort). Use Google convention for comments and docstrings. \verb|mypy| is used for type checking.
+\subsection{HCs} \label{sec:hcs}
+\numpara{gapanalysis}	Literature review on mnemonic generation, to identify what previous approaches lack (i.e. their focus on keyword mnemonics, and more learner engagement with the process of mnemonic creation)
+\numpara{hypothesisdevelopment}
+\numpara{algorithms} Use machine learning algorithms for fine-tuning the language model, necessitating a deep understanding of how these algorithms work and can be optimized.
+\numpara{optimization} Selectively choose proper supervised fine-tuning techniques and optimization techniques such as hyperparameter tuning will be crucial to achieving the best performance
+\numpara{audience} Keep researchers in mind for the paper, and keep coders in mind for my coding project (make sure code is well-documented)
+
+\numpara{organization} Currently, the organization of sections roughly follow ACL template (Association of Computational Linguistics), so it follows the flow of a research paper better.
+
+\subsection{Why finetuning?}
+\subsubsection{The word "mnemonic" is skewed towards acronyms in training data for LLMs}
+\subsection{Why finetuning Gemma-2?}
+
+Among off-the-shelf language models, only OpenAI has fine-tuning
+
+\end{document}
