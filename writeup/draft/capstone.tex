@@ -1,4 +1,3 @@
-% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
 \pdfoutput=1
 % In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
 
@@ -61,22 +60,22 @@
 \title{\textsc{MnemonicChat}: Personalizing English Vocabulary Learning through LLM-Generated Mnemonics and Student Feedback}
 
 % Author information can be set in various styles:
-% For several authors from the same institution:
+% For several author from the same institution:
 % \author{Author 1 \and ... \and Author n \\
 %         Address line \\ ... \\ Address line}
 % if the names do not fit well on one line use
 %         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
-% For authors from different institutions:
+% For author from different institutions:
 % \author{Author 1 \\ Address line \\  ... \\ Address line
 %         \And  ... \And
 %         Author n \\ Address line \\ ... \\ Address line}
-% To start a separate ``row'' of authors use \AND, as in
+% To start a separate ``row'' of author use \AND, as in
 % \author{Author 1 \\ Address line \\  ... \\ Address line
 %         \AND
 %         Author 2 \\ Address line \\ ... \\ Address line \And
 %         Author 3 \\ Address line \\ ... \\ Address line}
 
-\author{My Chiffon Nguyen \\
+\author{My (Chiffon) Nguyen \\
   Minerva University \\
   \texttt{chiffonng@uni.minerva.edu}}
 
@@ -121,48 +120,69 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-PLACEHOLDER\footnote{\href{https://github.com/chiffonng/mnemonic-gen}{https://github.com/chiffonng/mnemonic-gen}}
+Vocabulary retention challenges many English learners, especially at advanced levels. While mnemonics aid memory, current automated approaches rely heavily on shallow-encoding strategies like keyword mnemonics, limiting their effectiveness for abstract vocabulary. Moreover, these methods lack user engagement, stripping learners of the benefits of self-created mnemonics. To address these gaps, we introduce \textsc{MnemonicChat}, a chatbot leveraging a fine-tuned Gemma-2-9B-it model to generate diverse mnemonics using proven vocabulary strategies. Through user interaction (user prompts), the system adapts mnemonics to individual preferences, enhancing engagement and learning outcomes. Current progress includes model fine-tuning and chatbot integration. Instruction-tuning dataset, experimental results, and references\footnote{Currently the citations and references could not be rendered on our Latex engine. We will fix this issue in the next version of the paper.} will be added in future iterations during winter break and Jan 2025.\footnote{\href{https://github.com/chiffonng/mnemonic-gen}{https://github.com/chiffonng/mnemonic-gen}}
 \end{abstract}
 
-\section{Introduction}
+\section{Introduction} \label{sec:intro}
 Language learners, particularly at intermediate to advanced levels, face persistent challenges in retaining an ever-expanding vocabulary [cite]. Mnemonics are cognitive tools that help learners create associations between new vocabulary and something familiar (such as a familiar image or sounds), facilitating retention and recall. The deeper leaners cognitively engage with the connection between the mnemonic and the target term, the better they are able to remember the term in the long term [cite]. However, creating mnemonics manually is a labor-intensive process that demands both linguistic knowledge and creative effort.
 
-To ease these burdens, prior works have automated mnemonic generation through computational methods, with a focus on \textit{keyword mnemonics}. \textsc{TransPhoner}  generates mnemonic keywords by aligning phonetic similarities and semantic meanings across languages; for instance, it might link the Spanish word "correr" (to run) with the English word "corridor," encouraging learners to visualize running down a corridor. Building upon this, \textsc{SmartPhone} utilizes large language models (LLMs) to produce both verbal and visual cues, creating sentences that incorporate the target term and its mnemonic keyword, accompanied by corresponding images to strengthen the association. The \textsc{Overgenerate-and-Rank} approach prompts LLMs to generate multiple mnemonic options, which are then evaluated based on factors like imageability and coherence. The \textsc{Smart} system advances this field by fine-tuning LLaMA-2 70B on a crowdsourced dataset of mnemonics, aiming to align outputs with student preferences. By collecting both explicit ratings and data on actual learning outcomes through a flashcard application, \textsc{Smart} employs Bayesian synthesis to integrate these insights into a unified effectiveness measure. This signal guides Direct Preference Optimization to ensure that the generated mnemonics are both engaging and effective for learners.
+To ease these burdens, prior works have automated mnemonic generation through computational methods, with a focus on \textit{keyword mnemonics}. \textsc{TransPhoner} generates mnemonic keywords by aligning phonetic similarities and semantic meanings across languages; for instance, it might link the Spanish word "correr" (to run) with the English word "corridor," encouraging learners to visualize running down a corridor. Building upon this, \textsc{SmartPhone} utilizes large language models (LLMs) to produce both verbal and visual cues, creating sentences that incorporate the target term and its mnemonic keyword, accompanied by corresponding images to strengthen the association. The \textsc{Overgenerate-and-Rank} approach prompts LLMs to generate multiple mnemonic options, which are then evaluated based on factors like imageability and coherence. \textsc{Smart} fine-tunes LLaMA-2 70B on a crowdsourced dataset of mnemonics, and aligns outputs with three types of student preferences (explicit ratings and actual learning outcomes). \textsc{Smart} employs Bayesian model to synthesize these preferences into a unified effectiveness measure, which guides Direct Preference Optimization to ensure that the generated mnemonics better align with learners preferences.
 
-Despite their contributions, these methods have two limitations. First, they predominantly focus on keyword method, which is a common mnemonic technique in learning foreign languages.
+Despite their contributions, these methods have two limitations. First, they predominantly focus on keyword method, which proves most effective for concrete and imageable words and is insufficient for abstract vocabulary at higher level of language usage. By focusing on only one common mnemonic strategy, these works overlook the potential benefits of incorporating other vocabulary strategies, such as etymology and related words, which could provide richer learning experiences for immediate and
+advanced learners who need more effective methods to learn abstract or academic vocabulary. Second, prior works passively hands gneerated mnemonics to learners. While \textsc{Smart} was further trained on learner preferences, they were \textit{aggregated}, which may not align with individual learning preferences. Further, research shows that language learners who use self-created mnemonics are more likely to retain them and for longer duration [cite].
 
-Second,
+In this paper, we propose a new approach to mnemonic generation that addresses these limitations. We introduce \textsc{MnemonicChat}, a conversational agent that generates \textbf{more diverse} mnemonics for English vocabulary and invites other users to provide feedback and \textbf{interact with} the created mnemonics through the chatbot interface. The open-source language model Google's Gemma-2-9-it (abbr Gemma-2) was fine-tuned on a curated dataset created using proven mnemonic techniques \textsc{MnemonicsEN}. We evaluate \textsc{MnemonicChat} through a series of experiments to assess the relevance, diversity, and memorability of the generated mnemonics, as well as the effectiveness of the system in facilitating vocabulary learning.
 
-limited control over the generated mnemonics, which may not align with individual learning preferences.
+%\textsc{MnemonicChat} leverages the strengths of both LLM and human intelligence, providing learners with engaging, memorable, and effective mnemonics that cater to their individual learning preferences. Our system is designed to be user-centric, allowing learners to interact with the system through a chatbot interface, providing feedback on the generated mnemonics, and receiving personalized recommendations based on their preferences.
 
-In this paper, we propose a novel approach to mnemonic generation that addresses these limitations. We introduce \textsc{MnemonicChat}, a system that generates mnemonics for English vocabulary through a combination of LLM-generated mnemonics and student feedback. \textsc{MnemonicChat} leverages the strengths of both LLM and human intelligence, providing learners with engaging, memorable, and effective mnemonics that cater to their individual learning preferences. Our system is designed to be user-centric, allowing learners to interact with the system through a chatbot interface, providing feedback on the generated mnemonics, and receiving personalized recommendations based on their preferences. We evaluate \textsc{MnemonicChat} through a series of experiments to assess the diversity, memorability, and engagement of the generated mnemonics, as well as the effectiveness of the system in facilitating vocabulary learning.
+\paragraph{Hypothesis 0 [Relevance]} If \textsc{MnemonicChat} is fine-tuned on \textsc{MnemonicsEN}, its generated mnemonics are semantically relevant to the meaning of the target vocabulary, because the fine-tuning process aligns the model's outputs with the train data \textsc{MnemonicsEN}, which contains such associations. (\ref{sec:relevant})
+
+\paragraph{Hypothesis 1 [Diversity]} If \textsc{MnemonicChat} incorporates multiple mnemonic strategies, then it will produce a more diverse set of mnemonics, because varying strategies cater to different learning styles and word types. (\ref{sec:diverse-style})
+\paragraph{Hypothesis 2 [Helpfulness]} If \textsc{MnemonicChat} aligns its outputs with individual learner feedback, then the generated mnemonics will be perceived as more helpful, because personalized content better addresses learners' unique needs. (\ref{sec:model-comparison})
+
+%TODO: Fix the wording and how it is measured
+\paragraph{Hypothesis 3 [Engagement]} If \textsc{MnemonicChat} takes on the conversational format, then users will have deeper engagement with English vocabulary, since they participate in creating mnemonics. \ref{sec:engagement}
+
 \section{Preliminaries}
 
-\subsection{Mnemonics}
+\subsection{Mnemonics} \label{sec:pre-mnemonics}
 
-Mnemonics are cognitive strategies that facilitate memory retention by forming associations between new information and pre-existing knowledge. These techniques are categorized based on the depth of cognitive processing they engage:
+Mnemonics are cognitive strategies that facilitate memory retention by forming associations between new information and pre-existing knowledge. These techniques can be categorized based on the depth of cognitive processing they engage:
 
 \paragraph{Shallow-encoding} These involve surface-level associations, such as phonetic mnemonics, where the sound of a new term is linked to familiar words or phrases.
 \paragraph{Deep-encoding} These involve meaningful connections, such as etymological cues that relate a word's origin to its meaning, fostering deeper understanding and recall.
 
 The efficacy of mnemonics is often evaluated through metrics like recall accuracy and retention rates, which can be quantified using statistical measures such as mean recall scores and retention intervals.
 
-\subsection{Neural Language Models and Transformer Architecture}
+\subsection{Neural Language Models and Transformer Architecture} \label{sec:pre-lm}
 
-Neural language models are probabilistic frameworks that assign probabilities to sequences of words. Given a sequence of tokens \( \mathbf{x} = (x_1, x_2, \ldots, x_T) \), a language model estimates the joint probability \( P(\mathbf{x}) \) as:
+Neural language models (LMs) are probabilistic frameworks that assign probabilities to sequences of words or subword units, known as tokens. A token is the smallest unit of text that the model processes, which can be as granular as individual characters, subwords, or entire words, depending on the tokenization strategy employed.
+
+Given a sequence of tokens \( \mathbf{x} = (x_1, x_2, \ldots, x_T) \), a language model estimates the joint probability \( P(\mathbf{x}) \) by factorizing it into conditional probabilities:
 
 \[
 P(\mathbf{x}) = \prod_{t=1}^T P(x_t \mid x_1, x_2, \ldots, x_{t-1})
 \]
 
-The Transformer architecture [cite] has become the foundation for many state-of-the-art language models. It employs self-attention mechanisms to capture dependencies across all positions in a sequence, enabling efficient parallelization and effective modeling of long-range relationships. The architecture consists of stacked encoder and decoder layers, each comprising multi-head self-attention and position-wise feed-forward networks.
+At each timestep \( t \), the model predicts the next token \( x_t \) based on the preceding sequence \( (x_1, x_2, \ldots, x_{t-1}) \). This autoregressive approach enables the generation of coherent text by sequentially predicting subsequent tokens.
+
+The Transformer architecture [cite] underpins many state-of-the-art language models due to its efficiency and capability to model long-range dependencies. It utilizes self-attention mechanisms to weigh the relevance of each token in a sequence relative to others, regardless of their positions. The architecture comprises stacked layers, each including multi-head self-attention and position-wise feed-forward networks, facilitating parallelization and effective learning of complex patterns in data.
+
+\subsubsection{Tokenizer} \label{sec:pre-tokenizer}
+
+A tokenizer is a preprocessing tool that converts raw text into tokens, aligning the text with the LM's vocabulary. Tokenizers can employ various strategies, such as word-based, character-based, or subword-based tokenization, each with distinct advantages and use cases.
+
+\paragraph{Byte Pair Encoding (BPE)} is a subword tokenization algorithm that operates on the byte representation of text, enabling consistent handling of various scripts and special characters. It iteratively merges the most frequent pairs of adjacent bytes to form subword units, constructing a vocabulary that efficiently represents the training corpus. This method allows the tokenizer to decompose rare words into meaningful subword components, enhancing the model's capacity to process diverse and unseen terms.
+
+For instance, the word "preposterous" might be tokenized into subwords like "pre", "post", and "erous," facilitating the model's understanding and generation of such terms. Subword tokenization is particularly effective for handling morphologically complex languages and out-of-vocabulary words, enhancing the model's robustness and generalization capabilities.
+
 
 \subsection{Family of Fine-Tuning Methods}
 Fine-tuning is the process of adapting a pre-trained model to a specific task T or domain D by updating its parameters on a target dataset \(\mathcal{D}\). This process is crucial for leveraging pre-trained models' knowledge and enhancing their performance on downstream tasks.
 
 There are several approaches to fine-tuning, which can be categorized by: 1. the availability of labeled data (supervised vs unsupervised fine-tuning), 2. the extent of parameter updates (full-parameter vs parameter-efficient fine-tuning), and 3. task. We focus on supervised fine-tuning, which involves minimizing a task-specific loss function over a labeled dataset.
 
-\subsubsection{Supervised Fine-Tuning (SFT)}\label{sec:sft}
+\subsubsection{Supervised Fine-Tuning (SFT)}\label{sec:pre-sft}
 
 SFT involves adapting a pre-trained model to a target task by minimizing a task-specific loss function over a labeled dataset. For a dataset \( \mathcal{D} = \{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{x}^{(i)} \) is the input and \( \mathbf{y}^{(i)} \) is the target output, the objective is to minimize:
 
@@ -172,22 +192,22 @@ SFT involves adapting a pre-trained model to a target task by minimizing a task-
 
 where \( f(\mathbf{x}; \theta) \) represents the model's output with parameters \( \theta \), and \( \ell \) is the loss function, typically cross-entropy loss.
 
-\paragraph{Instruction-Tuning}
+\paragraph{Instruction-Tuning} \label{sec:pre-it}
 
-Instruction-tuning involves training models on datasets of instruction-response pairs, enabling them to generalize across various tasks described by natural language instructions. This method is effective for tasks where explicit instructions can guide the model's behavior, enhancing its ability to follow diverse prompts. Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) is the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
+Instruction-tuning is a specialized form of SFT where models are trained on datasets comprising instruction-response pairs. This approach enables models to generalize across various tasks described by natural language instructions, enhancing their ability to follow diverse prompts. Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) denotes the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
 
 \[
 \mathcal{L} = \frac{1}{N} \sum_{i=1}^N \ell(f(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}; \theta), \mathbf{y}^{(i)})
 \]
 
-Instruction-tuning can be viewed as a form of supervised fine-tuning where the supervision comes in the form of instructions guiding the desired behavior.
+where \( f \) represents the model parameterized by \( \theta \), and \( \ell \) is the loss function measuring the discrepancy between the model's prediction and the target output.
 
-\subsubsection{Parameter-Efficient Fine-Tuning}
+\subsubsection{Parameter-Efficient Fine-Tuning} \label{sec:peft}
 Full-parameter fine-tuning updates \textit{all} parameters of a pre-trained model on the target dataset, which can be computationally expensive and memory-intensive for large models. Parameter-efficient fine-tuning (PEFT) methods adjust only a subset of the parameters, reducing computational and storage requirements while maintaining performance.
 
 The most common PEFT method is Low-Rank Adaptation (LoRA), and its variants. They are used in the training process.
 
-\paragraph{Low-Rank Adaptation (LoRA)}
+\paragraph{Low-Rank Adaptation (LoRA)} \label{sec:pre-lora}
 It decomposes the weight updates into low-rank matrices, reducing the number of trainable parameters. Specifically, for a weight matrix \( W \in \mathbb{R}^{d \times k} \), LoRA introduces two low-rank matrices \( A \in \mathbb{R}^{d \times r} \) and \( B \in \mathbb{R}^{r \times k} \), where \( 0 < r \ll \min(d, k) \). The adapted weight is:
 
 \[
@@ -198,17 +218,17 @@ Here, \( \alpha \) is a scaling factor that controls the contribution of the low
 
 LoRA introduces \( 2dr \) trainable parameters (size of \( A \) and \( B \)), which is significantly smaller than the original \( dk \) parameters. This reduction in parameters enables efficient fine-tuning of large models on limited hardware. In practice, LoRA is applied to specific modules of the model, such as attention and feed-forward layers, to balance performance and efficiency.
 
-\subparagraph{Quantized LoRA (QLoRA)}
+\subparagraph{Quantized LoRA (QLoRA)} \label{sec:pre-qlora}
 
 QLoRA enhances LoRA by applying quantization to the pre-trained model's weights, enabling efficient fine-tuning of large models on limited hardware. Specifically, it utilizes 4-bit quantization to compress the model, allowing backpropagation through the quantized weights into the low-rank adapters. This approach significantly reduces memory usage while preserving performance.
 
 Quantization techniques are used to represent data with fewer bits. In QLoRA, the quantization process involves mapping the high-precision weights to a lower-precision format, which reduces the memory footprint (e.g., from 32-bit floating-point to 4-bit integer). During fine-tuning, gradients are backpropagated through these quantized weights into the low-rank adapters introduced by LoRA.
 
-\subparagraph{Rank-Stabilized LoRA (rsLoRA)}
+\subparagraph{Rank-Stabilized LoRA (rsLoRA)} \label{sec:pre-rslora}
 
 rsLoRA modifies the scaling factor in LoRA to improve performance across different ranks. The standard scaling factor \( \gamma_r = \alpha / r \) can slow learning for higher ranks. rsLoRA proposes adjusting the scaling factor to \( \gamma_r = \alpha / \sqrt{r} \), enhancing fine-tuning performance without increasing inference costs.
 
-\subsection{Hyperparameter Tuning}
+\subsection{Hyperparameter Tuning} \label{sec:pre-hyperparam-tuning}
 
 Hyperparameter tuning is the process of optimizing parameters that govern the training process. The goal is to find the hyperparameter set \( \Lambda \) that minimizes the validation loss:
 
@@ -220,182 +240,199 @@ where \( \theta^*(\Lambda) \) are the model parameters obtained after training w
 
 In the context of SFT and LoRA, relevant hyperparameters include: learning rate (\( \alpha \)) that controls the step size during gradient descent, batch size (\( B \)) that determines the number of training examples utilized in one iteration, LoRA rank (\( r \)) that determines the dimensionality of the low-rank matrices, and LoRA scaling factor (\( \alpha_{\text{LoRA}} \)) that controls the contribution of the low-rank adaptation in LoRA.
 
-\subsubsection{Population-Based Training}
+\subsubsection{Population-Based Training} \label{sec:pbt}
 
 Population-based training (PBT) is an optimization technique for finding optimal parameters and hyperparameters. It maintains a population of hyperparameter configurations, evolving them over time based on performance. Unlike grid search, which exhaustively evaluates a predefined set of hyperparameters, population-based search explores the hyperparameter space more efficiently by exploiting and exploring promising regions, leading to faster convergence to optimal configurations.
 
-\subsection{Dialogue Systems}
+\subsection{Dialogue Systems} \label{sec:dialogue}
 
 Dialogue systems, or conversational agents, are designed to interact with users through natural language. They can be categorized into two main types: task-oriented systems and open-domain systems. The former focuses on completing specific tasks, while the latter engages in general conversations across various topics (a notable example is OpenAI's ChatGPT).
 
 These systems are effective interface for user interaction, and could be used to collect their feedback on the responses generated by the model, to further align the model's outputs with user preferences.
 
-\section{Method}
+\section{Method} \label{sec:method}
 
-\subsection{Data Collection}
+\subsection{Data Collection} \label{sec:met-data}
 
-To develop a robust dataset of mnemonics, I manually curated approximately 800 examples focusing on abstract and academic terms, employing various mnemonic strategies. This dataset was augmented with the SMART dataset, sourced from mnemonicdictionary.com, and deduplicated to ensure uniqueness. The combined labeled dataset comprises 1,317 examples, categorized by their encoding strategies:
+A total of 1,317 term-mnemonic pairs were compiled. This dataset, denoted as \( \mathcal{D}_{\text{SFT}} \), combines approximately 800 manually curated examples with the \textsc{Smart} dataset, a crowdsourced collection from mnemonicdictionary.com. The dataset was divided into training (80\%, 1,053 examples) and validation (20\%, 264 examples) sets. Additionally, a separate test set of 300 examples was reserved for evaluating the model's performance on unseen data.
 
-\paragraph{Shallow-Encoding Techniques}: Includes phonetic mnemonics that leverage sound similarities.
-\paragraph{Deep-Encoding Techniques}: Encompasses etymological cues that connect a word's origin to its meaning.
-\paragraph{Mixed Strategies}: Combines elements of both shallow and deep encoding.
+The manually curated portion focused on abstract and academic vocabulary, specifically targeting terms that challenge the keyword method. Each example was crafted using diverse vocabulary strategies, including phonetic cues, etymological explanations, morphological breakdowns, and semantic associations. Examples of these strategies are provided in Table~\ref{tab:mnemonic-strategies}. The \textsc{Smart} dataset augmented this curated collection with community-generated examples. To ensure consistency and quality, the dataset underwent preprocessing steps such as deduplication and format normalization. Ambiguous or redundant examples were identified and removed.
 
-This diverse collection serves as a foundation for supervised fine-tuning and model evaluation, aiming to enhance the model's capability to generate effective and varied mnemonics.
+Each example is annotated with its mnemonic strategy type, enabling the model to learn specific patterns associated with different encoding methods. This diversity in mnemonic strategies ensures the model's capability to generate effective and varied mnemonics.
 
-\subsection{Data collection}
-\subsection{Turn \textsc{SFT} data into instruction data with Self-Instruct pipeline}
-\subsection{Instruction-tuning Gemma-2}
-\subsection{Hyperparameter tuning}
-\subsection{Chatbot: Interaction with learners and collect user preferences}
-\section{Experiment Setting}
-\section{Results}
-\subsection{Experiment 0: Are mnemonics relevant to the target terms?}
-\subsection{Experiment 1: Are the generated mnemonics diverse?}
+\begin{table*}[ht]
+\centering
+\begin{tabular}{p{0.45\textwidth} p{0.45\textwidth}}
+\textbf{Shallow-Encoding Strategies} & \textbf{Deep-Encoding Strategies} \\
+\hline
+\textbf{Phonetic Cue:} \textit{Phony} sounds like "phone-y," which can remind one of fraudulent phone calls. & \textbf{Etymology:} \textit{Preposterous} derives from Latin roots "pre" (before) and "post" (after) + "ous", suggesting something absurdly out of order. \\
+\textbf{Acronym:} \textit{Extol} can be remembered as "Everyone eXcitedly Tosses Out Love." & \textbf{Morphology:} The prefix "ab-" means "from" or "away," and the suffix "-ate" typically indicates a verb. \\
+\textbf{Chunking:} \textit{Obsequious} can be broken down phonetically as "ob-se-kwi-us." Obedient servants kiss your ass, since they are obsequious. & \textbf{Contextual Story:} Associating \textit{detrimental} with the story of someone pouring acid on the environment, highlighting its harmful effects. \\
+\textbf{Rhyming:} \textit{Wistful} rhymes with "wishful," linking the idea of longing for the past with wishing for something. & \textbf{Synonym/Antonym:} \textit{Benevolent} means "kind" or "generous," while its antonym \textit{malevolent} means "wishing harm." Both share the Latin root "volent," meaning "wishing." \\
+\textbf{Image Association:} Visualizing an \textit{exuberant} ex-Uber driver who is always lively and ebullient. & \textbf{Related Words:} \textit{Phantasm} relates to "phantom," both referring to ghostly figures or illusions. \\
+\end{tabular}
+\caption{Examples of Mnemonic Strategies for Vocabulary Learning}
+\label{tab:mnemonic-strategies}
+\end{table*}
 
-\subsection{Experiment 2: Are the generated mnemonics memorable?}
-\subsection{Experiment 3: Does dialogue-based feedback improve mnemonic quality?}
+\subsection{Transforming SFT Data into Instruction Data} \label{sec:met-instruction-data}
+
+To adapt the mnemonic dataset for instruction tuning, we transformed each term-mnemonic pair into an instruction-response format, incorporating the annotated mnemonic strategy to generate diverse instructions. Given a dataset \( \mathcal{D}_{\text{SFT}} = \{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}, \mathbf{s}^{(i)})\}_{i=1}^N \), where \( \mathbf{x}^{(i)} \) denotes the target vocabulary term, \( \mathbf{y}^{(i)} \) represents the corresponding mnemonic, and \( \mathbf{s}^{(i)} \) indicates the mnemonic strategy, we constructed a new dataset \( \mathcal{D}_{\text{IT}} = \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) is a natural language instruction derived from both \( \mathbf{x}^{(i)} \) and \( \mathbf{s}^{(i)} \).
+
+To ensure diversity in the natural language instructions, we employed an off-the-shelf language model, such as OpenAI's o1-mini, to generate varied phrasings for each instruction through k-shot prompting.
+
+By utilizing a language model to rephrase instructions, we ensured that each instruction-response pair reflects the intended mnemonic strategy while maintaining linguistic diversity, thereby facilitating effective instruction tuning of the model.
+
+\subsection{Instruction-Tuning Gemma-2} \label{sec:met-it-gemma}
+
+The instruction-tuning phase employed Gemma-2, a Transformer-based language model pre-trained on general language tasks. Gemma-2 was selected for its robust linguistic capabilities and manageable size, facilitating effective fine-tuning within resource-constrained environments. The model was fine-tuned on an instruction-augmented mnemonic dataset to adapt it to generating diverse mnemonics in response to user prompts.
+
+The fine-tuning process was conducted over multiple epochs and evaluated using evaluation loss on validation set. We included frequent checkpoints to monitor performance and prevent overfitting. Early stopping was employed based on evaluation loss to ensure optimal model generalization.
+
+%TODO: Add necessary details about the fine-tuning process, including hyperparameters and optimization techniques. Not too detailed (which can be included in appendix), but enough to understand the process given the preliminaries.
+
+\subsection{Chatbot: Interaction with Learners and Collect User Preferences} \label{sec:met-chatbot}
+
+To bridge the gap between static datasets and real-world application, I developed a chatbot capable of interacting with learners and collecting feedback on generated mnemonics. The chatbot was integrated with the fine-tuned model and deployed on a web-based interface. Users could query the chatbot with vocabulary terms and receive mnemonics generated by the model. Feedback mechanisms allowed users to rate the mnemonics based on their perceived relevance, memorability, and creativity. These ratings were collected alongside user preferences for specific mnemonic strategies, creating a dynamic dataset of user interactions. This feedback loop was designed to evaluate the model’s real-world applicability and inform further iterations of fine-tuning and instruction-tuning.
+
+\section{Results} \label{sec:results}
+\subsection{Baselines} \label{sec:baselines}
+We selected three baselines to evaluate \textsc{MnemonicChat} in pairwise comparisons: \textsc{Smart} (the chosen mnemonics in its preference dataset), one-shot prompting OpenAI (gpt4-o1-mini\footnote{LINK TO gpt4-o1-mini}), one-shot prompting the original Gemma-2 (through HuggingFace \verb|chat| API). To maintain consistency, we use the same prompt, parameters, and vocabulary as the mnemonics in \textsc{Smart}.
+
+\subsection{Are generated mnemonics relevant to the target terms?} \label{sec:relevant}
+
+% TODO: Add actual number of annotated examples and actual results. Mention the problem of semantic similarity here.
+
+To evaluate the relevance of generated mnemonics to their corresponding English words, we employed both human judgment and computational metrics. We calculated the cosine similarity between vector embeddings of the target word and its mnemonic using a pre-trained tokenizer. High cosine similarity scores indicate that the mnemonic captures the semantic essence of the target word, serving as an objective measure of relevance.
+
+For a random subset of generated mnemonics, two human evaluators, comprising linguists and language leaners, rated each mnemonic on a Likert scale from 1 (not relevant) to 5 (highly relevant), considering factors such as semantic alignment and contextual appropriateness. Inter-annotator agreement was measured using Cohen's kappa to ensure consistency among raters.
+
+\paragraph{Results.}
+
+\subsection{Are generated memonics more diverse in style?} \label{sec:diverse-style}
+
+To assess the diversity of the mnemonic dataset, we analyzed the distribution of mnemonic strategies employed, such as phonetic cues, etymological insights, and morphological breakdowns. We computed the Shannon entropy across these categories to quantify diversity; higher entropy values reflect a more varied dataset.
+
+\paragraph{Results.}
+
+\subsection{Pairwise Comparison of Model Responses} \label{sec:model-comparison}
+
+%TODO: Fix the section to use something similar to Chatbot Arena
+
+To compare the quality of responses generated by different models to the same prompt, we conducted pairwise evaluations with two student judges. Using a similar format as Chatbot Arena, they were ask to send one prompt to two blinded models, model $A$ and model $B$, and to express a preference for one response that they found more helpful for recall. All preferences (win, tie, lose of model $A$ over model $B$) were recorded and filtered for only responses that are relevant to the term.
+
+To compare the effectiveness of mnemonics generated by different models, we conducted pairwise comparisons. Participants were presented with two mnemonics for the same target word, each generated by a different model, and asked to choose the one they found more helpful for recall. Preference frequencies were analyzed using the Bradley-Terry model to estimate the relative quality of each model's outputs.
+
+% Additionally, we employed statistical tests, such as the Wilcoxon signed-rank test, to determine if differences in mnemonic quality between models were statistically significant. This rigorous evaluation provided insights into the comparative strengths of each model in generating effective mnemonics.
+
+\paragraph{Results.}
+
+\begin{table} \label{tab:model-comparison}
+  \centering
+  \begin{tabular}{lll}
+
+  \end{tabular}
+\end{table}
+
+\subsection{Are users more engaged with the chatbot interface?} \label{sec:engagement}
+
+\paragraph{Results.}
 
 \section{Discussion}
 \section{Conclusion}
 \subsection{Limitations}
 \subsection{Future Work}
 
-The \verb|graphicx| package supports various optional arguments to control the
-appearance of the figure.
-You must include it explicitly in the \LaTeX{} preamble (after the
-\verb|\documentclass| declaration and before \verb|\begin{document}|) using
-\verb|\usepackage{graphicx}|.
-
-\begin{figure}[t]
-  \includegraphics[width=\columnwidth]{example-image-golden}
-  \caption{A figure with a caption that runs for more than one line.
-    Example image is usually available through the \texttt{mwe} package
-    without even mentioning it in the preamble.}
-  \label{fig:experiments}
-\end{figure}
-
-\begin{figure*}[t]
-  \includegraphics[width=0.48\linewidth]{example-image-a} \hfill
-  \includegraphics[width=0.48\linewidth]{example-image-b}
-  \caption {A minimal working example to demonstrate how to place
-    two images side-by-side.}
-\end{figure*}
-
-\subsection{Citations}
-
-\begin{table*}
-  \centering
-  \begin{tabular}{lll}
-    \hline
-    \textbf{Output}           & \textbf{natbib command} & \textbf{ACL only command} \\
-    \hline
-    \citep{Gusfield:97}       & \verb|\citep|           &                           \\
-    \citealp{Gusfield:97}     & \verb|\citealp|         &                           \\
-    \citet{Gusfield:97}       & \verb|\citet|           &                           \\
-    \citeyearpar{Gusfield:97} & \verb|\citeyearpar|     &                           \\
-    \citeposs{Gusfield:97}    &                         & \verb|\citeposs|          \\
-    \hline
-  \end{tabular}
-  \caption{\label{citation-guide}
-    Citation commands supported by the style file.
-    The style is based on the natbib package and supports all natbib citation commands.
-    It also supports commands defined in previous ACL style files for compatibility.
-  }
-\end{table*}
-
-Table~\ref{citation-guide} shows the syntax supported by the style files.
-We encourage you to use the natbib styles.
-You can use the command \verb|\citet| (cite in text) to get ``author (year)'' citations, like this citation to a paper by \citet{Gusfield:97}.
-You can use the command \verb|\citep| (cite in parentheses) to get ``(author, year)'' citations \citep{Gusfield:97}.
-You can use the command \verb|\citealp| (alternative cite without parentheses) to get ``author, year'' citations, which is useful for using citations within parentheses (e.g. \citealp{Gusfield:97}).
-
-A possessive citation can be made with the command \verb|\citeposs|.
-This is not a standard natbib command, so it is generally not compatible
-with other style files.
-
-\subsection{References}
-
-\nocite{Ando2005,andrew2007scalable,rasooli-tetrault-2015}
-
-If your own bib file is named \texttt{custom.bib}, then placing the following before any appendices in your \LaTeX{} file will generate the references section for you:
-\begin{quote}
-\begin{verbatim}
-\bibliography{custom}
-\end{verbatim}
-\end{quote}
-
-You can obtain the complete ACL Anthology as a Bib\TeX{} file from \url{https://aclweb.org/anthology/anthology.bib.gz}.
-To include both the Anthology and your own .bib file, use the following instead of the above.
-\begin{quote}
-\begin{verbatim}
-\bibliography{anthology,custom}
-\end{verbatim}
-\end{quote}
-
-Please see Section~\ref{sec:bibtex} for information on preparing Bib\TeX{} files.
-
-\subsection{Equations}
-
-An example equation is shown below:
-\begin{equation}
-  \label{eq:example}
-  A = \pi r^2
-\end{equation}
-
-Labels for equation numbers, sections, subsections, figures and tables
-are all defined with the \verb|\label{label}| command and cross references
-to them are made with the \verb|\ref{label}| command.
-
-This an example cross-reference to Equation~\ref{eq:example}.
-
-\subsection{Appendices}
-
-Use \verb|\appendix| before any appendix section to switch the section numbering over to letters.
-
-\section{Bib\TeX{} Files}
-\label{sec:bibtex}
-
-Unicode cannot be used in Bib\TeX{} entries, and some ways of typing special characters can disrupt Bib\TeX's alphabetization.
-
-Please ensure that Bib\TeX{} records contain DOIs or URLs when possible, and for all the ACL materials that you reference.
-Use the \verb|doi| field for DOIs and the \verb|url| field for URLs.
-If a Bib\TeX{} entry has a URL or DOI field, the paper title in the references section will appear as a hyperlink to the paper, using the hyperref \LaTeX{} package.
-
 \section*{Acknowledgments}
-
+\section*{References}
 % Bibliography entries for the entire Anthology, followed by custom entries
 %\bibliography{anthology,custom}
 % Custom bibliography entries only
-\bibliography{custom}
+%\bibliography{custom}
+Currently the citations and references could not be rendered on our Latex engine. We will fix this issue in the next version of the paper.
 
 \clearpage
 
 % Minerva specific
 \appendix
 
+\section{AI statement}
+\label{sec:ai}
+
+ChatGPT 4o was used to debug the code and refine Section \ref{sec:method} and \ref{sec:results} (Method and Results) (keep only the essence).
+
+\section{Progress update}
+\label{sec:progress}
+
+All components described in method section \ref{sec:method} were implemented individiually except for instruction data (section \ref{sec:met-instruction-data}). This component and the experiments mostly involves prompting, model evaluation, and human evaluation (section \ref{sec:results}), which will be done in the winter break and Spring 2025.
+
 \section{HC/LO Appendix}
 \label{sec:hclo}
 
-The first 2 LOs and the first 5 HCs are gradable.
+The first 3 LOs and the first 5 HCs are gradable (1-3 and 6-10). The rest are included for review.
+
 \subsection{LOs} \label{sec:los}
-\numpara{CS110-codeReadability}
-\numpara{CS156-MLCode}
-\numpara{CS156-MLExplanation} Write a final report that includes diagrams, charts, tables and textual explanation of the machine learning techniques used in fine-tuning
-\numpara{CS162-separationofconcerns} Write separate Python modules for different tasks (processing data, classifying mnemonics, fine-tuning models). Each function or class is designed to do one thing well.
-\numpara{CS162-communication} Document the codebase to the industry standard, including README, issues, and pull requests. Python modules will be linted and formatted by Ruff (compatible with flake8-, black- and isort). Use Google convention for comments and docstrings. \verb|mypy| is used for type checking.
+\numpara{CS110-codeReadability} The codebase exemplifies best practices in Python programming, adhering strictly to PEP conventions. Each module is documented with detailed Google-style docstrings and descriptive inline comments to ensure that the logic behind functions and classes is transparent to collaborators and future users. By utilizing tools like Ruff for linting and formatting, and mypy for type-checking, the codebase achieves a consistent style and minimizes errors. Additionally, the inclusion of pre-commit hooks ensures that these standards are maintained across all contributions, fostering a robust and maintainable codebase.
+\numpara{CS156-MLCode} The machine learning pipeline was designed in Python to be both functional and comprehensible. The code integrates data processing, model fine-tuning, and hyperparameter tuning into a seamless pipeline, with each step working and documented. Hyperparameter tuning and model evaluation are explicitly defined in section \ref{sec:method} and appendix \ref{sec:training-details}, ensuring replicability.
+\numpara{CS162-communication} The documentation for strives to adhere to industry standards, by including an informative README, clear issue tracking, and documented pull request. Each module has a module-level docstring and function/class-level docstrings, to ensure that the code is understandable to users and collaborators. Linting and formatting tools, including Ruff and mypy, are employed to enforce consistent and error-free code presentation, to facilitate readability and maintainability for the author and future collaborators (if any).
+\numpara{CS156-MLExplanation} Currently, most details and explanations are defined in section \ref{sec:method} and appendix \ref{sec:training-details}. The final paper will provide more high-level diagrams of the machine learning techniques used in fine-tuning the Gemma-2 model. The supporting diagrams will visualize key processes, such as hyperparameter tuning and model evaluation. It will ensure that the methodology and results are accessible to a less specialized audience.
+\numpara{CS162-separationofconcerns} The codebase is organized into distinct Python modules, each focused on a specific task such as data processing, mnemonic processing, and model fine-tuning. This separation of concerns aligns with best practices in software design, ensuring that each function is highly cohesive and performs a single well-defined responsibility. By maintaining modularity, the codebase facilitates easier debugging, testing, and future scaling, contributing to its long-term maintainability and effectiveness
 \subsection{HCs} \label{sec:hcs}
-\numpara{gapanalysis}	Literature review on mnemonic generation, to identify what previous approaches lack (i.e. their focus on keyword mnemonics, and more learner engagement with the process of mnemonic creation)
-\numpara{hypothesisdevelopment}
-\numpara{algorithms} Use machine learning algorithms for fine-tuning the language model, necessitating a deep understanding of how these algorithms work and can be optimized.
-\numpara{optimization} Selectively choose proper supervised fine-tuning techniques and optimization techniques such as hyperparameter tuning will be crucial to achieving the best performance
-\numpara{audience} Keep researchers in mind for the paper, and keep coders in mind for my coding project (make sure code is well-documented)
+\numpara{gapanalysis}	Section \ref{sec:intro} provides a gap analysis of previous works on mnemonic generation, identifying the limitations of existing approaches and the need for a more diverse and engaging mnemonic generation system. Appendix \ref{sec:keyword-method} elaborates on how the keyword method lacks effectiveness for abstract vocabulary. Additionally, existing methods often neglect to actively engage learners in the mnemonic creation process. These identified gaps serve as the impetus for developing the current work to address these shortcomings.
+\numpara{hypothesisdevelopment} The hypotheses in Section \ref{sec:intro} are formulated to test the efficacy of the proposed mnemonic generation system \textsc{MnemonicChat}. These hypotheses closely follow the format If-Then-Because, providing both clear predictions and justifications for the expected outcomes, such as higher cosine similarity scores for relevance (section \ref{sec:relevant}) and increased user interaction for engagement \ref{sec:engagement}. The hypotheses also address difference aspects of the generated mnemonics and the system itself. Section \ref{sec:results} show that they are testable by providing specific metrics and evaluation methods. By framing these claims as testable hypotheses, the project establishes a rigorous framework for evaluating the system’s performance and validating its effectiveness through empirical analysis.
+\numpara{optimization} To enhance refine the system performance and enhance its ability to generate effective mnemonics, the project employs a systematic optimization process. The objective function is to minimize the evaluation loss on the validation set (while the training is done on the training set). Appropriate fine-tuning strategies are selected, such as LoRA and instruction tuning, and hyperparameters are systemmatically tuned (section \ref{sec:pre-hyperparam-tuning}). This iterative optimization process is crucial for ensuring that \textsc{MnemonicChat} produces mnemonics that align with learner needs and facilitate effective vocabulary acquisition.
+\numpara{audience} Throughout the project, careful consideration is given to the intended audience for both the research paper and the coding project. The research paper is tailored toward an academic audience, specifically researchers in the fields of natural language processing and students interested in this field of study. I provided Preliminaries to introduce key concepts and terminologies, making it more accessible to readers unfamiliar with the topic. The paper is structured to guide readers through the research process, employing a clear, concise, and technically rigorous writing style. The coding project, on the other hand, prioritizes coders and developers as its primary audience, emphasizing well-documented code, modular design, and adherence to industry standards to ensure readability, maintainability, and ease of use .
+\numpara{organization} This paper is structured according to the Association for Computational Linguistics (ACL) template. This established template provides a clear and logical framework for presenting research findings in natural language processing and computational linguistics, ensuring a coherent flow of information from introduction to conclusion. The adoption of the ACL template enhances the paper’s readability and facilitates effective communication of the project’s motivations, methodology, results, and implications. The use of sections, subsections, and appendices further organizes the content, enabling readers to navigate the paper efficiently and locate specific information of interest.
+\numpara{thesis} After the experiments are concluded, I will write a thesis that summarizes the main findings, and implications of the project in the Introduction (section \ref{sec:intro}). The thesis will provide a comprehensive overview of the project and be structured according to ACL paper conventions.
+\numpara{algorithms} The final paper will include a more detailed description and visual aid of the algorithm(s) used in the project, as described in Method (\ref{sec:method}). This will provide readers with a clear understanding of the technical processes involved in fine-tuning the Gemma-2 model and generating mnemonics. The algorithm description will be accompanied by pseudocode or flowcharts to illustrate the step-by-step procedures and computations involved in the system's operation. By presenting the algorithms in a structured and visual format, the paper will provide the clarity and comprehensibility of the technical content, enabling readers to grasp the underlying processes and methodologies employed in the project.
+\numpara{heuristics} Diagrams (a type of external represetation, a problem-solving heuristic) will be used to illustrate the process in section \ref{sec:method} and \ref{sec:results}. These visual aids will enhance the clarity and understanding of the training process and evaluation procedures. By incorporating diagrams, the paper provides readers with a visual representation of the project's components and processes, facilitating comprehension and retention of complex information.
+\numpara{sampling} A subset of generated mnemonics will be randomly selected for human evaluation to ensure a representative sample of the model's outputs. This random sampling strategy prevents bias and ensures that the evaluation results accurately reflect the overall quality and effectiveness of the generated mnemonics. Given the financial constraints, the author could not recruit a large number of human evaluators, so there is a risk of sampling bias. However, the random selection of mnemonics mitigates this risk to some extent, providing a less biased assessment of the model's performance.
+\numpara{studyreplication} The project aims to ensure the replicability of the experiments and results by providing detailed descriptions and reproducible code for the methodology, datasets, and evaluation procedures. The codebase will be made publicly available on GitHub, along with documentation and instructions for replicating the experiments. By sharing the code and data, other researchers can reproduce the results, validate the findings, and build upon the project's work.
+\numpara{observationalstudy} The project involves an observational study to evaluate the effectiveness of the generated mnemonics. Human evaluators will rate the relevance of the mnemonics, and users will provide feedback on the chatbot interface. These observations will be used to assess the impact of the system on mnemonic quality and user engagement. By collecting and analyzing observational data, the project gains valuable insights into the system's performance and user experience, informing future iterations and improvements.
+\numpara{dataviz} Data visualizations will be used to present the results of the experiments, such as bar charts for mnemonic relevance scores and line graphs for model performance over epochs. These visualizations enhance the clarity and interpretability of the findings, enabling readers to grasp complex information quickly and effectively. The use of visual aids also aligns with best practices in scientific communication, enhancing the overall quality and impact of the research paper.
+\numpara{significance} Significance testing will be conducted to determine whether the results obtained from the experiments are statistically significant. This will involve applying appropriate statistical tests, such as the Wilcoxon signed-rank test, to compare the performance of different models and evaluate the impact of the system on mnemonic quality.
+\numpara{shapingbehavior} The chatbot interface is designed to shape user behavior by encouraging engagement and interaction with the system. Users are prompted to provide feedback on the generated mnemonics, fostering active participation and collaboration in the learning process. By shaping user behavior through feedback mechanisms, the chatbot promotes user engagement and enhances the quality of the generated mnemonics, ultimately improving the system's effectiveness in facilitating vocabulary acquisition.
+\numpara{ethicalconsiderations} The project adheres to ethical guidelines by ensuring the privacy and confidentiality of user data collected during the chatbot interactions. User feedback is anonymized and aggregated to protect individual identities. Informed consent is obtained from participants involved in the human evaluation studies, and they are informed of the study's purpose and procedures. The project also prioritizes transparency and accountability in reporting the results, ensuring that the findings are presented accurately and objectively. By upholding ethical standards, the project maintains integrity and trustworthiness in its research practices and outcomes.
+\section{Mnemonics and their Strategies} \label{sec:mnemonic-strategies}
+\subsection{Keyword Method and Its Limitations} \label{sec:keyword-method}
 
-\numpara{organization} Currently, the organization of sections roughly follow ACL template (Association of Computational Linguistics), so it follows the flow of a research paper better.
+The keyword method is a mnemonic technique designed to facilitate vocabulary acquisition by associating unfamiliar foreign language words with familiar native language words or phrases that sound similar. This association typically involves creating a vivid mental image linking the keyword to the foreign word's meaning, thereby enhancing recall. For example, to remember that the Spanish word "carta" means "letter," one might visualize a shopping cart carrying a postal letter, leveraging the phonetic similarity between "carta" and "cart."
 
-\subsection{Why finetuning?}
-\subsubsection{The word "mnemonic" is skewed towards acronyms in training data for LLMs}
-\subsection{Why finetuning Gemma-2?}
+While effective for concrete nouns, the keyword method encounters significant challenges with abstract vocabulary. Abstract terms often lack direct physical representations, making it difficult to devise concrete keywords or mental images. This limitation hampers the method's applicability to more complex or intangible concepts, which are prevalent at advanced stages of language learning. Consequently, learners may find the keyword method less beneficial for mastering abstract or technical vocabulary, necessitating alternative mnemonic strategies to address these gaps.
 
-Among off-the-shelf language models, only OpenAI has fine-tuning
+\section{Challenges in Prompting Language Models for Mnemonic Generation}
 
+Employing large language models (LLMs) to generate mnemonics presents several challenges:
+
+\subsection{Tail phenomenon}
+
+The term "mnemonic" is predominantly associated with acronyms in the training data of LMs. This bias leads models to favor acronym-based mnemonics, which are useful for organizing and memorizing long information (such as medical terms) instead of learning and retaining the meaning of individual words. As a result, the model may generate mnemonics that prioritize acronym formation over semantic relevance, potentially hindering learners' understanding and recall of the target vocabulary.
+
+\subsection{Trial-and-error nature of prompting}
+
+Crafting prompts to elicit desired outputs from LLMs is often an iterative and unpredictable process. The black-box nature of these models means that even with knowledge of prompt engineering techniques, achieving consistent and accurate results can be challenging. This unpredictability poses significant difficulties for users without extensive experience in prompt formulation, as they may struggle to generate effective mnemonics reliably. Moreover, the lack of transparency in how LLMs interpret and respond to prompts further complicates the development of precise and effective mnemonic generation strategies.
+
+\section{Training details} \label{sec:training-details}
+\subsection{Environment setup}
+The training was conducted, alternately, on a Google Colab notebook, or an instance of Google Cloud's Deep Learning Virtual Machine image. They both use Google Compute Engine and were configured with a NVIDIA Tesla T4 GPU. HuggingFace libraries \verb|bitsandbytes| (quantization), \verb|peft| (parameter-efficient fine-tuning), \verb|transformers|, \verb|trl| (transformer reinforcement learning), were loaded with \verb|torch| backend and CUDA support. \verb|unsloth| was used to reduce memory usage when interacting with LMs at the cost of small training speed.
+
+The base model used was Gemma-2-9B-it, a 9-billion parameter Transformer-based decoder-only language model pre-trained on general-purpose tasks, and already fine-tuned to increase instruction following capabilities.
+
+\subsection{LoRA configuration}
+
+To reduce computational overhead, we employed QLoRA with Rank-Stabilized LoRA (rsLoRA) scaling. The model was quantized to 4-bit precision using \texttt{unsloth}, which utilizes the \texttt{bitsandbytes} library, thereby decreasing memory usage. The LoRA configuration parameters were set as follows: rank \( r = 8 \), scaling factor \( \alpha_{\text{LoRA}} = 16 \), and dropout rate of 0. These configurations were applied to both the attention and feed-forward layers.
+
+The rank \( r \) determines the dimensionality of the low-rank adaptation matrices, controlling the number of trainable parameters introduced during fine-tuning. A higher rank allows the model to capture more complex adaptations but increases computational complexity. The scaling factor \( \alpha_{\text{LoRA}} \) modulates the impact of the low-rank updates on the original weights, effectively controlling the contribution of the adaptation matrices to the final model parameters. Setting the dropout rate to zero indicates that no dropout regularization was applied during the LoRA updates, allowing all connections to be utilized during training.
+
+\subsection{SFT configuration}
+
+For supervised fine-tuning (SFT), we utilized the \texttt{trl} library with the following hyperparameters: batch size \( b = 16 \), number of epochs \( \text{eps} = 4 \), learning rate \( \alpha = 2 \times 10^{-5} \), weight decay \( \lambda = 0.05 \), and a cosine annealing learning rate scheduler with restarts.
+
+The batch size \( b \) defines the number of training examples processed simultaneously during each forward and backward pass. A batch size of 16 balances computational efficiency and gradient estimation accuracy. Training for 4 epochs (\( \text{eps} = 4 \)) means the model will see the training data a total of four times, which ensures sufficient exposure to the training data without risking overfitting. The learning rate \( \alpha \) controls the step size for weight updates; a value of \( 2 \times 10^{-5} \) is typical for fine-tuning large language models, facilitating gradual convergence. Weight decay \( \lambda \) serves as a regularization term, penalizing large weights to prevent overfitting. The cosine annealing scheduler adjusts the learning rate following a cosine decay pattern, periodically restarting to allow the model to escape local minima and potentially achieve better generalization, compared to linear decay.
+
+\subsection{Hyperparameter tuning}
+
+To optimize the training process, PBT was used to explore hyperparameter configurations dynamically. Initial ranges included: learning rate $\alpha \in [1e^{-5}, 3e^{-5}]$, batch size $b\in [8,32]$, weight decay $d\in[0.01,0.1]$, and learning schedulers (either linear or cosine annealing with restarts).
+
+PBT iteratively refined these configurations based on evaluation loss on validation set.
 \end{document}
