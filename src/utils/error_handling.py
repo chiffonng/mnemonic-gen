@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, TypeAlias
 from warnings import warn
 
-from utils.aliases import ExtensionsType, PathLike
+from src.utils.aliases import ExtensionsType, PathLike
 
 
 def validate_path(path: PathLike) -> Path:
@@ -39,6 +39,9 @@ def validate_and_normalize_extensions(extensions: ExtensionsType) -> list[str]:
     Raises:
         TypeError: If 'extensions' is not a string or a list of strings.
     """
+    if extensions is None:
+        return []
+
     if isinstance(extensions, str):
         extensions = [extensions]
     elif not all(isinstance(ext, str) for ext in extensions):
@@ -129,19 +132,19 @@ def check_dir_path(
 
 
 def which_file_exists(
-    *files: list[PathLike], extensions: Optional[ExtensionsType] = None
+    *files: PathLike, extensions: Optional[ExtensionsType] = None
 ) -> Path:
     """Return the first file found in the list of files. Optionally, return the first file with the specified extensions.
 
     Args:
-        files (list[PathLike]): The list of files to check.
+        files (PathLike): The list of file paths to check.
         extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
 
     Returns:
         file_path (Path): The first file found in the list.
     """
     for file in files:
-        file_path: Path = check_file_path(file, new_ok=True, extensions=extensions)
+        file_path = check_file_path(file, new_ok=True, extensions=extensions)
         if file_path.exists():
             return file_path
 

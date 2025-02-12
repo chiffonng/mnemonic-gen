@@ -11,10 +11,11 @@ import gradio as gr
 import spaces
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+from unsloth import FastLanguageModel
 
 DESCRIPTION = """
 This is a demo for the Google Gemma 2 9B IT model. Use it to generate mnemonics for English words you want to learn and remember.
-Input your instructions or start with one of the examples provided. The input supports a subset of markdown formatting such as bold, italics, code, tables. You can also use the following special tokens to customize the mnemonic:
+Input your instructions or start with one of the examples provided. The input supports a subset of markdown formatting such as bold, italics, code, tables.
 """
 
 MAX_MAX_NEW_TOKENS = 2048
@@ -23,18 +24,32 @@ MAX_INPUT_TOKEN_LENGTH = int(os.getenv("MAX_INPUT_TOKEN_LENGTH", "4096"))
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-model_id = "google/gemma-2-9b-it"
-tokenizer = AutoTokenizer.from_pretrained(model_id)
-model = AutoModelForCausalLM.from_pretrained(
-    model_id,
-    device_map="auto",
-    torch_dtype=torch.bfloat16,
+# model_id = "google/gemma-2-9b-it"
+model_id = "unsloth/gemma-2-9b-it"
+
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name=model_id,
+    max_seq_length=MAX_INPUT_TOKEN_LENGTH,
+    dtype=None,
+    load_in_4bit=True,
+    device=device,
+    cache_dir="models",
 )
-model.config.sliding_window = 4096
-model.eval()
+FastLanguageModel.for_inference(model)
+# tokenizer = AutoTokenizer.from_pretrained(model_id)
+# model = AutoModelForCausalLM.from_pretrained(
+#     model_id,
+#     device_map="auto",
+#     load_in_4bit=True,
+#     torch_dtype=torch.bfloat16,
+#     cache_dir="models",
+# )
+# model.config.sliding_window = 4096
+# model.eval()
 
 
-@spaces.GPU(duration=90)
+# Uncomment to use Hugging Face Spaces GPU
+# @spaces.GPU(duration=90)
 def generate(
     message: str,
     chat_history: list[dict],
@@ -159,4 +174,4 @@ with gr.Blocks(css_paths="style.css", fill_height=True) as demo:
 
 
 if __name__ == "__main__":
-    demo.queue(max_size=20).launch()
+    demo.queue(max_size=20).launch(sharer=True)
