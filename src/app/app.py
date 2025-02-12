@@ -11,10 +11,11 @@ import gradio as gr
 import spaces
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+from unsloth import FastLanguageModel
 
 DESCRIPTION = """
 This is a demo for the Google Gemma 2 9B IT model. Use it to generate mnemonics for English words you want to learn and remember.
-Input your instructions or start with one of the examples provided. The input supports a subset of markdown formatting such as bold, italics, code, tables. You can also use the following special tokens to customize the mnemonic:
+Input your instructions or start with one of the examples provided. The input supports a subset of markdown formatting such as bold, italics, code, tables.
 """
 
 MAX_MAX_NEW_TOKENS = 2048
@@ -159,4 +160,4 @@ with gr.Blocks(css_paths="style.css", fill_height=True) as demo:
 
 
 if __name__ == "__main__":
-    demo.queue(max_size=20).launch()
+    demo.queue(max_size=20).launch(sharer=True)

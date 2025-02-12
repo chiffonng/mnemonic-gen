@@ -16,11 +16,11 @@ from datasets import ClassLabel, load_dataset
 if TYPE_CHECKING:
     from datasets import Dataset, DatasetDict
 
-import utils.constants as c
-from data.data_loaders import load_local_dataset
-from utils.aliases import ExtensionsType, PathLike
-from utils.common import login_hf_hub
-from utils.error_handling import check_dir_path, check_file_path
+from src.data.data_loaders import load_local_dataset
+from src.utils import constants as c
+from src.utils.aliases import ExtensionsType, PathLike
+from src.utils.common import login_hf_hub
+from src.utils.error_handling import check_dir_path, check_file_path
 
 # Set up logging to console
 logger = logging.getLogger(__name__)
@@ -45,6 +45,10 @@ def load_clean_txt_csv_data(dir_path: PathLike) -> pd.DataFrame:
     """
     df = pd.DataFrame()
     file_paths = check_dir_path(dir_path, extensions=[c.TXT_EXT, c.CSV_EXT])
+
+    if not file_paths or isinstance(file_paths, Path):
+        raise FileNotFoundError(f"No txt or csv files found in '{dir_path}'.")
+
     logger.info(f"Loading txt/csv files from {[str(p) for p in file_paths]}.")
 
     # Read only the first two columns, skipping the first two rows
@@ -126,10 +130,10 @@ def combine_datasets(
     Raises:
         ValueError: If the provided output format is not 'csv' or 'parquet'.
     """
-    input_dir = check_dir_path(input_dir)
+    checked_input_dir = check_dir_path(input_dir)
 
     # Load and combine the datasets
-    combined_df = load_clean_txt_csv_data(input_dir)
+    combined_df = load_clean_txt_csv_data(checked_input_dir)
 
     # Clean the data
     combined_df.drop_duplicates(subset=[c.TERM_COL], inplace=True, keep="first")
@@ -176,7 +180,7 @@ def train_test_split(dataset: "Dataset", test_size: float = 0.2) -> "DatasetDict
 
 def push_to_hf_hub(
     dataset: "Dataset",
-    repo_id: str = c.HF_DATASET_REPO,
+    repo_id: str = c.HF_DATASET_NAME,
     private: bool = False,
     **kwargs,
 ):

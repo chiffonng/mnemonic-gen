@@ -10,10 +10,10 @@ if TYPE_CHECKING:
 
     from datasets import Dataset
 
-import utils.constants as c
-from utils.aliases import ExtensionsType, PathLike
-from utils.common import login_hf_hub
-from utils.error_handling import check_dir_path, check_file_path
+from src.utils import constants as c
+from src.utils.aliases import ExtensionsType, PathLike
+from src.utils.common import login_hf_hub
+from src.utils.error_handling import check_dir_path, check_file_path
 
 # Set up logging to console
 logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> "Dataset":
 def load_hf_dataset(
     repo_id: Optional[str] = None,
     to_csv: bool = False,
-    file_path: PathLike = None,
+    file_path: "Optional[PathLike]" = None,
     **kwargs,
 ) -> "DatasetDict":
     """Load a dataset from the Hugging Face hub.
@@ -87,6 +87,10 @@ def load_hf_dataset(
 
     if to_csv:
         file_path = check_file_path(file_path, new_ok=True, extensions=c.CSV_EXT)
+        if not file_path:
+            raise ValueError(
+                "Invalid file path. Must be a valid path of csv to save the dataset to."
+            )
         dataset.to_csv(file_path)
         logger.info(f"Saved dataset to {file_path}.")
     else:
