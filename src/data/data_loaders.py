@@ -11,9 +11,9 @@ if TYPE_CHECKING:
     from datasets import Dataset
 
 from src.utils import constants as c
-from src.utils.aliases import ExtensionsType, PathLike
+from src.utils.aliases import PathLike
 from src.utils.common import login_hf_hub
-from src.utils.error_handling import check_dir_path, check_file_path
+from src.utils.error_handling import check_file_path
 
 # Set up logging to console
 logger = logging.getLogger(__name__)

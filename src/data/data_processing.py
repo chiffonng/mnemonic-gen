@@ -11,14 +11,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
-from datasets import ClassLabel, load_dataset
 
 if TYPE_CHECKING:
     from datasets import Dataset, DatasetDict
 
 from src.data.data_loaders import load_local_dataset
 from src.utils import constants as c
-from src.utils.aliases import ExtensionsType, PathLike
+from src.utils.aliases import PathLike
 from src.utils.common import login_hf_hub
 from src.utils.error_handling import check_dir_path, check_file_path
 
@@ -210,6 +209,5 @@ if __name__ == "__main__":
     local_classified_dataset: "Dataset" = load_local_dataset(
         file_path=c.CLASSIFIED_DATASET_CSV
     )
-
     splits = train_test_split(local_classified_dataset)
     push_to_hf_hub(splits, private=False)
