@@ -72,10 +72,10 @@ def check_file_path(
     Args:
         path (PathLike): The path to the file.
         new_ok (bool, optional): If True, the file does not have to exist. Defaults to False.
-        extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
+        extensions (list[str], optional): A list of allowed file extensions. Defaults to []. If provided, the file must have one of the specified extensions.
 
     Returns:
-        path (Path): The path to the file.
+        path (Path): The path to the file. If 'to_str' is True, returns the path as a string. Otherwise, returns a Path object.
 
     Raises:
         TypeError: If 'path' is not a string or a Path object OR if 'extensions' is not a string or a list of strings.
