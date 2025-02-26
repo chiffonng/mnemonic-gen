@@ -5,28 +5,36 @@ description = "Generate mnemonic sentences for English words"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "accelerate>=1.0.1",
   "datasets", # Hugging Face datasets
   "evaluate",
-  "hf-transfer>=0.1.8", # Web app
-  "numpy<2.0.0", # Wait for other packages to update
-  "openai>=1.57.0",
+  "hf-transfer>=0.1.8",
+  "matplotlib>=3.9.2",
+  "numpy<2.0.0",
   "peft", # HF parameter-efficient training
   "pre-commit>=4.0.1", # Pre-commit hooks
   "python-dotenv>=1.0.1", # Load environment variables
   "pyyaml>=6.0.2", # YAML config
-  "ruff>=0.7.1",
+  "ruff>=0.9.7",
+  "seaborn>=0.13.2",
   "spaces>=0.31.0",
   "torch==2.4.0", # PyTorch
   "tqdm>=4.67.1", # Progress bar
   "transformers", # HF transformers
-  "trl",
+  "trl>=0.11.0", # Transformer reinforcement learning
   "wandb", # Weights and Biases for logging
 ]
 
 [project.urls]
 repository = "https://github.com/chiffonng/capstone"
 dataset    = "https://doi.org/10.57967/hf/3750"
+
+[project.optional-dependencies]
+data = [
+    "openai>=1.57.0",
+    "pandas>=2.2.3",
+    "pyarrow>=18.1.0",
+    "tiktoken>=0.9.0",
+]
 
 [tool.ruff]
 src            = ["src"]
@@ -72,6 +80,3 @@ pycodestyle.max-doc-length = 88
 python-downloads = "manual"         # change to "automatic" to download Python specified in .python-version
 upgrade-package  = ["ruff", "tqdm"]
 managed          = true
-
-[dependency-groups]
-dev = ["ipykernel>=6.29.5", "matplotlib>=3.9.2", "pandas>=2.2.3", "pyarrow>=18.1.0"]

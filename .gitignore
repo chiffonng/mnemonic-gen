@@ -165,7 +165,8 @@ cython_debug/
 .DS_Store
 
 # Data
-/data
+/data_prep/final/
+/data_prep/processed/
 /temp
 
 # Write up
