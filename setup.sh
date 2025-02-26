@@ -9,6 +9,7 @@ else
     OPTIONAL=false
 fi
 
+# TODO: Account for conda here
 # If uv is available, use it to install the project
 if command -v uv &> /dev/null
 then
