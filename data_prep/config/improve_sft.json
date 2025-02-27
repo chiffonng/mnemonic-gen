@@ -1,0 +1,14 @@
+{
+  "model": "gpt-4o-mini",
+  "training_file": "file-2jUaYufhzruhcmpAV8vvA2",
+  "validation_file": "",
+  "method": {
+    "type": "supervised",
+    "supervised": {
+      "hyperparameters": {
+        "n_epochs": 3
+      }
+    }
+  },
+  "suffix": "improve_sft"
+}
