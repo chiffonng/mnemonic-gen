@@ -8,6 +8,7 @@ dependencies = [
   "datasets", # Hugging Face datasets
   "evaluate",
   "hf-transfer>=0.1.8",
+  "huggingface-hub>=0.26.1",
   "matplotlib>=3.9.2",
   "numpy<2.0.0",
   "peft", # HF parameter-efficient training
@@ -16,7 +17,6 @@ dependencies = [
   "pyyaml>=6.0.2", # YAML config
   "ruff>=0.9.7",
   "seaborn>=0.13.2",
-  "spaces>=0.31.0",
   "torch==2.4.0", # PyTorch
   "tqdm>=4.67.1", # Progress bar
   "transformers", # HF transformers
@@ -30,10 +30,9 @@ dataset    = "https://doi.org/10.57967/hf/3750"
 
 [project.optional-dependencies]
 data = [
-    "openai>=1.57.0",
+    "openai>=1.64.0",
     "pandas>=2.2.3",
     "pyarrow>=18.1.0",
-    "tiktoken>=0.9.0",
 ]
 
 [tool.ruff]
@@ -78,5 +77,7 @@ pycodestyle.max-doc-length = 88
 
 [tool.uv]
 python-downloads = "manual"         # change to "automatic" to download Python specified in .python-version
-upgrade-package  = ["ruff", "tqdm"]
 managed          = true
+
+[tool.uv.pip]
+upgrade-package  = ["ruff", "tqdm", "pre-commit"]
