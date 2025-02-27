@@ -70,7 +70,7 @@ extend-safe-fixes = [
   "Q",    # flake8-quotes
 ]
 extend-fixable = ["B", "D"]
-ignore = ["T201", "T203", "F401"] # print, pprint statements OK, unused imports OK
+ignore = ["T201", "T203"] # print, pprint statements OK
 isort.case-sensitive = true
 flake8-type-checking.quote-annotations = true
 pydocstyle.convention = "google"

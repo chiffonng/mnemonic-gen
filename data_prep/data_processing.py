@@ -11,16 +11,14 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
-from datasets import ClassLabel, load_dataset
+from src.data.data_loaders import load_local_dataset
+from src.utils import constants as c
+from src.utils.common import login_hf_hub
+from src.utils.error_handling import check_dir_path, check_file_path
 
 if TYPE_CHECKING:
     from datasets import Dataset, DatasetDict
-
-from src.data.data_loaders import load_local_dataset
-from src.utils import constants as c
-from src.utils.aliases import ExtensionsType, PathLike
-from src.utils.common import login_hf_hub
-from src.utils.error_handling import check_dir_path, check_file_path
+    from src.utils.aliases import PathLike
 
 # Set up logging to console
 logger = logging.getLogger(__name__)
@@ -31,7 +29,7 @@ logger.handlers[0].setFormatter(
 )
 
 
-def load_clean_txt_csv_data(dir_path: PathLike) -> pd.DataFrame:
+def load_clean_txt_csv_data(dir_path: "PathLike") -> pd.DataFrame:
     """Load txt or csv data into a dataframe and clean it.
 
     Args:
@@ -113,8 +111,8 @@ def format_mnemonics(text: str) -> str:
 
 
 def combine_datasets(
-    input_dir: PathLike,
-    output_path: PathLike,
+    input_dir: "PathLike",
+    output_path: "PathLike",
 ) -> pd.DataFrame:
     """Combines an external dataset with a local dataset, cleans the data by removing duplicates, and saves the result to a csv or parquet file.
 

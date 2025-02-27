@@ -27,7 +27,7 @@ else
     # shellcheck source=.venv/bin/activate
     source venv/bin/activate
     if [ "$OPTIONAL" = true ]; then
-        pip install -e .[all]
+        pip install -e .[data]
     else
         pip install -e .
     fi

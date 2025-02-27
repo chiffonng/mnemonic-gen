@@ -27,20 +27,19 @@ This project explores an alternative approach by instruction tuning the Gemma 2 
 
 ### Installation (In development)
 
-Currently `conda` is the recommended way to install the dependencies:
+Prerequisites: Have both [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) and [uv](https://docs.astral.sh/uv/) installed. If you have `conda`, you can create a new environment with the following command:
 
 ```bash
-conda env create -n mnemonic-gen python=3.10 -f environment.yaml
+conda env create -n mnemonic-gen python=3.10 torch==2.4.0
 conda activate mnemonic-gen
+uv pip install -r pyproject.toml -e .
 ```
 
-Otherwise, you can try the setup script:
+Otherwise, you can try the setup script (work in progress):
 
 ```bash
 bash setup.sh
 ```
-
-It attempts to install with [uv](https://docs.astral.sh/uv/) (a fast, Rust-based Python package and project manager) using `pyproject.toml` file. This is the recommended way to manage the project, since its dependency resolver is faster and more reliable than `pip`. Otherwise, it falls back to `pip` installation.
 
 ### Secrets
 
@@ -68,4 +67,4 @@ On the technical side, it's also a great opportunity for me to fuse some LLMOps 
 - Increase reproducibility of this project, by resolving the dependencies and environment issues, and tracking experiments and hyperparameter search
 - Increase manageability of the project, by using a modular structure and clear documentation.
 - Have a template for future projects that involve fine-tuning models on custom datasets, and deploying them in a web interface.
-- Learn mathematical and technical details of SOTA techniques, such as LoRA (QLoRA, rank-stablized LoRA), instruction tuning (self-instruct pipeline), and preference learning (ORPO).
+- Learn mathematical and technical details of SOTA techniques, such as LoRA (QLoRA, rank-stablized LoRA), instruction tuning.
