@@ -1,5 +1,10 @@
-"""Module for processing mnemonic data."""
+"""Module for processing mnemonic data using OpenAI's API.
 
+Finetuning: https://platform.openai.com/docs/guides/fine-tuning
+Files API: https://platform.openai.com/docs/api-reference/files
+"""
+
+# import asyncio
 import csv
 import json
 import logging
@@ -8,33 +13,31 @@ from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from src.utils.common import read_conf
 from src.utils.error_handling import check_file_path
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from src.utils.aliases import PathLike
-
 # Set up and validates the paths
-prompt_path = check_file_path("data_prep/prompts/improve_ft_system.txt")
+prompt_path = check_file_path("data_prep/prompts/improve_sft_system.txt")
 raw_input_path = check_file_path(
     "data_prep/raw/improved_mnemonics.csv", extensions=["csv"]
 )
 input_path = check_file_path(
     "data_prep/processed/improved_mnemonics.jsonl", extensions=["jsonl"], new_ok=True
 )
+config_file_path = check_file_path(
+    "data_prep/config/improve_sft.json", extensions=["json"]
+)
 
 # Set up logging to console
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler())
 logger.handlers[0].setFormatter(
     logging.Formatter("%(levelname)s - %(funcName)s - %(message)s")
 )
-
-# Initialize the OpenAI client
-load_dotenv()
-client = OpenAI()
 
 
 def read_system_prompt(prompt_path: "Path") -> str:
@@ -159,6 +162,152 @@ def validate_finetune_data(input_data: "Path" = input_path) -> None:
         logger.info(f"Number of examples: {len(dataset)}")
 
 
+def upload_finetune_data(
+    client: "OpenAI",
+    input_path: "Path" = input_path,
+    config_file_path: "Path" = config_file_path,
+    use_cache: bool = True,
+    to_overwrite: bool = True,
+) -> str | None:
+    """Upload the fine-tuning data to OpenAI's Files API, reusing a cached file id if available.
+
+    Args:
+        client (OpenAI): The OpenAI client object.
+        input_path (Path): Path to the JSONL input data.
+        config_file_path (Path): Path to the JSON config file.
+        use_cache (bool): If True, reuse the cached file id from config.
+        to_overwrite (bool): If True, delete the cached file from OpenAI and reupload. Only relevant if use_cache is False.
+
+    Returns:
+        str: The file id of the uploaded file, or None if there was an error.
+    """
+    # Ensure input_path is valid (expects a .jsonl file)
+    input_path = check_file_path(input_path, extensions=["jsonl"])
+
+    # Log ALL the argument values
+    logger.info(f"input_path: {input_path}, config_file_path: {config_file_path}")
+    logger.info(f"use_cache: {use_cache}, to_overwrite: {to_overwrite}")
+
+    # Attempt to use the cached file id if allowed.
+    if use_cache:
+        cached_file_id = _get_cached_file_id(
+            client, config_file_path, to_overwrite=False
+        )
+        if cached_file_id:
+            return cached_file_id
+    else:
+        # If overwriting, delete the cached file id.
+        _get_cached_file_id(client, config_file_path, to_overwrite=to_overwrite)
+
+    # Upload the file since no valid cache was found.
+    new_file_id = _upload_file(client, input_path)
+    if new_file_id:
+        _update_config_file(config_file_path, new_file_id)
+        logger.info(f"Uploaded file {input_path} with new file id: {new_file_id}")
+        return new_file_id
+
+    return None
+
+
+def fine_tune(
+    input_file: "Path" = input_path,
+    config_file: "Path" = config_file_path,
+):
+    """Fine tune an OpenAI model with the given data.
+
+    Args:
+        input_file (PathLike): The path to the input data. Must be of JSONL format.
+        config_file (PathLike): The path to the configuration file. Must be of JSON format.
+    """
+    config_data: dict = read_conf(config_file)
+    config_data.get("model_id")
+    config_data.get("training_file")
+    config_data.get("validation_file")
+
+
+def _get_cached_file_id(
+    client: "OpenAI", config_file_path: "Path", to_overwrite: bool
+) -> str | None:
+    """Check for a cached file id in the config file. If found and not overwriting, verify it exists in OpenAI's Files API. If overwriting, attempt to delete it.
+
+    Args:
+        client (OpenAI): The OpenAI client object.
+        config_file_path (Path): The path to the config file.
+        to_overwrite (bool): If True, delete the cached file from OpenAI.
+
+    Returns:
+        str: The file id of the cached file, or None if there was an error.
+    """
+    try:
+        config_data = read_conf(config_file_path)
+
+        cached_file_id = config_data.get("training_file")
+
+        cached_file_info = client.files.retrieve(cached_file_id)
+
+        # 1. If we're using the cached file id and it exists, return it.
+        # 2. If we're overwriting, delete the file
+        # 3. If we're using the cached file id and it doesn't exist, return None.
+        if cached_file_info and not to_overwrite:
+            logger.info(f"Using cached file id: {cached_file_id}")
+            return cached_file_id
+        elif cached_file_info and to_overwrite:
+            client.files.delete(cached_file_id)
+            logger.info(f"Deleted cached file id: {cached_file_id}")
+        else:
+            logger.info("No cached file id found.")
+    except Exception as e:
+        logger.error(f"Error reading config file {config_file_path}: {e}")
+
+    return None
+
+
+def _upload_file(client: "OpenAI", input_path: "Path") -> str | None:
+    """Upload the input file to OpenAI's Files API.
+
+    Args:
+        client (OpenAI): The OpenAI client object.
+        input_path (Path): The path to the input file.
+
+    Returns:
+        str: The file id of the uploaded file, or None if there was an error.
+    """
+    try:
+        with input_path.open("rb") as file_bin:
+            file_obj = client.files.create(file=file_bin, purpose="fine-tune")
+        if file_obj is None:
+            logger.error("Error uploading file: received None as file object.")
+            return None
+        if getattr(file_obj, "status", None) == "failed":
+            logger.error(f"Upload failed: {file_obj.error}")
+            return None
+        return file_obj.id
+    except Exception as e:
+        logger.error(f"Error during file upload: {e}")
+        return None
+
+
+def _update_config_file(config_file_path: "Path", file_id: str):
+    """Update the config file with the new file id. Keep other config data intact.
+
+    Args:
+        config_file_path (Path): The path to the config file.
+        file_id (str): The new file id to store in the config file.
+    """
+    try:
+        with config_file_path.open("w", encoding="utf-8") as f:
+            config_data: dict = read_conf(config_file_path)
+            config_data["training_file"] = file_id
+            json.dump(config_data, f)
+    except Exception as e:
+        logger.error(f"Error updating config file {config_file_path}: {e}")
+
+
 if __name__ == "__main__":
-    prepare_finetune_data()
-    validate_finetune_data()
+    # prepare_finetune_data()
+    # validate_finetune_data()
+    load_dotenv()
+    client = OpenAI()
+    upload_finetune_data(client, input_path)
+    logger.debug(f"OpenAI Files API has the following files: {client.files.list()}")
+    # fine_tune()

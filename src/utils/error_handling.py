@@ -3,7 +3,6 @@
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
-from warnings import warn
 
 if TYPE_CHECKING:
     from typing import Optional

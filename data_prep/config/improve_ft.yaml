@@ -1,7 +1,0 @@
-model: "gpt-4o-mini"
-training_file: "../processed/ft_mnemonics_train.jsonl"
-validation_file: "../processed/ft_mnemonics_val.jsonl"
-hyperparameters:
-  temperature: 0.5
-  num_outputs: 1
-  batch_size: 15
