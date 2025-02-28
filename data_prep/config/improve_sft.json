@@ -1,14 +1,16 @@
 {
-  "model": "gpt-4o-mini",
+  "model": "gpt-4o-mini-2024-07-18",
   "training_file": "file-2jUaYufhzruhcmpAV8vvA2",
   "validation_file": "",
+  "seed": 42,
   "method": {
     "type": "supervised",
     "supervised": {
       "hyperparameters": {
-        "n_epochs": 3
+        "n_epochs": 3,
+        "batch_size": 4
       }
     }
   },
-  "suffix": "improve_sft"
+  "suffix": "improve-sft"
 }
