@@ -1,7 +1,7 @@
 {
   "model": "gpt-4o-mini-2024-07-18",
-  "training_file": "file-2jUaYufhzruhcmpAV8vvA2",
-  "validation_file": "",
+  "training_file": "file-XbuhbtFzM3j3WZtamLAymg",
+  "validation_file": "file-77C5kSpkKZN9z3a9Gj5fYr",
   "seed": 42,
   "method": {
     "type": "supervised",
