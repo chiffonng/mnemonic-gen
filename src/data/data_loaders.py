@@ -3,17 +3,21 @@
 import logging
 from typing import TYPE_CHECKING
 
-from datasets import ClassLabel, DatasetDict, load_dataset
+from datasets import DatasetDict, load_dataset
 
 if TYPE_CHECKING:
     from typing import Optional
 
     from datasets import Dataset
 
-from src.utils import constants as c
-from src.utils.aliases import PathLike
-from src.utils.common import login_hf_hub
-from src.utils.error_handling import check_file_path
+    from src.utils.aliases import PathLike
+
+from src.huggingface import login_hf_hub
+from src.utils import check_file_path
+
+# Hugging Face collection
+HF_DATASET_NAME = "chiffonng/en-vocab-mnemonics"  # <user>/<dataset_name>
+HF_MODEL_NAME = "chiffonng/gemma2-9b-it-mnemonics"  # <user>/<model_name>
 
 # Set up logging to console
 logger = logging.getLogger(__name__)
@@ -24,7 +28,7 @@ logger.handlers[0].setFormatter(
 )
 
 
-def load_local_dataset(file_path: PathLike, **kwargs) -> "Dataset":
+def load_local_dataset(file_path: "PathLike", **kwargs) -> "Dataset":
     """Load a dataset from a file (parquet or csv).
 
     Args:
@@ -37,22 +41,16 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> "Dataset":
     Raises:
         See src/utils/error_handling.py, check_file_path() for more details.
     """
-    file_path = check_file_path(file_path, extensions=[c.PARQUET_EXT, c.CSV_EXT])
+    file_path = check_file_path(file_path, extensions=[".parquet", ".csv"])
 
-    if file_path.suffix == c.PARQUET_EXT:
+    if file_path.suffix == ".parquet":
         dataset = load_dataset("parquet", data_files=str(file_path), **kwargs)
-    elif file_path.suffix == c.CSV_EXT:
+    elif file_path.suffix == ".csv":
         dataset = load_dataset("csv", data_files=str(file_path), **kwargs)
 
     logger.info(f"Loaded dataset from {file_path}.")
     if isinstance(dataset, DatasetDict):
         dataset = dataset["train"]
-
-    # Map numeric value to category name
-    dataset = dataset.map(
-        lambda x: {c.CATEGORY_COL: c.CATEGORY_NAMES[x[c.CATEGORY_COL] + 1]}
-    )
-    dataset = dataset.cast_column(c.CATEGORY_COL, ClassLabel(names=c.CATEGORY_NAMES))
 
     logger.debug(f"Type of dataset: {type(dataset)}.")
     logger.info(f"Data shape: {dataset.shape}.")
@@ -61,7 +59,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> "Dataset":
 
 
 def load_hf_dataset(
-    repo_id: Optional[str] = None,
+    repo_id: "Optional[str]" = None,
     to_csv: bool = False,
     file_path: "Optional[PathLike]" = None,
     **kwargs,
@@ -80,13 +78,13 @@ def load_hf_dataset(
     login_hf_hub()
 
     if repo_id is None:
-        repo_id = c.HF_DATASET_NAME
+        repo_id = HF_DATASET_NAME
 
     logger.info(f"Loading dataset from {repo_id}.")
     dataset = load_dataset(repo_id, **kwargs)
 
     if to_csv:
-        file_path = check_file_path(file_path, new_ok=True, extensions=c.CSV_EXT)
+        file_path = check_file_path(file_path, new_ok=True, extensions=[".csv"])
         if not file_path:
             raise ValueError(
                 "Invalid file path. Must be a valid path of csv to save the dataset to."
@@ -104,7 +102,7 @@ def load_hf_dataset(
 #     "nbalepur/Mnemonic_SFT",
 #     split="train+test",
 #     to_csv=True,
-#     file_path=c.SMART_DATASET_CSV,
+#     file_path=SMART_DATASET_CSV,
 # )
 
 if __name__ == "__main__":

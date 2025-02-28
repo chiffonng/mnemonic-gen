@@ -9,6 +9,7 @@ else
     OPTIONAL=false
 fi
 
+# TODO: Account for conda here
 # If uv is available, use it to install the project
 if command -v uv &> /dev/null
 then
@@ -26,7 +27,7 @@ else
     # shellcheck source=.venv/bin/activate
     source venv/bin/activate
     if [ "$OPTIONAL" = true ]; then
-        pip install -e .[all]
+        pip install -e .[data]
     else
         pip install -e .
     fi

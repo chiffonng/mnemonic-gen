@@ -2,13 +2,15 @@
 
 from enum import Enum
 from pathlib import Path
-from typing import Optional, TypeAlias
-from warnings import warn
+from typing import TYPE_CHECKING
 
-from src.utils.aliases import ExtensionsType, PathLike
+if TYPE_CHECKING:
+    from typing import Optional
+
+    from src.utils.aliases import ExtensionsType, PathLike
 
 
-def validate_path(path: PathLike) -> Path:
+def validate_path(path: "PathLike") -> "Path":
     """Validate path and convert it to a Path object if it is a string.
 
     Args:
@@ -27,14 +29,16 @@ def validate_path(path: PathLike) -> Path:
     return Path(path) if isinstance(path, str) else path
 
 
-def validate_and_normalize_extensions(extensions: ExtensionsType) -> list[str]:
+def validate_and_normalize_extensions(
+    extensions: "ExtensionsType",
+) -> list[str]:
     """Normalize extensions to a list format, ensuring each starts with a dot.
 
     Args:
         extensions (str | list[str] | None): A string or a list of strings representing file extensions.
 
     Returns:
-        extensions (list[str]): A list of file extensions, each starting with a dot.
+        extensions (list[str]): A list of file extensions, each starting with a dot; or an empty list if 'extensions' is None.
 
     Raises:
         TypeError: If 'extensions' is not a string or a list of strings.
@@ -54,7 +58,7 @@ def validate_and_normalize_extensions(extensions: ExtensionsType) -> list[str]:
     return extensions
 
 
-def check_extension(path: Path, extensions: ExtensionsType) -> None:
+def check_extension(path: Path, extensions: "ExtensionsType") -> None:
     """Check if the path has one of the allowed extensions."""
     if extensions and path.suffix not in extensions:
         raise ValueError(
@@ -63,16 +67,16 @@ def check_extension(path: Path, extensions: ExtensionsType) -> None:
 
 
 def check_file_path(
-    path: PathLike,
+    path: "PathLike",
     new_ok: bool = False,
-    extensions: ExtensionsType = None,
+    extensions: "Optional[ExtensionsType]" = None,
 ) -> Path:
     """Convert path to a Path object if it is a string, and return it. Optionally, check if the file has one of the specified extensions or if it exists.
 
     Args:
         path (PathLike): The path to the file.
         new_ok (bool, optional): If True, the file does not have to exist. Defaults to False.
-        extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
+        extensions (list[str], optional): A list of allowed file extensions. Defaults to []. If provided, the file must have one of the specified extensions.
 
     Returns:
         path (Path): The path to the file.
@@ -93,9 +97,9 @@ def check_file_path(
 
 
 def check_dir_path(
-    dir_path: PathLike,
+    dir_path: "PathLike",
     new_ok: bool = False,
-    extensions: Optional[list[str]] = None,
+    extensions: "Optional[ExtensionsType]" = None,
 ) -> Path | list[Path]:
     """Check if the directory path exists, convert it to a Path object if it is a string, and return it. Optionally, check if the directory contains files with the specified extensions.
 
@@ -132,7 +136,7 @@ def check_dir_path(
 
 
 def which_file_exists(
-    *files: PathLike, extensions: Optional[ExtensionsType] = None
+    *files: "PathLike", extensions: "Optional[ExtensionsType]" = None
 ) -> Path:
     """Return the first file found in the list of files. Optionally, return the first file with the specified extensions.
 
