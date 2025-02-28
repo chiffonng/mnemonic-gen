@@ -10,9 +10,10 @@ if TYPE_CHECKING:
 
     from datasets import Dataset
 
-from srutils.aliases import PathLike
-from srutils.common import login_hf_hub
-from srutils.error_handling import check_file_path
+    from src.utils.aliases import PathLike
+
+from src.huggingface import login_hf_hub
+from src.utils import check_file_path
 
 # Hugging Face collection
 HF_DATASET_NAME = "chiffonng/en-vocab-mnemonics"  # <user>/<dataset_name>
@@ -27,7 +28,7 @@ logger.handlers[0].setFormatter(
 )
 
 
-def load_local_dataset(file_path: PathLike, **kwargs) -> "Dataset":
+def load_local_dataset(file_path: "PathLike", **kwargs) -> "Dataset":
     """Load a dataset from a file (parquet or csv).
 
     Args:
@@ -58,7 +59,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> "Dataset":
 
 
 def load_hf_dataset(
-    repo_id: Optional[str] = None,
+    repo_id: "Optional[str]" = None,
     to_csv: bool = False,
     file_path: "Optional[PathLike]" = None,
     **kwargs,

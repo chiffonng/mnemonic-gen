@@ -12,10 +12,10 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
+from src.openai.openai_ft import finetune_from_config, upload_file_to_openai
+from src.utils import check_file_path, read_config, read_prompt, update_config
+
 from openai import OpenAI
-from src.sft.openai_ft import finetune_from_config, upload_file_to_openai
-from src.utils.common import read_config, read_prompt, update_config
-from src.utils.error_handling import check_file_path
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -133,6 +133,7 @@ def prepare_and_split_finetune_data(
     )
 
 
+# TODO: Move it to openai_ft.py, or another module.
 def validate_finetune_data(input_data: "Path") -> None:
     """Validate the data for fine-tuning with OpenAI's API. Source code from OpenAI Cookbook: https://cookbook.openai.com/examples/chat_finetuning_data_prep.
 
@@ -343,11 +344,13 @@ def _get_cached_file_id(
 
 
 if __name__ == "__main__":
+    prepare_and_split_finetune_data()
+    validate_finetune_data(train_input_path)
+    validate_finetune_data(val_input_path)
+
     load_dotenv()
     client = OpenAI()
-    # prepare_finetune_data()
-    # validate_finetune_data()
     # upload_finetune_data(client, input_path=train_input_path)
     # update_finetune_data(client, input_path=val_input_path)
 
-    finetune_from_config(client, config_file_path, finetune_model_id_path)
+    # finetune_from_config(client, config_file_path, finetune_model_id_path)

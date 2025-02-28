@@ -4,17 +4,15 @@ import random
 from pathlib import Path
 
 from src.data.data_loaders import load_hf_dataset
-from src.utils.error_handling import check_file_path
+from src.utils import check_file_path
 
 sample_size: int | None = 200
 
 # Construct the path to raw/test.txt and final/test.txt
 current_file = Path(__file__).resolve()
 data_module = current_file.parent
-raw_test_data_path = check_file_path(data_module / "data" / "raw" / "test.txt")
-final_test_data_path = check_file_path(
-    data_module / "data" / "final" / "test.txt", new_ok=True
-)
+raw_test_data_path = check_file_path(data_module / "raw" / "test.txt")
+final_test_data_path = check_file_path(data_module / "final" / "test.txt", new_ok=True)
 
 # Read the unique terms from test.txt (each term on a new line)
 with Path.open(raw_test_data_path, "r") as f:

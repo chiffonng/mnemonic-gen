@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 from src.data.data_loaders import load_local_dataset
+from src.huggingface.hf_utils import login_hf_hub
 from src.utils import constants as c
-from src.utils.common import login_hf_hub
 from src.utils.error_handling import check_dir_path, check_file_path
 
 if TYPE_CHECKING:
