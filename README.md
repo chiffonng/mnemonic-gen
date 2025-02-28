@@ -1,4 +1,4 @@
-# Mnemonic Generation for English Words
+# Mining LLMs for Mnemonic Devices to aid Vocabulary Acquisition
 
 [Hugging Face Artifacts](https://huggingface.co/collections/chiffonng/mnemonic-generation-67563a0a1ab91e84e9827579)
 
@@ -17,13 +17,9 @@ This project explores an alternative approach by instruction tuning the Gemma 2 
 
 ---
 
-## Project components
-
-- [ ] A web interface (using Gradio) for the tuned model.
-- [x] A dataset of 1200 examples of English words with mnemonics.
-- [ ] This documented codebase.
-
 ## Setup
+
+Requirements: Linux, Python >=3.10.
 
 ### Installation (In development)
 

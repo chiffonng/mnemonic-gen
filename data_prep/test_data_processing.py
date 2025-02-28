@@ -6,7 +6,7 @@ from pathlib import Path
 from src.data.data_loaders import load_hf_dataset
 from src.utils.error_handling import check_file_path
 
-sample_size: int | None = 300
+sample_size: int | None = 200
 
 # Construct the path to raw/test.txt and final/test.txt
 current_file = Path(__file__).resolve()

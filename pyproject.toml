@@ -5,23 +5,22 @@ description = "Generate mnemonic sentences for English words"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "datasets", # Hugging Face datasets
-  "evaluate",
+  "datasets>=2.19.1", # Hugging Face datasets
+  "evaluate>=0.4.3",
   "hf-transfer>=0.1.8",
   "huggingface-hub>=0.26.1",
   "matplotlib>=3.9.2",
   "numpy<2.0.0",
-  "peft", # HF parameter-efficient training
+  "peft>=0.13.2 ; sys_platform == 'linux'", # HF parameter-efficient training
   "pre-commit>=4.0.1", # Pre-commit hooks
   "python-dotenv>=1.0.1", # Load environment variables
   "pyyaml>=6.0.2", # YAML config
   "ruff>=0.9.7",
   "seaborn>=0.13.2",
-  "torch==2.4.0", # PyTorch
-  "tqdm>=4.67.1", # Progress bar
-  "transformers", # HF transformers
-  "trl>=0.11.0", # Transformer reinforcement learning
-  "wandb", # Weights and Biases for logging
+  "torch==2.4.0 ; sys_platform == 'linux'",
+  "transformers>=4.47.0",
+  "trl>=0.11.4 ; sys_platform == 'linux'",
+  "wandb>=0.19.0", # Weights and Biases for logging
 ]
 
 [project.urls]
@@ -30,7 +29,7 @@ dataset    = "https://doi.org/10.57967/hf/3750"
 
 [project.optional-dependencies]
 data = [
-    "openai>=1.64.0",
+    "openai==1.65.0",
     "pandas>=2.2.3",
     "pyarrow>=18.1.0",
 ]
@@ -80,4 +79,4 @@ python-downloads = "manual"         # change to "automatic" to download Python s
 managed          = true
 
 [tool.uv.pip]
-upgrade-package  = ["ruff", "tqdm", "pre-commit"]
+upgrade-package  = ["ruff", "pre-commit"]
