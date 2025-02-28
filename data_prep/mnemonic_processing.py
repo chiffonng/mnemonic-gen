@@ -4,102 +4,136 @@ Finetuning: https://platform.openai.com/docs/guides/fine-tuning
 Files API: https://platform.openai.com/docs/api-reference/files
 """
 
-# import asyncio
 import csv
 import json
 import logging
+import random
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from src.utils.common import read_conf
+from src.sft.openai_ft import finetune_from_config, upload_file_to_openai
+from src.utils.common import read_config, read_prompt, update_config
 from src.utils.error_handling import check_file_path
 
 if TYPE_CHECKING:
     from pathlib import Path
+    from typing import Optional
 
 # Set up and validates the paths
-prompt_path = check_file_path("data_prep/prompts/improve_sft_system.txt")
-raw_input_path = check_file_path(
-    "data_prep/raw/improved_mnemonics.csv", extensions=["csv"]
+prompt_path = check_file_path("prompts/improve_ft_system.txt")
+raw_input_path = check_file_path("data_prep/raw/improved_data.csv", extensions=["csv"])
+train_input_path = check_file_path(
+    "data_prep/processed/improve_sft_train.jsonl", extensions=["jsonl"], new_ok=True
 )
-input_path = check_file_path(
-    "data_prep/processed/improved_mnemonics.jsonl", extensions=["jsonl"], new_ok=True
+val_input_path = check_file_path(
+    "data_prep/processed/improve_sft_val.jsonl", extensions=["jsonl"], new_ok=True
 )
 config_file_path = check_file_path(
     "data_prep/config/improve_sft.json", extensions=["json"]
 )
+finetune_model_id_path = check_file_path(
+    "data_prep/config/improve_sft_model_id.txt", extensions=["txt"], new_ok=True
+)
 
-# Set up logging to console
+# Set up logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler())
+logger.addHandler(logging.FileHandler("logs/mnemonic_processing.log"))
 logger.handlers[0].setFormatter(
-    logging.Formatter("%(levelname)s - %(funcName)s - %(message)s")
+    logging.Formatter("%(asctime)s - %(levelname)s - %(funcName)s - %(message)s")
 )
 
 
-def read_system_prompt(prompt_path: "Path") -> str:
-    """Read the system prompt from a file.
-
-    Args:
-        prompt_path (Path): The path to the system prompt file.
-
-    Returns:
-        str: The system prompt.
-    """
-    with prompt_path.open("r") as file:
-        system_prompt = file.read().strip()
-    return system_prompt
-
-
-def prepare_finetune_data(
+def prepare_and_split_finetune_data(
     input_data: "Path" = raw_input_path,
     input_prompt: "Path" = prompt_path,
-    output_jsonl: "Path" = input_path,
+    output_train_jsonl: "Path" = train_input_path,
+    output_val_jsonl: "Optional[Path]" = None,
+    split_ratio: float = 0.8,
 ) -> None:
-    """Prepare the data (JSONL) for fine-tuning with OpenAI's API.
+    """Prepare the data (JSONL) for fine-tuning with OpenAI's API and split into training and validation files.
 
     Args:
         input_data (Path): The path to the input data.
         input_prompt (Path): The path to the system prompt.
-        output_jsonl (Path): The path to save the output data.
+        output_train_jsonl (Path): The path to save the training data.
+        output_val_jsonl (Path): The path to save the validation data. If None, the validation data will not be saved.
+        split_ratio (float): The ratio to split the data.
 
     Returns:
         None
+
+    Raises:
+        ValueError: If the split ratio is invalid.
     """
-    system_prompt = read_system_prompt(input_prompt)
+    if output_val_jsonl is None:
+        split_ratio = 1
 
-    num_examples = 0
-    with (
-        input_data.open("r", encoding="utf-8") as input_file,
-        output_jsonl.open("w", encoding="utf-8") as output_file,
-    ):
-        reader = csv.DictReader(input_file)
-        for row in reader:
-            term = row["term"].strip()
-            mnemonic = row["mnemonic"].strip()
-            improved_mnemonic = row["improved_mnemonic"].strip()
+    if not isinstance(split_ratio, float):
+        split_ratio = float(split_ratio)
 
-            # Build the JSONL object
+    if split_ratio < 0 or split_ratio > 1:
+        logging.error("Invalid split ratio. Must be between 0 and 1.")
+        raise ValueError(f"Invalid split ratio: {split_ratio}. Must be between 0 and 1")
+
+    system_prompt = read_prompt(input_prompt)
+
+    # Read all rows from CSV into a list of dictionaries
+    with input_data.open("r", encoding="utf-8") as infile:
+        reader = csv.DictReader(infile)
+        rows = list(reader)
+
+    num_examples = len(rows)
+    if num_examples == 0:
+        logging.error("No data found in the CSV file.")
+        return
+
+    random.shuffle(rows)
+
+    train_rows = rows[: int(num_examples * split_ratio)]
+    val_rows = rows[int(num_examples * split_ratio) :] if split_ratio < 1 else None
+
+    # Write the training and if not None, the validation data to JSONL files.
+    with output_train_jsonl.open("w", encoding="utf-8") as train_file:
+        for row in train_rows:
             data = {
                 "messages": [
-                    {"role": "system", "content": system_prompt},
+                    {"role": "developer", "content": system_prompt},
                     {
                         "role": "user",
-                        "content": f"Term: {term}\nCurrent mnemonic: {mnemonic}",
+                        "content": f"Term: {row['term'].strip()}\nCurrent mnemonic: {row['mnemonic'].strip()}",
                     },
-                    {"role": "assistant", "content": improved_mnemonic},
+                    {"role": "assistant", "content": row["improved_mnemonic"].strip()},
                 ]
             }
-            output_file.write(json.dumps(data) + "\n")
-            num_examples += 1
+            train_file.write(json.dumps(data) + "\n")
 
-    logger.info(f"{num_examples} examples have been saved to {output_jsonl}")
+    if output_val_jsonl is not None and val_rows is not None:
+        with output_val_jsonl.open("w", encoding="utf-8") as val_file:
+            for row in val_rows:
+                data = {
+                    "messages": [
+                        {"role": "developer", "content": system_prompt},
+                        {
+                            "role": "user",
+                            "content": f"Term: {row['term'].strip()}\nCurrent mnemonic: {row['mnemonic'].strip()}",
+                        },
+                        {
+                            "role": "assistant",
+                            "content": row["improved_mnemonic"].strip(),
+                        },
+                    ]
+                }
+                val_file.write(json.dumps(data) + "\n")
+
+    logger.info(
+        f"Data prepared ({num_examples} examples) and split into training and validation files.\nTraining data path: {output_train_jsonl}, \nValidation data path: {output_val_jsonl}"
+    )
 
 
-def validate_finetune_data(input_data: "Path" = input_path) -> None:
+def validate_finetune_data(input_data: "Path") -> None:
     """Validate the data for fine-tuning with OpenAI's API. Source code from OpenAI Cookbook: https://cookbook.openai.com/examples/chat_finetuning_data_prep.
 
     Args:
@@ -127,45 +161,73 @@ def validate_finetune_data(input_data: "Path" = input_path) -> None:
             continue
 
         for message in messages:
-            if "role" not in message or "content" not in message:
+            # Check that 'role' is present and at least one of 'content' or 'tool' is provided.
+            if "role" not in message or (
+                "content" not in message and "tool" not in message
+            ):
                 format_errors["message_missing_key"] += 1
 
+            # Validate that all keys in the message are recognized.
             if any(
-                k not in ("role", "content", "name", "function_call", "weight")
+                k
+                not in (
+                    "role",
+                    "content",
+                    "name",
+                    "weight",
+                    "refusal",
+                    "audio",
+                    "tool_calls",
+                    "tool_call_id",
+                )
                 for k in message
             ):
                 format_errors["message_unrecognized_key"] += 1
-
             if message.get("role", None) not in (
                 "system",
                 "user",
                 "assistant",
-                "function",
+                "tool",
             ):
                 format_errors["unrecognized_role"] += 1
 
-            content = message.get("content", None)
-            function_call = message.get("function_call", None)
-
-            if (not content and not function_call) or not isinstance(content, str):
+            # Check that either 'content' or 'tool' exists and that 'content', if present, is a string.
+            content = message.get("content")
+            tool = message.get("tool")
+            if (content is None and tool is None) or (
+                content is not None and not isinstance(content, str)
+            ):
                 format_errors["missing_content"] += 1
 
-        if not any(message.get("role", None) == "assistant" for message in messages):
+        # Each example should have at least one assistant message.
+        if not any(msg.get("role") == "assistant" for msg in messages):
             format_errors["example_missing_assistant_message"] += 1
+
+        tools = ex.get("tools", None)
+        if tools:
+            for tool in tools:
+                if not isinstance(tool, dict):
+                    format_errors["tool_data_type"] += 1
+                    continue
+                if any(k not in ("type", "function") for k in tool):
+                    format_errors["tool_unrecognized_key"] += 1
 
     if format_errors:
         logger.error("Errors found in formatting fineturning data:")
         for k, v in format_errors.items():
             logger.error(f"{k}: {v}")
     else:
-        logger.info("Data is formatted correctly.")
+        logger.info(
+            "Data is formatted ROUGHLY correctly. Always check the data manually with the OpenAI API reference here: https://platform.openai.com/docs/api-reference/fine-tuning/chat-input."
+        )
         logger.info(f"Number of examples: {len(dataset)}")
 
 
 def upload_finetune_data(
     client: "OpenAI",
-    input_path: "Path" = input_path,
+    input_path: "Path",
     config_file_path: "Path" = config_file_path,
+    file_type: str = "training",  # or "validation"
     use_cache: bool = True,
     to_overwrite: bool = True,
 ) -> str | None:
@@ -175,6 +237,7 @@ def upload_finetune_data(
         client (OpenAI): The OpenAI client object.
         input_path (Path): Path to the JSONL input data.
         config_file_path (Path): Path to the JSON config file.
+        file_type (str): The type of file to upload (e.g., "training" or "validation").
         use_cache (bool): If True, reuse the cached file id from config.
         to_overwrite (bool): If True, delete the cached file from OpenAI and reupload. Only relevant if use_cache is False.
 
@@ -187,127 +250,104 @@ def upload_finetune_data(
     # Log ALL the argument values
     logger.info(f"input_path: {input_path}, config_file_path: {config_file_path}")
     logger.info(f"use_cache: {use_cache}, to_overwrite: {to_overwrite}")
+    logger.debug(f"Before, OpenAI FILES: {client.files.list()}")
 
     # Attempt to use the cached file id if allowed.
     if use_cache:
         cached_file_id = _get_cached_file_id(
-            client, config_file_path, to_overwrite=False
+            client, config_file_path, file_type, to_overwrite=False
         )
         if cached_file_id:
             return cached_file_id
     else:
         # If overwriting, delete the cached file id.
-        _get_cached_file_id(client, config_file_path, to_overwrite=to_overwrite)
+        _get_cached_file_id(
+            client, config_file_path, file_type, to_overwrite=to_overwrite
+        )
 
     # Upload the file since no valid cache was found.
-    new_file_id = _upload_file(client, input_path)
+    new_file_id = upload_file_to_openai(client, input_path)
     if new_file_id:
-        _update_config_file(config_file_path, new_file_id)
+        update_config(config_file_path, "training_file", new_file_id)
         logger.info(f"Uploaded file {input_path} with new file id: {new_file_id}")
         return new_file_id
 
+    logger.debug(f"After, OpenAI FILES: {client.files.list()}")
+
     return None
 
 
-def fine_tune(
-    input_file: "Path" = input_path,
-    config_file: "Path" = config_file_path,
-):
-    """Fine tune an OpenAI model with the given data.
-
-    Args:
-        input_file (PathLike): The path to the input data. Must be of JSONL format.
-        config_file (PathLike): The path to the configuration file. Must be of JSON format.
-    """
-    config_data: dict = read_conf(config_file)
-    config_data.get("model_id")
-    config_data.get("training_file")
-    config_data.get("validation_file")
+# TODO: Add a function to validate the config file, or update src.utils.common.read_conf to validate the config file.
 
 
 def _get_cached_file_id(
-    client: "OpenAI", config_file_path: "Path", to_overwrite: bool
+    client: "OpenAI", config_file_path: "Path", file_type: str, to_overwrite: bool
 ) -> str | None:
-    """Check for a cached file id in the config file. If found and not overwriting, verify it exists in OpenAI's Files API. If overwriting, attempt to delete it.
+    """Retrieve the cached file ID for the specified file type from the config file.
+
+    For the given file type (e.g. "training_file" or "validation_file"), verify that the cached
+    file exists via OpenAI's Files API. If to_overwrite is True, delete the file from the API.
 
     Args:
         client (OpenAI): The OpenAI client object.
-        config_file_path (Path): The path to the config file.
-        to_overwrite (bool): If True, delete the cached file from OpenAI.
+        config_file_path (Path): Path to the JSON config file.
+        file_type (str): The key in the config (e.g., "training_file", "validation_file").
+        to_overwrite (bool): If True, delete the cached file from the API.
 
     Returns:
-        str: The file id of the cached file, or None if there was an error.
+        str | None: The valid cached file id, or None if not found or if deleted.
     """
+
+    def _check_and_handle_file(file_id: str) -> str | None:
+        """Helper function to check if the file exists in the API and handle it accordingly."""
+        try:
+            file_info = client.files.retrieve(file_id)
+            if file_info:
+                if to_overwrite:
+                    client.files.delete(file_id)
+                    logger.info(f"Deleted cached file id: {file_id}")
+                    return None
+                else:
+                    logger.info(f"Using cached file id: {file_id}")
+                    return file_id
+            else:
+                logger.info(f"File id {file_id} not found in API.")
+                return None
+        except Exception as e:
+            logger.error(f"Error retrieving file {file_id}: {e}")
+            return None
+
+    # Handle file types
+    if not isinstance(file_type, str):
+        logger.error("Invalid file type. Must be a string.")
+        raise TypeError(f"Invalid file_type {type(file_type)}. Must be a string.")
+    elif file_type.lower().startswith("train"):
+        file_type = "training_file"
+    elif file_type.lower().startswith("val"):
+        file_type = "validation_file"
+    else:
+        logger.error("Invalid file_type. Must be 'training' or 'validation'.")
+        raise ValueError("Invalid file_type. Must be 'training' or 'validation'.")
+
+    # Read the config file and get the file id
     try:
-        config_data = read_conf(config_file_path)
-
-        cached_file_id = config_data.get("training_file")
-
-        cached_file_info = client.files.retrieve(cached_file_id)
-
-        # 1. If we're using the cached file id and it exists, return it.
-        # 2. If we're overwriting, delete the file
-        # 3. If we're using the cached file id and it doesn't exist, return None.
-        if cached_file_info and not to_overwrite:
-            logger.info(f"Using cached file id: {cached_file_id}")
-            return cached_file_id
-        elif cached_file_info and to_overwrite:
-            client.files.delete(cached_file_id)
-            logger.info(f"Deleted cached file id: {cached_file_id}")
+        config_data = read_config(config_file_path)
+        candidate = config_data.get(file_type, "").strip()
+        if candidate:
+            return _check_and_handle_file(candidate)
         else:
-            logger.info("No cached file id found.")
+            return None
     except Exception as e:
         logger.error(f"Error reading config file {config_file_path}: {e}")
-
-    return None
-
-
-def _upload_file(client: "OpenAI", input_path: "Path") -> str | None:
-    """Upload the input file to OpenAI's Files API.
-
-    Args:
-        client (OpenAI): The OpenAI client object.
-        input_path (Path): The path to the input file.
-
-    Returns:
-        str: The file id of the uploaded file, or None if there was an error.
-    """
-    try:
-        with input_path.open("rb") as file_bin:
-            file_obj = client.files.create(file=file_bin, purpose="fine-tune")
-        if file_obj is None:
-            logger.error("Error uploading file: received None as file object.")
-            return None
-        if getattr(file_obj, "status", None) == "failed":
-            logger.error(f"Upload failed: {file_obj.error}")
-            return None
-        return file_obj.id
-    except Exception as e:
-        logger.error(f"Error during file upload: {e}")
-        return None
-
-
-def _update_config_file(config_file_path: "Path", file_id: str):
-    """Update the config file with the new file id. Keep other config data intact.
-
-    Args:
-        config_file_path (Path): The path to the config file.
-        file_id (str): The new file id to store in the config file.
-    """
-    try:
-        with config_file_path.open("w", encoding="utf-8") as f:
-            config_data: dict = read_conf(config_file_path)
-            config_data["training_file"] = file_id
-            json.dump(config_data, f)
-    except Exception as e:
-        logger.error(f"Error updating config file {config_file_path}: {e}")
+        raise e
 
 
 if __name__ == "__main__":
-    # prepare_finetune_data()
-    # validate_finetune_data()
     load_dotenv()
     client = OpenAI()
-    upload_finetune_data(client, input_path)
-    logger.debug(f"OpenAI Files API has the following files: {client.files.list()}")
-    # fine_tune()
+    # prepare_finetune_data()
+    # validate_finetune_data()
+    # upload_finetune_data(client, input_path=train_input_path)
+    # update_finetune_data(client, input_path=val_input_path)
+
+    finetune_from_config(client, config_file_path, finetune_model_id_path)
