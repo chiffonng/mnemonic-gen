@@ -16,6 +16,21 @@ from src.utils import check_file_path, read_config
 logger = logging.getLogger(__name__)
 
 
+# TODO: Complete the function validate_openai_config
+def validate_openai_config(input_path: "Path"):
+    """Validate the configuration file to be used for fine-tuning or generating completions using OpenAI.
+
+    Args:
+        input_path (Path): The path to the input configuration file. The configuration should be in JSON format.
+
+    Raises:
+        ValueError: If the input configuration is empty or not a dictionary.
+        TypeError: If the input configuration is not a dictionary.
+        IndexError: If the input configuration is missing required keys or has unrecognized keys.
+    """
+
+
+# TODO: Refactor validate_openai_file and upload_file_to_openai to openai_utils.py
 def validate_openai_file(input_path: "Path"):
     """Validate the data to be uploaded to OpenAI's API. Source code from OpenAI Cookbook: https://cookbook.openai.com/examples/chat_finetuning_data_prep.
 
@@ -54,6 +69,7 @@ def validate_openai_file(input_path: "Path"):
             format_errors["data_type"] += 1
             continue
 
+        # TODO: Refactor validating messages as a separate function
         messages = ex.get("messages", None)
         if not messages:
             format_errors["missing_messages_list"] += 1
@@ -83,6 +99,7 @@ def validate_openai_file(input_path: "Path"):
             ):
                 format_errors["message_unrecognized_key"] += 1
             if message.get("role", None) not in (
+                "developer",
                 "system",
                 "user",
                 "assistant",
@@ -101,6 +118,7 @@ def validate_openai_file(input_path: "Path"):
         # Each example should have at least one assistant message.
         if not any(msg.get("role") == "assistant" for msg in messages):
             format_errors["example_missing_assistant_message"] += 1
+        # END TODO
 
         tools = ex.get("tools", None)
         if tools:
