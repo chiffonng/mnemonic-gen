@@ -13,10 +13,7 @@ if TYPE_CHECKING:
     from typing import Optional
 
     from src.utils.aliases import PathLike
-
-# Hugging Face collection
-HF_DATASET_NAME = "chiffonng/en-vocab-mnemonics"  # <user>/<dataset_name>
-HF_MODEL_NAME = "chiffonng/gemma2-9b-it-mnemonics"  # <user>/<model_name>
+    from src.utils.constants import HF_DATASET_NAME, HF_MODEL_NAME, HF_TESTSET_NAME
 
 # Set up logging to console
 logger = logging.getLogger(__name__)
@@ -69,23 +66,28 @@ def load_local_dataset(file_path: "PathLike", **kwargs) -> "Dataset":
     return dataset
 
 
-def load_txt_file(file_path: "PathLike") -> "pd.DataFrame":
+def load_txt_file(
+    file_path: "PathLike", split_name: str = "test", col_name: str = "term"
+) -> "DatasetDict":
     """Load a txt file as a pandas DataFrame.
 
     Args:
         file_path (PathLike): Path to the txt file.
+        split_name (str): The name of the split. Defaults to 'test'.
+        col_name (str): The name of the column. Defaults to 'term'.
 
     Returns:
-        DataFrame: The loaded DataFrame.
+        DatasetDict: The loaded dataset dictionary {split_name: dataset}
     """
     file_path = check_file_path(file_path, extensions=[".txt"])
 
     with file_path.open("r") as f:
-        data = [line.strip().lower() for line in f if line.strip()]
+        data = f.readlines()
 
-    df = pd.DataFrame({"data": data})
-    logger.info(f"Loaded txt file from {file_path}.")
-    return df
+    df = pd.DataFrame(data, columns=[col_name])
+    dataset = Dataset.from_pandas(df)
+
+    return DatasetDict({split_name: dataset})
 
 
 def load_hf_dataset(

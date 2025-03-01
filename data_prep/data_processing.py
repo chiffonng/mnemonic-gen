@@ -157,12 +157,11 @@ def combine_datasets(
     return combined_df
 
 
-def train_val_test_split(
+def train_val_split(
     combined_data_path: "PathLike",
-    test_terms_path: "Optional[PathLike]" = None,
     val_size: float = 0.2,
     seed: int = 42,
-) -> dict[str, Dataset]:
+) -> "DatasetDict":
     """Split the combined dataset into training and validation sets, and prepare test set.
 
     Args:
@@ -172,7 +171,7 @@ def train_val_test_split(
         seed (int): Random seed for reproducibility.
 
     Returns:
-        Dict[str, Dataset]: Dictionary containing 'train', 'validation', and 'test' datasets.
+        DatasetDict: Dictionary containing 'train' and 'validation' datasets.
     """
     # Load the combined dataset
     df = (
@@ -185,32 +184,15 @@ def train_val_test_split(
     # Convert to Dataset
     combined_dataset = Dataset.from_pandas(df)
 
-    # Separate test terms if provided
-    if test_terms_path:
-        test_df = load_txt_file(test_terms_path)
-
-        # Create test dataset with just the terms (no mnemonics)
-        test_dataset = Dataset.from_pandas(test_df.rename(columns={"data": "term"}))
-    else:
-        # If no test terms provided, we'll split the combined dataset
-        splits = combined_dataset.train_test_split(test_size=val_size / 2, seed=seed)
-        train_val_dataset = splits["train"]
-        test_dataset = splits["test"]
-        train_val_df = train_val_dataset.to_pandas()
-
-    # Now split the remaining data into train and validation
-    train_val_dataset = Dataset.from_pandas(train_val_df)
-    splits = train_val_dataset.train_test_split(test_size=val_size, seed=seed)
-
-    return {
-        "train": splits["train"],
-        "validation": splits["test"],
-        "test": test_dataset,
-    }
+    # Split into train and validation sets
+    train_val_split = combined_dataset.train_test_split(test_size=val_size, seed=seed)
+    return DatasetDict(
+        {"train": train_val_split["train"], "val": train_val_split["test"]}
+    )
 
 
 def save_splits_locally(
-    splits: dict[str, Dataset], output_dir_path: "str", format: str = "csv"
+    splits: "DatasetDict", output_dir_path: "str", format: str = "csv"
 ) -> dict[str, Path]:
     """Save the dataset splits to local files.
 
@@ -244,24 +226,21 @@ def save_splits_locally(
 
 
 def push_to_hf_hub(
-    splits: dict[str, Dataset],
-    repo_id: str = c.HF_DATASET_NAME,
+    dataset_dict: "DatasetDict",
+    repo_id: str,
     private: bool = False,
     **kwargs,
 ):
     """Push dataset splits to the Hugging Face hub.
 
     Args:
-        splits (Dict[str, Dataset]): Dictionary of dataset splits.
+        dataset_dict (DatasetDict): Dictionary containing splits and their according datasets.
         repo_id (str): The Hugging Face repository ID. Defaults to the value in 'utils/constants.py'.
         private (bool): Whether to make the dataset private. Defaults to False.
         **kwargs: Additional keyword arguments for the push_to_hub() function.
     """
     # Login to Hugging Face with a write token
     login_hf_hub(write_permission=True)
-
-    # Create a DatasetDict from the splits
-    dataset_dict = DatasetDict(splits)
 
     # Push to HF Hub
     dataset_dict.push_to_hub(
@@ -275,51 +254,27 @@ def push_to_hf_hub(
     )
 
 
-def process_and_upload_data(
-    combined_data_path: "PathLike",
-    test_terms_path: "Optional[PathLike]" = None,
-    output_dir: "Optional[PathLike]" = None,
-    val_size: float = 0.2,
-    seed: int = 42,
-    repo_id: str = c.HF_DATASET_NAME,
-    save_locally: bool = True,
-    push_to_hub: bool = True,
-):
-    """Process the data, create splits, and upload to Hugging Face.
-
-    Args:
-        combined_data_path (PathLike): Path to the combined dataset (.csv or .parquet).
-        test_terms_path (PathLike, optional): Path to the .txt file containing test terms.
-        output_dir (PathLike, optional): Directory to save the splits locally.
-        val_size (float): Proportion of data to use for validation.
-        seed (int): Random seed for reproducibility.
-        repo_id (str): Hugging Face repository ID.
-        save_locally (bool): Whether to save the splits locally.
-        push_to_hub (bool): Whether to push the splits to Hugging Face.
-    """
-    # Create the dataset splits
-    splits = train_val_test_split(
-        combined_data_path=combined_data_path,
-        test_terms_path=test_terms_path,
-        val_size=val_size,
-        seed=seed,
-    )
-
-    # Save locally if requested
-    if save_locally and output_dir:
-        save_splits_locally(splits, output_dir)
-
-    # Push to Hugging Face if requested
-    if push_to_hub:
-        push_to_hf_hub(splits, repo_id=repo_id)
-
-
+# Get train and validation datasetdict
+# And
 if __name__ == "__main__":
-    # Example usage
-    process_and_upload_data(
+    # Load and clean the data
+
+    # Split the data into training and validation sets
+    splits = train_val_split(
         combined_data_path=c.COMBINED_DATASET_CSV,
-        test_terms_path="data_prep/final/test.txt",
-        output_dir="data_prep/final",
         val_size=0.2,
         seed=42,
     )
+    test_split = load_txt_file(c.FINAL_TEST_DATASET_TXT)
+
+    # Save the splits locally
+    split_file_paths = save_splits_locally(
+        splits=splits,
+        output_dir_path=c.FINAL_DATA_DIR,
+        format="csv",
+    )
+
+    # Push the splits to the Hugging Face hub
+    push_to_hf_hub(dataset_dict=splits, repo_id=c.HF_DATASET_NAME)
+    push_to_hf_hub(dataset_dict=splits, repo_id=c.HF_TESTSET_NAME)
+    logger.info("Finished processing data.")
