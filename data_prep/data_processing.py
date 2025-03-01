@@ -276,5 +276,5 @@ if __name__ == "__main__":
 
     # Push the splits to the Hugging Face hub
     push_to_hf_hub(dataset_dict=splits, repo_id=c.HF_DATASET_NAME)
-    push_to_hf_hub(dataset_dict=splits, repo_id=c.HF_TESTSET_NAME)
+    push_to_hf_hub(dataset_dict=test_split, repo_id=c.HF_TESTSET_NAME)
     logger.info("Finished processing data.")
