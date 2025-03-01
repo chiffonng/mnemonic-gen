@@ -66,9 +66,11 @@ def check_extension(path: Path, extensions: "ExtensionsType") -> None:
         )
 
 
+# TODO: Refactor into two functions, one for file, and one for checking extensions
 def check_file_path(
     path: "PathLike",
     new_ok: bool = False,
+    to_create: bool = False,
     extensions: "Optional[ExtensionsType]" = None,
 ) -> Path:
     """Convert path to a Path object if it is a string, and return it. Optionally, check if the file has one of the specified extensions or if it exists.
@@ -76,6 +78,7 @@ def check_file_path(
     Args:
         path (PathLike): The path to the file.
         new_ok (bool, optional): If True, the file does not have to exist. Defaults to False.
+        to_create (bool, optional): If True, the file will be created if it does not exist. Defaults to False. Ignored if 'new_ok' is False.
         extensions (list[str], optional): A list of allowed file extensions. Defaults to []. If provided, the file must have one of the specified extensions.
 
     Returns:
@@ -89,6 +92,9 @@ def check_file_path(
     path = validate_path(path)
     if not new_ok and not path.exists():
         raise FileNotFoundError(f"{path.resolve()}")
+    elif new_ok and to_create:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.touch()
 
     extensions = validate_and_normalize_extensions(extensions)
     check_extension(path, extensions)
@@ -96,6 +102,7 @@ def check_file_path(
     return path
 
 
+# TODO: Refactor into two functions, one for file, and one for checking extensions
 def check_dir_path(
     dir_path: "PathLike",
     new_ok: bool = False,
@@ -107,7 +114,6 @@ def check_dir_path(
         dir_path (PathLike): The path to the directory.
         new_ok (bool, optional): If True, the directory does not have to exist. Defaults to False.
         extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
-        return_path (bool, optional): If True, return the path as a pathlib.Path object. Defaults to True.
 
     Returns:
         dir_path (Path or list[Path]): The path to the directory. If extensions are provided, returns a list of file paths with the specified extensions.

@@ -11,8 +11,10 @@ import random
 from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
-from src.openai.openai_ft import (
+from src.openai import (
+    batch_improve_mnemonics,
     finetune_from_config,
+    improve_mnemonic,
     upload_file_to_openai,
     validate_openai_file,
 )
@@ -34,10 +36,10 @@ val_input_path = check_file_path(
     "data_prep/processed/improve_sft_val.jsonl", extensions=["jsonl"], new_ok=True
 )
 config_file_path = check_file_path(
-    "data_prep/config/improve_sft.json", extensions=["json"]
+    "config/openai_sft_improve.json", extensions=["json"]
 )
 finetune_model_id_path = check_file_path(
-    "data_prep/config/improve_sft_model_id.txt", extensions=["txt"], new_ok=True
+    "out/improve_sft_model_id.txt", extensions=["txt"], new_ok=True
 )
 
 # Set up logging
@@ -47,6 +49,9 @@ logger.addHandler(logging.FileHandler("logs/mnemonic_processing.log"))
 logger.handlers[0].setFormatter(
     logging.Formatter("%(asctime)s - %(levelname)s - %(funcName)s - %(message)s")
 )
+
+load_dotenv()
+client = OpenAI()
 
 
 def prepare_and_split_finetune_data(
@@ -195,9 +200,6 @@ def upload_finetune_data(
     return None
 
 
-# TODO: Add a function to validate the config file, or update src.utils.common.read_config to validate the config file.
-
-
 def _get_cached_file_id(
     client: "OpenAI", config_file_path: "Path", file_type: str, to_overwrite: bool
 ) -> str | None:
@@ -260,7 +262,8 @@ def _get_cached_file_id(
         raise e
 
 
-if __name__ == "__main__":
+def run_finetune_pipeline():
+    """Run the full pipeline for fine-tuning a model with improved mnemonics."""
     prepare_and_split_finetune_data(
         output_train_jsonl=train_input_path,
         output_val_jsonl=val_input_path,
@@ -268,9 +271,26 @@ if __name__ == "__main__":
     validate_openai_file(train_input_path)
     validate_openai_file(val_input_path)
 
-    load_dotenv()
-    client = OpenAI()
-    # upload_finetune_data(client, input_path=train_input_path, file_type="train")
-    # upload_finetune_data(client, input_path=val_input_path, file_type="validation")
+    upload_finetune_data(client, input_path=train_input_path, file_type="train")
+    upload_finetune_data(client, input_path=val_input_path, file_type="validation")
 
     finetune_from_config(client, config_file_path, finetune_model_id_path)
+
+
+if __name__ == "__main__":
+    # run_finetune_pipeline()
+
+    # Paths
+    config_path = check_file_path("config/openai_cc_improve.json", extensions=["json"])
+    prompt_path = check_file_path(
+        "prompts/icl0_system_mnemonic.txt", extensions=["txt"]
+    )
+
+    # Example 1: Improve a single mnemonic
+    term = "ephemeral"
+    mnemonic = "Things that are ephemeral don't last long."
+
+    print(f"\nImproving mnemonic for term '{term}':")
+    improved = improve_mnemonic(client, config_path, prompt_path, term, mnemonic)
+    print(f"\nOriginal: {mnemonic}")
+    print(f"Improved: {improved}")
