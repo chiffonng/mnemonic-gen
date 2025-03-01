@@ -7,3 +7,6 @@ trim_trailing_whitespace = true
 insert_final_newline = true
 [*.py]
 indent_size = 4
+max_line_length = 88
+[*.txt]
+max_line_length = 100
