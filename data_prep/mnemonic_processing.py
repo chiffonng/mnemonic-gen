@@ -11,7 +11,11 @@ import random
 from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
-from src.openai import finetune_from_config, upload_file_to_openai, validate_openai_file
+from src.openai.openai_ft import (
+    finetune_from_config,
+    upload_file_to_openai,
+    validate_openai_file,
+)
 from src.utils import check_file_path, read_config, read_prompt, update_config
 
 from openai import OpenAI
@@ -30,10 +34,10 @@ val_input_path = check_file_path(
     "data_prep/processed/improve_sft_val.jsonl", extensions=["jsonl"], new_ok=True
 )
 config_file_path = check_file_path(
-    "config/openai_sft_improve.json", extensions=["json"]
+    "data_prep/config/improve_sft.json", extensions=["json"]
 )
 finetune_model_id_path = check_file_path(
-    "out/improve_sft_model_id.txt", extensions=["txt"], new_ok=True
+    "data_prep/config/improve_sft_model_id.txt", extensions=["txt"], new_ok=True
 )
 
 # Set up logging

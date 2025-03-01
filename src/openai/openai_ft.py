@@ -14,8 +14,6 @@ if TYPE_CHECKING:
 from src.utils import check_file_path, read_config
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
 
 
 def validate_openai_file(input_path: "Path"):
@@ -217,8 +215,7 @@ def finetune_from_config(
         finetuned_model_id = job_info.fine_tuned_model
         logger.info(f"Fine-tuning succeeded. Fine-tuned model: {finetuned_model_id}")
 
-        # TODO: Write fine-tuned model object to an out file
-        finetuned_model_id_path.parent.mkdir(parents=True, exist_ok=True)
+        # Write the fine-tuned model id to a file.
         with finetuned_model_id_path.open("w", encoding="utf-8") as f:
             f.write(finetuned_model_id)
 
