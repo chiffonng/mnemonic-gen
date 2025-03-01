@@ -139,9 +139,8 @@ def combine_datasets(
 
     # Set up output directories and file
     output_path_obj: Path = check_file_path(
-        output_path, new_ok=True, extensions=[c.CSV_EXT, c.PARQUET_EXT]
+        output_path, new_ok=True, to_create=True, extensions=[c.CSV_EXT, c.PARQUET_EXT]
     )
-    output_path_obj.parent.mkdir(parents=True, exist_ok=True)
 
     # Write to output file
     if output_path_obj.suffix == c.CSV_EXT:
