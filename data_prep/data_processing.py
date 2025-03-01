@@ -1,24 +1,28 @@
 """Local module for processing data, including.
 
 - Loading, cleaning, and combining data
-- Splitting datasets into training and testing sets
+- Splitting datasets into training, validation, and testing sets
 - Pushing datasets to the Hugging Face hub
 """
 
+# mypy: disable-error-code="arg-type"
 import logging
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
-from src.data.data_loaders import load_local_dataset
-from src.huggingface.hf_utils import login_hf_hub
+from datasets import Dataset, DatasetDict
+from src.data import load_local_dataset, load_txt_file
+from src.huggingface import login_hf_hub
+from src.utils import check_dir_path, check_file_path
 from src.utils import constants as c
-from src.utils.error_handling import check_dir_path, check_file_path
 
 if TYPE_CHECKING:
-    from datasets import Dataset, DatasetDict
+    from typing import Optional
+
     from src.utils.aliases import PathLike
+
 
 # Set up logging to console
 logger = logging.getLogger(__name__)
@@ -29,7 +33,7 @@ logger.handlers[0].setFormatter(
 )
 
 
-def load_clean_txt_csv_data(dir_path: "PathLike") -> pd.DataFrame:
+def load_clean_txt_csv_data(dir_path: "PathLike") -> pd.DataFrame:  # type: ignore
     """Load txt or csv data into a dataframe and clean it.
 
     Args:
@@ -49,14 +53,12 @@ def load_clean_txt_csv_data(dir_path: "PathLike") -> pd.DataFrame:
 
     logger.info(f"Loading txt/csv files from {[str(p) for p in file_paths]}.")
 
-    # Read only the first two columns, skipping the first two rows
     for path in file_paths:
         if path.suffix == c.TXT_EXT:
             temp_data = pd.read_csv(
                 path,
                 sep="\t",
                 header=None,
-                skiprows=2,
                 usecols=[0, 1],
                 skip_blank_lines=True,
                 names=[c.TERM_COL, c.MNEMONIC_COL],
@@ -155,60 +157,169 @@ def combine_datasets(
     return combined_df
 
 
-def train_test_split(dataset: "Dataset", test_size: float = 0.2) -> "DatasetDict":
-    """Split a dataset into training and testing sets.
+def train_val_test_split(
+    combined_data_path: "PathLike",
+    test_terms_path: "Optional[PathLike]" = None,
+    val_size: float = 0.2,
+    seed: int = 42,
+) -> dict[str, Dataset]:
+    """Split the combined dataset into training and validation sets, and prepare test set.
 
     Args:
-        dataset (Dataset): The dataset to split.
-        test_size (float): The proportion of the dataset to include in the test split. Defaults to 0.2.
+        combined_data_path (PathLike): Path to the combined dataset (.csv or .parquet).
+        test_terms_path (PathLike, optional): Path to the .txt file containing test terms.
+        val_size (float): The proportion of the dataset to include in the validation set.
+        seed (int): Random seed for reproducibility.
 
     Returns:
-        DatasetDict: A dictionary containing the training and testing sets.
+        Dict[str, Dataset]: Dictionary containing 'train', 'validation', and 'test' datasets.
     """
-    # Split the dataset into training and testing sets
-    dataset_dict = dataset.train_test_split(
-        test_size=test_size,
-        shuffle=True,
-        seed=42,  # stratify_by_column=c.CATEGORY_COL
+    # Load the combined dataset
+    df = (
+        pd.read_csv(combined_data_path)
+        if str(combined_data_path).endswith(".csv")
+        else pd.read_parquet(combined_data_path)
     )
-    logger.info(f"\n{dataset_dict}")
+    logger.info(f"Loaded combined dataset with {len(df)} examples")
 
-    # Return the training and testing sets
-    return dataset_dict
+    # Convert to Dataset
+    combined_dataset = Dataset.from_pandas(df)
+
+    # Separate test terms if provided
+    if test_terms_path:
+        test_df = load_txt_file(test_terms_path)
+
+        # Create test dataset with just the terms (no mnemonics)
+        test_dataset = Dataset.from_pandas(test_df.rename(columns={"data": "term"}))
+    else:
+        # If no test terms provided, we'll split the combined dataset
+        splits = combined_dataset.train_test_split(test_size=val_size / 2, seed=seed)
+        train_val_dataset = splits["train"]
+        test_dataset = splits["test"]
+        train_val_df = train_val_dataset.to_pandas()
+
+    # Now split the remaining data into train and validation
+    train_val_dataset = Dataset.from_pandas(train_val_df)
+    splits = train_val_dataset.train_test_split(test_size=val_size, seed=seed)
+
+    return {
+        "train": splits["train"],
+        "validation": splits["test"],
+        "test": test_dataset,
+    }
+
+
+def save_splits_locally(
+    splits: dict[str, Dataset], output_dir_path: "str", format: str = "csv"
+) -> dict[str, Path]:
+    """Save the dataset splits to local files.
+
+    Args:
+        splits (dict[str, Dataset]): Dictionary of dataset splits.
+        output_dir_path (str): Directory to save the splits.
+        format (str): Format to save the splits in ('csv' or 'parquet'). Defaults to 'csv'.
+
+    Returns:
+        dict[str, Path]: Dictionary mapping split names to file paths.
+    """
+    output_dir = Path(output_dir_path)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    file_paths = {}
+
+    for split_name, dataset in splits.items():
+        if format == "csv":
+            file_path = output_dir / f"{split_name}.csv"
+            dataset.to_csv(str(file_path), index=False)
+        else:
+            file_path = output_dir / f"{split_name}.parquet"
+            dataset.to_parquet(str(file_path), index=False)
+
+        file_paths[split_name] = file_path
+        logger.info(
+            f"Saved {split_name} split with {len(dataset)} examples to {file_path}"
+        )
+
+    return file_paths
 
 
 def push_to_hf_hub(
-    dataset: "Dataset",
+    splits: dict[str, Dataset],
     repo_id: str = c.HF_DATASET_NAME,
     private: bool = False,
     **kwargs,
 ):
-    """Push a dataset to the Hugging Face hub.
+    """Push dataset splits to the Hugging Face hub.
 
     Args:
-        dataset (Dataset or DatasetDict): The dataset to push to the Hugging Face hub.
+        splits (Dict[str, Dataset]): Dictionary of dataset splits.
         repo_id (str): The Hugging Face repository ID. Defaults to the value in 'utils/constants.py'.
         private (bool): Whether to make the dataset private. Defaults to False.
-        **kwargs: Additional keyword arguments for the push_to_hub() function. See documentation: https://huggingface.co/docs/datasets/main/en/package_reference/main_classes#datasets.Dataset.push_to_hub for more details.
+        **kwargs: Additional keyword arguments for the push_to_hub() function.
     """
     # Login to Hugging Face with a write token
     login_hf_hub(write_permission=True)
-    dataset.push_to_hub(
+
+    # Create a DatasetDict from the splits
+    dataset_dict = DatasetDict(splits)
+
+    # Push to HF Hub
+    dataset_dict.push_to_hub(
         repo_id=repo_id,
         private=private,
         **kwargs,
     )
+
     logger.info(
         f"Pushed dataset to Hugging Face hub. Go to https://huggingface.co/datasets/{repo_id} to view the dataset."
     )
 
 
-# combine_datasets(RAW_DATA_DIR, COMBINED_DATASET_CSV)
+def process_and_upload_data(
+    combined_data_path: "PathLike",
+    test_terms_path: "Optional[PathLike]" = None,
+    output_dir: "Optional[PathLike]" = None,
+    val_size: float = 0.2,
+    seed: int = 42,
+    repo_id: str = c.HF_DATASET_NAME,
+    save_locally: bool = True,
+    push_to_hub: bool = True,
+):
+    """Process the data, create splits, and upload to Hugging Face.
 
-if __name__ == "__main__":
-    local_classified_dataset: "Dataset" = load_local_dataset(
-        file_path=c.COMBINED_DATASET_CSV
+    Args:
+        combined_data_path (PathLike): Path to the combined dataset (.csv or .parquet).
+        test_terms_path (PathLike, optional): Path to the .txt file containing test terms.
+        output_dir (PathLike, optional): Directory to save the splits locally.
+        val_size (float): Proportion of data to use for validation.
+        seed (int): Random seed for reproducibility.
+        repo_id (str): Hugging Face repository ID.
+        save_locally (bool): Whether to save the splits locally.
+        push_to_hub (bool): Whether to push the splits to Hugging Face.
+    """
+    # Create the dataset splits
+    splits = train_val_test_split(
+        combined_data_path=combined_data_path,
+        test_terms_path=test_terms_path,
+        val_size=val_size,
+        seed=seed,
     )
 
-    splits = train_test_split(local_classified_dataset)
-    push_to_hf_hub(splits, private=False)
+    # Save locally if requested
+    if save_locally and output_dir:
+        save_splits_locally(splits, output_dir)
+
+    # Push to Hugging Face if requested
+    if push_to_hub:
+        push_to_hf_hub(splits, repo_id=repo_id)
+
+
+if __name__ == "__main__":
+    # Example usage
+    process_and_upload_data(
+        combined_data_path=c.COMBINED_DATASET_CSV,
+        test_terms_path="data_prep/final/test.txt",
+        output_dir="data_prep/final",
+        val_size=0.2,
+        seed=42,
+    )

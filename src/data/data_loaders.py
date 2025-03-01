@@ -3,17 +3,16 @@
 import logging
 from typing import TYPE_CHECKING
 
-from datasets import DatasetDict, load_dataset
+import pandas as pd
+from datasets import Dataset, DatasetDict, load_dataset
+
+from src.huggingface import login_hf_hub
+from src.utils import check_file_path
 
 if TYPE_CHECKING:
     from typing import Optional
 
-    from datasets import Dataset
-
     from src.utils.aliases import PathLike
-
-from src.huggingface import login_hf_hub
-from src.utils import check_file_path
 
 # Hugging Face collection
 HF_DATASET_NAME = "chiffonng/en-vocab-mnemonics"  # <user>/<dataset_name>
@@ -36,17 +35,29 @@ def load_local_dataset(file_path: "PathLike", **kwargs) -> "Dataset":
         kwargs: Additional keyword arguments for the Hugging Face load_dataset() function, such as 'data_files' or 'data_dir' or 'split'. See documentation: https://huggingface.co/docs/datasets/en/loading for more details.
 
     Returns:
-        Dataset: The loaded dataset.
+        HuggingFace.Dataset: The loaded dataset.
 
     Raises:
         See src/utils/error_handling.py, check_file_path() for more details.
     """
-    file_path = check_file_path(file_path, extensions=[".parquet", ".csv"])
+    file_path = check_file_path(
+        file_path, extensions=[".parquet", ".csv", ".json", ".txt"]
+    )
 
     if file_path.suffix == ".parquet":
         dataset = load_dataset("parquet", data_files=str(file_path), **kwargs)
     elif file_path.suffix == ".csv":
         dataset = load_dataset("csv", data_files=str(file_path), **kwargs)
+    elif file_path.suffix == ".json":
+        dataset = load_dataset("json", data_files=str(file_path), **kwargs)
+    elif file_path.suffix == ".txt":
+        df = load_txt_file(file_path=file_path)
+        dataset = Dataset.from_pandas(df)
+
+    else:
+        raise ValueError(
+            f"Invalid file extension: {file_path.suffix}. Must be one of: '.parquet', '.csv', '.json', '.txt'."
+        )
 
     logger.info(f"Loaded dataset from {file_path}.")
     if isinstance(dataset, DatasetDict):
@@ -56,6 +67,25 @@ def load_local_dataset(file_path: "PathLike", **kwargs) -> "Dataset":
     logger.info(f"Data shape: {dataset.shape}.")
     logger.info(f"Features: {dataset.features}.")
     return dataset
+
+
+def load_txt_file(file_path: "PathLike") -> "pd.DataFrame":
+    """Load a txt file as a pandas DataFrame.
+
+    Args:
+        file_path (PathLike): Path to the txt file.
+
+    Returns:
+        DataFrame: The loaded DataFrame.
+    """
+    file_path = check_file_path(file_path, extensions=[".txt"])
+
+    with file_path.open("r") as f:
+        data = [line.strip().lower() for line in f if line.strip()]
+
+    df = pd.DataFrame({"data": data})
+    logger.info(f"Loaded txt file from {file_path}.")
+    return df
 
 
 def load_hf_dataset(
@@ -83,12 +113,8 @@ def load_hf_dataset(
     logger.info(f"Loading dataset from {repo_id}.")
     dataset = load_dataset(repo_id, **kwargs)
 
-    if to_csv:
+    if to_csv and file_path is not None:
         file_path = check_file_path(file_path, new_ok=True, extensions=[".csv"])
-        if not file_path:
-            raise ValueError(
-                "Invalid file path. Must be a valid path of csv to save the dataset to."
-            )
         dataset.to_csv(file_path)
         logger.info(f"Saved dataset to {file_path}.")
     else:
