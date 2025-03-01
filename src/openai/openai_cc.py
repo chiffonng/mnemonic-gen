@@ -50,6 +50,10 @@ def openai_generate_completion(
 
     # Prepare messages
     messages = [{"role": "system", "content": system_prompt}, *user_messages]
+    # TODO: Temporarily added, should have better validation
+    assert all(
+        isinstance(m, dict) and "role" in m and "content" in m for m in messages
+    ), "Invalid message format"
 
     # Extract required parameters from config
     model = config.get("model", "gpt-4o-mini-2024-07-18")
@@ -118,6 +122,7 @@ def batch_improve_mnemonics(
     prompt_path: "PathLike",
     input_csv_path: "PathLike",
     output_csv_path: "PathLike",
+    batch_size: int = 10,
 ) -> None:
     """Process a CSV file with terms and mnemonics, generating improved mnemonics for each.
 
@@ -127,6 +132,7 @@ def batch_improve_mnemonics(
         prompt_path (PathLike): Path to the system prompt (.txt) file.
         input_csv_path (PathLike): Path to the input CSV file with "term" and "mnemonic" columns.
         output_csv_path (PathLike): Path to save the output CSV with improved mnemonics.
+        batch_size (int): The number of rows to process in each batch.
     """
     import csv
 
@@ -143,22 +149,57 @@ def batch_improve_mnemonics(
         for row in reader:
             rows.append(row)
 
-    # Process each row
-    for i, row in enumerate(rows):
-        term = row.get("term", "")
-        mnemonic = row.get("mnemonic", "")
+    # Process rows in batches
+    for batch_start in range(0, len(rows), batch_size):
+        batch_end = min(batch_start + batch_size, len(rows))
+        batch = rows[batch_start:batch_end]
 
-        if not term or not mnemonic:
-            logger.warning(f"Row {i + 1}: Missing term or mnemonic. Skipping.")
-            row["improved_mnemonic"] = ""
+        # Filter out rows with missing terms or mnemonics
+        valid_batch = []
+        for i, row in enumerate(batch):
+            term = row.get("term", "").strip()
+            mnemonic = row.get("mnemonic", "").strip()
+
+            if not term or not mnemonic:
+                logger.warning(
+                    f"Row {batch_start + i + 1}: Missing term or mnemonic. Skipping."
+                )
+                row["improved_mnemonic"] = ""
+            else:
+                valid_batch.append((i, row))
+
+        if not valid_batch:
+            logger.warning(
+                f"Batch {batch_start // batch_size + 1}: No valid entries. Skipping."
+            )
             continue
 
-        logger.info(f"Processing {i + 1}/{len(rows)}: {term}")
+        logger.info(
+            f"Processing batch {batch_start // batch_size + 1}/{(len(rows) - 1) // batch_size + 1} with {len(valid_batch)} terms"
+        )
+
         try:
-            improved_mnemonic = improve_mnemonic(
-                client, config_path, prompt_path, term, mnemonic
+            # Prepare batch format for the API
+            batch_content = "\n\n".join(
+                [
+                    f"Index: {idx}\nTerm: {row['term']}\nCurrent mnemonic: {row['mnemonic']}"
+                    for idx, row in valid_batch
+                ]
             )
-            row["improved_mnemonic"] = improved_mnemonic
+
+            # Create messages for the API call
+            user_messages = [
+                {"role": "user", "content": batch_content},
+            ]
+
+            # Make the API call
+            response = openai_generate_completion(
+                client, config_path, prompt_path, user_messages
+            )
+
+            # Extract improved mnemonics from the response. Each improved mnemonic is separated by a line break.
+            response.split("\n")
+
         except Exception as e:
             logger.error(f"Error improving mnemonic for term '{term}': {e}")
             row["improved_mnemonic"] = ""
