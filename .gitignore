@@ -180,6 +180,10 @@ cython_debug/
 # Model
 cache/
 
+# Output
+output/
+out/
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
