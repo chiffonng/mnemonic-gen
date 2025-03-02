@@ -253,17 +253,12 @@ Linguistic diversity assesses the variety of linguistic features leveraged in mn
 
 \section{Results \& Error Analysis} \label{sec:results}
 \subsection{Semantic Relevance} \label{sec:relevance-results}
-Fine-tuned models demonstrated superior semantic relevance compared to baseline approaches. Results show that the explicitly annotated linguistic features provided valuable guidance for the models to generate mnemonics that more accurately captured the semantic essence of target vocabulary items. This confirms our hypothesis that targeted fine-tuning can enhance LLMs' ability to leverage their linguistic knowledge for mnemonic generation.
 
-\section{Discussion}
-The results of our experiments provide compelling evidence that LLMs can indeed serve as reliable linguistic knowledge bases for mnemonic generation when properly fine-tuned. The improved performance of fine-tuned models across semantic relevance and linguistic diversity metrics suggests that explicit linguistic annotations help models better access and deploy their inherent linguistic knowledge. This aligns with findings from the broader literature on LLMs as linguistic knowledge repositories, where studies have shown that while models acquire substantial linguistic patterns during pre-training, this knowledge often remains implicit and underutilized without specific guidance.
+\section{Discussion} \label{sec:discussion}
 
-The relative performance across different linguistic feature categories offers valuable insights into which aspects of language LLMs most readily leverage. Morphological and semantic features appear most accessible to models, reflecting the strengths identified in linguistic probing studies of LLMs. Phonological features proved more challenging, mirroring the documented limitations of LLMs in phonological processing.
 
-The human evaluation results highlight the importance of linguistic depth in mnemonic effectiveness. Mnemonics that incorporated explicit etymological or morphological reasoning were consistently rated as more helpful by evaluators, suggesting that deep-encoding strategies facilitated by precise linguistic knowledge indeed yield superior learning aids. This aligns with cognitive research on memory formation, where deeper processing has been shown to enhance retention.
-
-\section{Conclusion}
-This paper introduced \shorttitle, a novel approach to mining linguistic knowledge from LLMs for generating effective vocabulary mnemonics. Through careful dataset curation, targeted fine-tuning, and comprehensive evaluation, we have demonstrated that LLMs can successfully leverage diverse linguistic features to create mnemonics that enhance vocabulary learning. Our findings contribute to both computational linguistics and language education, offering insights into LLMs' linguistic capabilities while providing practical tools for vocabulary acquisition.
+\section{Conclusion} \label{sec:conclusion}
+This paper introduced \shorttitle, a pipeline to mining linguistic knowledge from LLMs for generating effective vocabulary mnemonics. Through careful dataset curation, targeted fine-tuning, and comprehensive evaluation, we have demonstrated that LLMs can successfully leverage diverse linguistic features to create mnemonics that enhance vocabulary learning. Our findings contribute to both computational linguistics and language education, offering insights into LLMs' linguistic capabilities while providing practical tools for vocabulary acquisition.
 
 \subsection{Limitations}
 Despite promising results, several limitations warrant acknowledgment. First, our evaluation focused primarily on intermediate measures of mnemonic quality rather than direct assessment of learning outcomes. Future work should include longitudinal studies measuring actual vocabulary retention. Second, our linguistic feature classification relied on manual annotation for a subset of examples, which may introduce inconsistencies. Finally, while our comparative analysis included both open and closed-source models, resource constraints limited the scale of fine-tuning experiments, particularly for larger models.
