@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36" version="26.0.16">
   <diagram name="Page-1" id="px9kx3slcnb5_E4VtIDT">
-    <mxGraphModel dx="1243" dy="1155" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="505" dy="469" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -124,8 +124,11 @@
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="g-isBZqxFY_-JQoQWxyM-34" value="D" style="swimlane;whiteSpace=wrap;html=1;startSize=23;" vertex="1" parent="1">
-          <mxGeometry x="240" y="310" width="200" height="200" as="geometry" />
+        <mxCell id="g-isBZqxFY_-JQoQWxyM-34" value="Data Construction" style="swimlane;whiteSpace=wrap;html=1;startSize=23;" vertex="1" parent="1">
+          <mxGeometry x="240" y="310" width="170" height="370" as="geometry" />
+        </mxCell>
+        <mxCell id="g-isBZqxFY_-JQoQWxyM-35" value="Curation&lt;div&gt;1300+ vocab-mnemonic pairs&lt;/div&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="g-isBZqxFY_-JQoQWxyM-34">
+          <mxGeometry x="25" y="40" width="120" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
