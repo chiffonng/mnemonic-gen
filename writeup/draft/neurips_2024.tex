@@ -43,7 +43,10 @@
 \newcounter{para}
 \newcommand\numpara{\par\refstepcounter{para}{\thepara}.\space\textbf}
 
-\title{\textsc{MnemonicChat}: Personalizing English Vocabulary Learning through LLM-Generated Mnemonics and Student Feedback}
+% Create new command for the short title
+\newcommand{\shorttitle}{\textbf{mmv}}
+
+\title{mmv: Mining Linguistic Knowledge from LLMs for English Vocabulary Learning}
 
 
 % The \author macro works with any number of authors. There are two commands
@@ -56,7 +59,7 @@
 
 
 \author{%
-  My Chiffon Nguyen \\
+  My (Chiffon) Nguyen \\
   College of Computational Sciences \\
   Minerva University \\
   San Francisco, CA 94108 \\
@@ -72,41 +75,51 @@
 
 \begin{document}
 \maketitle
+
 \begin{abstract}
-Vocabulary retention challenges many English learners, especially at advanced levels. While mnemonics aid memory, current automated approaches rely heavily on shallow-encoding strategies like keyword mnemonics, limiting their effectiveness for abstract vocabulary. Moreover, these methods lack user engagement, stripping learners of the benefits of self-created mnemonics. To address these gaps, we introduce \textsc{MnemonicChat}, a chatbot leveraging a fine-tuned Gemma-2-9B-it model to generate diverse mnemonics using proven vocabulary strategies. Through user interaction (user prompts), the system adapts mnemonics to individual preferences, enhancing engagement and learning outcomes. Current progress includes model fine-tuning and chatbot integration. Instruction-tuning dataset, experimental results, and references\footnote{Currently the citations and references could not be rendered on our Latex engine. We will fix this issue in the next version of the paper.} will be added in future iterations during winter break and Jan 2025. We provide the codebase \footnote{\href{https://github.com/chiffonng/mnemonic-gen}{https://github.com/chiffonng/mnemonic-gen}} and the artifacts \footnote{\href{https://huggingface.co/collections/chiffonng/vocab-mnemonic-mining-67563a0a1ab91e84e9827579}{https://huggingface.co/collections/chiffonng/vocab-mnemonic-mining-67563a0a1ab91e84e9827579}} for the community to reproduce and extend our work.
+Vocabulary acquisition challenges many English learners, especially at advanced levels where abstract concepts predominate. Mnemonics are cognitive tools that facilitate vocabulary retention by creating associations between new vocabulary and familiar concepts.
+While mnemonics aid recall of the vocabulary meaning and spelling, manual creation is a labor-intensive effort that requires linguistic knowledge and creativity. This paper investigates whether Large Language Models (LLMs) can serve as reliable linguistic knowledge bases for writing effective, creative mnemonics for English vocabulary. We introduce \shorttitle, a pipeline that mines linguistic knowledge from LLMs through fine-tuning on a curated dataset of 1,300+ vocabulary-mnemonic pairs annotated with linguistic reasoning patterns. Through comparative analysis of baseline (Gemma-2 9B) and fine-tuned models, we evaluate the semantic relevance, linguistic diversity, and learner-rated helpfulness of generated mnemonics. Our results demonstrate that fine-tuned models ... Human evaluations ... We provide our dataset, evaluation metrics, and fine-tuned models as resources for advancing computational approaches to language learning assistance.\footnote{\href{https://github.com/chiffonng/mnemonic-gen}{Github codebase}}  \footnote{\href{https://huggingface.co/collections/chiffonng/vocab-mnemonic-mining-67563a0a1ab91e84e9827579}{HuggingFace collection of artifacts}}.
 \end{abstract}
 
 \section{Introduction} \label{sec:intro}
-Language learners, particularly at intermediate to advanced levels, face persistent challenges in retaining an ever-expanding vocabulary [cite]. Mnemonics are cognitive tools that help learners create associations between new vocabulary and something familiar (such as a familiar image or sounds), facilitating retention and recall. The deeper leaners cognitively engage with the connection between the mnemonic and the target term, the better they are able to remember the term in the long term [cite]. However, creating mnemonics manually is a labor-intensive process that demands both linguistic knowledge and creative effort.
+Vocabulary acquisition remains a persistent challenge for English language learners, particularly at intermediate to advanced levels where abstract and academic terminology predominates. Mnemonics (or memory devices) are cognitive tools that help learners create associations between new vocabulary and familiar concepts—serve as valuable tools for enhancing retention and recall. The deeper leaners cognitively engage with the connection between the mnemonic and the target vocabulary, the better they are able to remember the term in the long term [cite]. However, creating such effective mnemonics demands both linguistic expertise and creative effort, presenting a significant barrier for most learners.
 
-To ease these burdens, prior works have automated mnemonic generation through computational methods, with a focus on \textit{keyword mnemonics}. \textsc{TransPhoner} generates mnemonic keywords by aligning phonetic similarities and semantic meanings across languages; for instance, it might link the Spanish word "correr" (to run) with the English word "corridor," encouraging learners to visualize running down a corridor. Building upon this, \textsc{SmartPhone} utilizes large language models (LLMs) to produce both verbal and visual cues, creating sentences that incorporate the target term and its mnemonic keyword, accompanied by corresponding images to strengthen the association. The \textsc{Overgenerate-and-Rank} approach prompts LLMs to generate multiple mnemonic options, which are then evaluated based on factors like imageability and coherence. \textsc{Smart} fine-tunes LLaMA-2 70B on a crowdsourced dataset of mnemonics, and aligns outputs with three types of student preferences (explicit ratings and actual learning outcomes). \textsc{Smart} employs Bayesian model to synthesize these preferences into a unified effectiveness measure, which guides Direct Preference Optimization to ensure that the generated mnemonics better align with learners preferences.
+Large Language Models (LLMs) have demonstrated capabilities as both knowledge bases \citep{petroni2019language, roberts2020much} and creative text generators \citep{brown2020language}, suggesting their potential for automated mnemonic generation. They are trained on vast pre-training data, which includes linguistic sources like \emph{wikitionary}, \emph{WordNet}, and \emph{ConceptNet}, enabling them to capture rich semantic and syntactic knowledge (on the word and sentence levels). By fine-tuning LLMs on a curated dataset of vocabulary-mnemonic pairs, we aim to bring out their linguistic knowledge to generate effective, creative mnemonics for English vocabulary learning.
 
-Despite their contributions, these methods have two limitations. First, they predominantly focus on keyword method, which proves most effective for concrete and imageable words and is insufficient for abstract vocabulary at higher level of language usage. By focusing on only one common mnemonic strategy, these works overlook the potential benefits of incorporating other vocabulary strategies, such as etymology and related words, which could provide richer learning experiences for immediate and
-advanced learners who need more effective methods to learn abstract or academic vocabulary. Second, prior works passively hands gneerated mnemonics to learners. While \textsc{Smart} was further trained on learner preferences, they were \textit{aggregated}, which may not align with individual learning preferences. Further, research shows that language learners who use self-created mnemonics are more likely to retain them and for longer duration [cite].
+Prior work has explored automated mnemonic generation through computational methods. \textsc{TransPhoner}, which generates keyword mnemonics by aligning phonetic similarities and semantic meanings across languages. Building upon this, \textsc{SmartPhone} utilized LLMs to produce both verbal and visual cues. ... proposed an \textsc{Overgenerate-and-Rank} approach that prompts LLMs to generate multiple mnemonic candidates and evaluate them based on imageability and coherence. Most recently, ... introduced \textsc{Smart}, which fine-tuned LLaMA-2-70B on a dataset of 800 crowdsourced mnemonics and applied preference optimization to align outputs with learner preferences and learning outcomes.
 
-In this paper, we propose a new approach to mnemonic generation that addresses these limitations. We introduce \textsc{MnemonicChat}, a conversational agent that generates \textbf{more diverse} mnemonics for English vocabulary and invites other users to provide feedback and \textbf{interact with} the created mnemonics through the chatbot interface. The open-source language model Google's Gemma-2-9-it (abbr Gemma-2) was fine-tuned on a curated dataset created using proven mnemonic techniques \textsc{MnemonicsEN}. We evaluate \textsc{MnemonicChat} through a series of experiments to assess the relevance, diversity, and memorability of the generated mnemonics, as well as the effectiveness of the system in facilitating vocabulary learning.
+Despite their contributions, these methods have two limitations. First, they predominantly employ keyword method, which inadequate for abstract vocabulary that lacks concrete or imageable referents. By focusing on only one common mnemonic strategy, they typically neglect the rich linguistic knowledge embedded in LLMs that could provide diverse mnemonic strategies beyond simple keyword associations. Second, prior works passively hands generated mnemonics to learners. While \textsc{Smart} was further trained on learner preferences, they were \textit{aggregated}, which may not align with individual learning preferences. Research shows that language learners who use self-created mnemonics are more likely to retain them and for longer duration [cite].
 
-%\textsc{MnemonicChat} leverages the strengths of both LLM and human intelligence, providing learners with engaging, memorable, and effective mnemonics that cater to their individual learning preferences. Our system is designed to be user-centric, allowing learners to interact with the system through a chatbot interface, providing feedback on the generated mnemonics, and receiving personalized recommendations based on their preferences.
+This paper addresses these gaps by investigating whether LLMs are reliable \emph{linguistic} knowledge bases for generating effective English vocabulary mnemonics. We posit that through appropriate fine-tuning, LLMs can leverage their inherent linguistic knowledge to produce mnemonics that incorporate diverse linguistic features including morphology, etymology, phonology, and semantics. We introduce \shorttitle, a pipeline that mines linguistic knowledge from LLMs for mnemonic generation, and evaluate the relevance, diversity, and memorability of the generated mnemonics.
+Our primary research questions are:
+\begin{enumerate}
+\item Can we mine linguistic knowledge from LLMs to generate effective mnemonic devices for English vocabulary learning?
+\item Does fine-tuning LLMs on linguistically annotated vocabulary-mnemonic pairs improve mnemonic quality across dimensions of relevance, diversity, and helpfulness?
+\item Which linguistic features contribute most significantly to mnemonic effectiveness?
+\end{enumerate}
+To answer these questions, we make the following contributions:
+\begin{enumerate}
+\item A curated dataset of 1,300+ vocabulary-mnemonic pairs, including 130 examples manually annotated with linguistic reasoning patterns (Section \ref{sec:met-data}).
+\item A fine-tuning pipeline that enhances LLMs' ability to utilize linguistic knowledge for mnemonic generation
+\item Comprehensive evaluation metrics for assessing mnemonic quality across semantic relevance, linguistic diversity, and learner-rated helpfulness
+\item Comparative analysis of prompting baseline versus fine-tuned models, and with prompt variants
+\end{enumerate}
 
-\paragraph{Hypothesis 0 [Relevance]} If \textsc{MnemonicChat} is fine-tuned on \textsc{MnemonicsEN}, its generated mnemonics are semantically relevant to the meaning of the target vocabulary, because the fine-tuning process aligns the model's outputs with the train data \textsc{MnemonicsEN}, which contains such associations. (\ref{sec:relevant})
-
-\paragraph{Hypothesis 1 [Diversity]} If \textsc{MnemonicChat} incorporates multiple mnemonic strategies, then it will produce a more diverse set of mnemonics, because varying strategies cater to different learning styles and word types. (\ref{sec:diverse-style})
-\paragraph{Hypothesis 2 [Helpfulness]} If \textsc{MnemonicChat} aligns its outputs with individual learner feedback, then the generated mnemonics will be perceived as more helpful, because personalized content better addresses learners' unique needs. (\ref{sec:model-comparison})
-
-%TODO: Fix the wording and how it is measured
-\paragraph{Hypothesis 3 [Engagement]} If \textsc{MnemonicChat} takes on the conversational format, then users will have deeper engagement with English vocabulary, since they participate in creating mnemonics. \ref{sec:engagement}
-
-\section{Preliminaries}
-
-\subsection{Mnemonics} \label{sec:pre-mnemonics}
-
-Mnemonics are cognitive strategies that facilitate memory retention by forming associations between new information and pre-existing knowledge. These techniques can be categorized based on the depth of cognitive processing they engage:
+\section{Background} \label{sec:background}
+\subsection{Mnemonics in Vocabulary Learning} \label{sec:mnemonics}
+Mnemonics are cognitive strategies that facilitate memory retention by forming associations between new information and pre-existing knowledge. In vocabulary learning, mnemonics leverage various linguistic features to create memorable associations. These techniques can be categorized based on the depth of cognitive processing they engage:
 
 \paragraph{Shallow-encoding} These involve surface-level associations, such as phonetic mnemonics, where the sound of a new term is linked to familiar words or phrases.
 \paragraph{Deep-encoding} These involve meaningful connections, such as etymological cues that relate a word's origin to its meaning, fostering deeper understanding and recall.
 
-The efficacy of mnemonics is often evaluated through metrics like recall accuracy and retention rates, which can be quantified using statistical measures such as mean recall scores and retention intervals.
+Research indicates that deep-encoding strategies typically yield superior long-term retention, particularly for abstract vocabulary \citep{craik1975depth, atkinson1975mnemotechnics, oxford1990language}. However, they also require greater linguistic knowledge and creative effort to implement effectively.
 
+\subsection{Large Language Models as Linguistic Knowledge Bases} \label{sec:llm-linguistics}
+
+Large Language Models (LLMs) encode substantial linguistic knowledge acquired during pre-training on vast text corpora. This knowledge spans multiple linguistic dimensions:
+\paragraph{Phonological knowledge} encompasses sound patterns and pronunciation. LLMs demonstrate this knowledge through capabilities like rhyme generation and phonetic similarity recognition, despite training primarily on written text.
+\paragraph{Morphological knowledge} involves understanding word formation and structure. LLMs exhibit awareness of morphemes (the smallest meaningful units in language), as evidenced by their ability to analyze derivational patterns (e.g., recognizing that "unhappiness" contains the prefix "un-", root "happy", and suffix "-ness"). However, as seen in section ... about how LLMs understand and generate text, this morphological kno
+\paragraph{Semantic knowledge} encompasses word meanings and relationships. LLMs capture semantic associations between words, enabling them to generate synonyms, antonyms, and contextually relevant terms.
 \subsection{Neural Language Models and Transformer Architecture} \label{sec:pre-lm}
 
 Neural language models (LMs) are probabilistic frameworks that assign probabilities to sequences of words or subword units, known as tokens. A token is the smallest unit of text that the model processes, which can be as granular as individual characters, subwords, or entire words, depending on the tokenization strategy employed.
@@ -220,7 +233,7 @@ Each example is annotated with its mnemonic strategy type, enabling the model to
 \hline
 \textbf{Phonetic Cue:} \textit{Phony} sounds like "phone-y," which can remind one of fraudulent phone calls. & \textbf{Etymology:} \textit{Preposterous} derives from Latin roots "pre" (before) and "post" (after) + "ous", suggesting something absurdly out of order. \\
 \textbf{Acronym:} \textit{Extol} can be remembered as "Everyone eXcitedly Tosses Out Love." & \textbf{Morphology:} The prefix "ab-" means "from" or "away," and the suffix "-ate" typically indicates a verb. \\
-\textbf{Chunking:} \textit{Obsequious} can be broken down phonetically as "ob-se-kwi-us." Obedient servants kiss your ass, since they are obsequious. & \textbf{Contextual Story:} Associating \textit{detrimental} with the story of someone pouring acid on the environment, highlighting its harmful effects. \\
+\textbf{Keyword Method:} \textit{Obsequious} can be broken down phonetically as "ob-se-kwi-us." Obedient servants kiss your ass, since they are obsequious. & \textbf{Contextual Story:} Associating \textit{detrimental} with the story of someone pouring acid on the environment, highlighting its harmful effects. \\
 \textbf{Rhyming:} \textit{Wistful} rhymes with "wishful," linking the idea of longing for the past with wishing for something. & \textbf{Synonym/Antonym:} \textit{Benevolent} means "kind" or "generous," while its antonym \textit{malevolent} means "wishing harm." Both share the Latin root "volent," meaning "wishing." \\
 \textbf{Image Association:} Visualizing an \textit{exuberant} ex-Uber driver who is always lively and ebullient. & \textbf{Related Words:} \textit{Phantasm} relates to "phantom," both referring to ghostly figures or illusions. \\
 \end{tabular}
@@ -309,15 +322,6 @@ Currently the citations and references could not be rendered on our Latex engine
 % Minerva specific
 \appendix
 
-\section{AI statement}
-\label{sec:ai}
-
-ChatGPT 4o was used to debug the code and refine Section \ref{sec:method} and \ref{sec:results} (Method and Results) (keep only the essence).
-
-\section{Progress update}
-\label{sec:progress}
-
-All components described in method section \ref{sec:method} were implemented individiually except for instruction data (section \ref{sec:met-instruction-data}). This component and the experiments mostly involves prompting, model evaluation, and human evaluation (section \ref{sec:results}), which will be done in the winter break and Spring 2025.
 
 \section{HC/LO Appendix}
 \label{sec:hclo}
@@ -326,10 +330,17 @@ The first 3 LOs and the first 5 HCs are gradable (1-3 and 6-10). The rest are in
 
 \subsection{LOs} \label{sec:los}
 \numpara{CS110-codeReadability} The codebase exemplifies best practices in Python programming, adhering strictly to PEP conventions. Each module is documented with detailed Google-style docstrings and descriptive inline comments to ensure that the logic behind functions and classes is transparent to collaborators and future users. By utilizing tools like Ruff for linting and formatting, and mypy for type-checking, the codebase achieves a consistent style and minimizes errors. Additionally, the inclusion of pre-commit hooks ensures that these standards are maintained across all contributions, fostering a robust and maintainable codebase.
-\numpara{CS156-MLCode} The machine learning pipeline was designed in Python to be both functional and comprehensible. The code integrates data processing, model fine-tuning, and hyperparameter tuning into a seamless pipeline, with each step working and documented. Hyperparameter tuning and model evaluation are explicitly defined in section \ref{sec:method} and appendix \ref{sec:training-details}, ensuring replicability.
 \numpara{CS162-communication} The documentation for strives to adhere to industry standards, by including an informative README, clear issue tracking, and documented pull request. Each module has a module-level docstring and function/class-level docstrings, to ensure that the code is understandable to users and collaborators. Linting and formatting tools, including Ruff and mypy, are employed to enforce consistent and error-free code presentation, to facilitate readability and maintainability for the author and future collaborators (if any).
+\numpara{CS156-MLCode} The machine learning pipeline was designed in Python to be both functional and comprehensible. The code integrates data processing, model fine-tuning, and hyperparameter tuning into a seamless pipeline, with each step working and documented. Hyperparameter tuning and model evaluation are explicitly defined in section \ref{sec:method} and appendix \ref{sec:training-details}, ensuring replicability.
 \numpara{CS156-MLExplanation} Currently, most details and explanations are defined in section \ref{sec:method} and appendix \ref{sec:training-details}. The final paper will provide more high-level diagrams of the machine learning techniques used in fine-tuning the Gemma-2 model. The supporting diagrams will visualize key processes, such as hyperparameter tuning and model evaluation. It will ensure that the methodology and results are accessible to a less specialized audience.
 \numpara{CS162-separationofconcerns} The codebase is organized into distinct Python modules, each focused on a specific task such as data processing, mnemonic processing, and model fine-tuning. This separation of concerns aligns with best practices in software design, ensuring that each function is highly cohesive and performs a single well-defined responsibility. By maintaining modularity, the codebase facilitates easier debugging, testing, and future scaling, contributing to its long-term maintainability and effectiveness
+
+\numpara{navigation}
+\numpara{curation}
+\numpara{qualitydeliverables}
+
+% TODO: Add capstone LOs
+
 \subsection{HCs} \label{sec:hcs}
 \numpara{gapanalysis}	Section \ref{sec:intro} provides a gap analysis of previous works on mnemonic generation, identifying the limitations of existing approaches and the need for a more diverse and engaging mnemonic generation system. Appendix \ref{sec:keyword-method} elaborates on how the keyword method lacks effectiveness for abstract vocabulary. Additionally, existing methods often neglect to actively engage learners in the mnemonic creation process. These identified gaps serve as the impetus for developing the current work to address these shortcomings.
 \numpara{hypothesisdevelopment} The hypotheses in Section \ref{sec:intro} are formulated to test the efficacy of the proposed mnemonic generation system \textsc{MnemonicChat}. These hypotheses closely follow the format If-Then-Because, providing both clear predictions and justifications for the expected outcomes, such as higher cosine similarity scores for relevance (section \ref{sec:relevant}) and increased user interaction for engagement \ref{sec:engagement}. The hypotheses also address difference aspects of the generated mnemonics and the system itself. Section \ref{sec:results} show that they are testable by providing specific metrics and evaluation methods. By framing these claims as testable hypotheses, the project establishes a rigorous framework for evaluating the system’s performance and validating its effectiveness through empirical analysis.
