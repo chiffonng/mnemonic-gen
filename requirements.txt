@@ -139,6 +139,7 @@ packaging==24.1
     #   huggingface-hub
     #   matplotlib
     #   peft
+    #   spaces
     #   transformers
 pandas==2.2.3
     # via
@@ -163,6 +164,7 @@ psutil==5.9.8
     # via
     #   accelerate
     #   peft
+    #   spaces
     #   wandb
 pyarrow==18.1.0
     # via datasets
@@ -201,6 +203,7 @@ requests==2.31.0
     #   datasets
     #   evaluate
     #   huggingface-hub
+    #   spaces
     #   transformers
     #   wandb
 rich==13.9.3
@@ -262,6 +265,7 @@ typing-extensions==4.12.2
     #   pydantic
     #   pydantic-core
     #   rich
+    #   spaces
     #   torch
     #   typeguard
     #   tyro

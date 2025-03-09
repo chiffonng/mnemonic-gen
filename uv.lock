@@ -1019,6 +1019,7 @@ data = [
 
 [package.metadata]
 requires-dist = [
+    { name = "accelerate", specifier = ">=1.0.1" },
     { name = "datasets" },
     { name = "evaluate" },
     { name = "hf-transfer", specifier = ">=0.1.8" },

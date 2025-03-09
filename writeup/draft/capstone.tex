@@ -1,0 +1,349 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2024
+
+
+% ready for submission
+\usepackage[preprint]{neurips_2024}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2024}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2024}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2024}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{inconsolata}
+\usepackage{microtype}      % microtypography
+\usepackage{subcaption}
+\usepackage{svg}
+\svgsetup{
+  inkscapeexe="/Applications/Inkscape.app/Contents/MacOS/inkscape",
+  inkscapeversion=1.4
+}
+
+\usepackage{xcolor}         % colors
+
+\newcounter{para}
+\newcommand\numpara{\par\refstepcounter{para}{\thepara}.\space\textbf}
+
+% Create new command for the short title
+\newcommand{\shorttitle}{\textbf{mmv }}
+\newcommand{\dataset}{\textsc{En-Mnemonics}}
+
+\title{mmv: Mining Linguistic Knowledge from LLMs for English Vocabulary Learning}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{%
+  My (Chiffon) Nguyen \\
+  College of Computational Sciences \\
+  Minerva University \\
+  San Francisco, CA 94108 \\
+  chiffonng@uni.minerva.edu
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Vocabulary acquisition challenges many English learners, especially at advanced levels where abstract concepts predominate. Mnemonics are cognitive tools that facilitate vocabulary retention by creating associations between new vocabulary and familiar concepts.
+While mnemonics aid recall of the vocabulary meaning and spelling, manual creation is a labor-intensive effort that requires linguistic knowledge and creativity. This paper investigates whether Large Language Models (LLMs) can serve as reliable linguistic knowledge bases for writing effective, creative mnemonics for English vocabulary. We introduce \shorttitle, a pipeline that mines linguistic knowledge from LLMs through fine-tuning on a curated dataset of 1,300+ vocabulary-mnemonic pairs annotated with linguistic reasoning patterns. Through comparative analysis of baseline (Gemma-2 9B) and fine-tuned models, we evaluate the semantic relevance, linguistic diversity, and learner-rated helpfulness of generated mnemonics. Our results demonstrate that fine-tuned models produce mnemonics with greater linguistic depth and semantic accuracy compared to baseline approaches. Human evaluations confirm that mnemonics leveraging explicit linguistic features are preferred for vocabulary learning. We provide our dataset, evaluation metrics, and fine-tuned models as resources for advancing computational approaches to language learning.\footnote{Two links: \href{https://github.com/chiffonng/mnemonic-gen}{Github codebase} and \href{https://huggingface.co/collections/chiffonng/vocab-mnemonic-mining-67563a0a1ab91e84e9827579}{HuggingFace collection of artifacts}}
+\end{abstract}
+
+\section{Introduction} \label{sec:intro}
+Vocabulary acquisition remains a persistent challenge for English language learners, particularly at intermediate to advanced levels where abstract and academic terminology predominates. Mnemonics—cognitive tools that help learners create associations between new vocabulary and familiar concepts—serve as valuable tools for enhancing retention and recall. The deeper learners cognitively engage with the connection between the mnemonic and the target vocabulary, the better they are able to remember the term in the long term \citep{atkinson1975mnemotechnics}. However, creating such effective mnemonics demands both linguistic expertise and creative effort, presenting a significant barrier for most learners. Large Language Models (LLMs) have demonstrated capabilities as both knowledge bases \citep{petroni2019language, roberts2020much} and creative text generators \citep{brown2020language}, suggesting their potential for automated mnemonic generation.
+
+Prior work has explored automated mnemonic generation through computational methods. Recent research has primarily focused on keyword-based approaches: \textsc{TransPhoner} generates keyword mnemonics by aligning phonetic similarities and semantic meanings across languages, while \textsc{SmartPhone} utilizes LLMs to produce both verbal and visual cues. Others have proposed an \textsc{Overgenerate-and-Rank} approach that prompts LLMs to generate multiple mnemonic candidates and evaluate them based on imageability and coherence. Most recently, \textsc{Smart} fine-tuned LLaMA-2-70B on a dataset of 800 crowdsourced mnemonics and applied preference optimization to align outputs with learner preferences and learning outcomes.
+
+Despite their contributions, these methods face two significant limitations. First, they predominantly employ the \emph{keyword method}, which is inadequate for abstract vocabulary that lacks concrete or imageable referents. Such methods typically neglect the rich linguistic knowledge embedded in LLMs that could provide diverse mnemonic strategies beyond simple keyword associations. Second, prior works passively deliver generated mnemonics to learners. While \textsc{Smart} was further trained on learner preferences, these preferences were aggregated, potentially missing alignment with individual learning styles. Research shows that language learners who use self-created mnemonics retain vocabulary more effectively and for longer durations.
+
+This paper addresses these gaps by investigating whether LLMs are reliable \emph{linguistic} knowledge bases for generating English vocabulary mnemonics. We hypothesize that
+\begin{quote}
+  \emph{If} we mine linguistic knowledge from LLMs through fine-tuning on a curated dataset of vocabulary-mnemonic pairs annotated with linguistic reasoning patterns, \emph{then} the models will generate more \textbf{diverse} mnemonics with greater \textbf{linguistic depth}  and \textbf{semantic relevance} compared to baseline approaches, \emph{because} LLMs encode substantial linguistic knowledge during pre-training that can be accessed through targeted fine-tuning.
+\end{quote}
+
+To answer this hypothesis, we make the following contributions: a curated dataset of 1,300+ vocabulary-mnemonic pairs, including 130 examples manually annotated with linguistic reasoning patterns; a fine-tuning pipeline \shorttitle that enhances LLMs' ability to utilize linguistic knowledge for mnemonic generation (Figure \ref{fig:pipeline}); comparative analysis of baseline and fine-tuned models across semantic relevance, linguistic diversity, and linguistic depth.
+
+\begin{figure}
+  \centering
+  \includesvg[width=\textwidth]{pipeline}
+  \caption{Overview of the \shorttitle pipeline for mining linguistic knowledge from LLMs for English vocabulary mnemonics. Section \ref{sec:met-data} details the dataset construction, section \ref{sec:experiments} describes the experimental setup (including fine-tuning methods and evaluation), and section \ref{sec:results} presents the results and error analysis.}
+  \label{fig:pipeline}
+\end{figure}
+
+\section{Background} \label{sec:background}
+\subsection{Mnemonics in Vocabulary Learning} \label{sec:mnemonics}
+Mnemonics are cognitive strategies that facilitate memory retention by forming associations between new information and pre-existing knowledge. In vocabulary learning, mnemonics leverage various linguistic features to create memorable associations. These techniques can be categorized based on the depth of cognitive processing they engage.
+
+Shallow-encoding techniques involve surface-level associations, such as phonetic mnemonics, where the sound of a new term is linked to familiar words or phrases. Deep-encoding strategies create meaningful connections, such as etymological cues that relate a word's origin to its meaning, fostering deeper understanding and recall. Research indicates that deep-encoding strategies typically yield superior long-term retention, particularly for abstract vocabulary \citep{craik1975depth, atkinson1975mnemotechnics, oxford1990language}. However, they also require greater linguistic knowledge and creative effort to implement effectively.
+
+\subsection{Large Language Models as Linguistic Knowledge Bases} \label{sec:llm-linguistics}
+
+Large Language Models encode substantial linguistic knowledge acquired during pre-training on vast text corpora. Recent research has thoroughly examined the reliability of LLMs as linguistic knowledge bases for English. Studies across computational linguistics and NLP reveal that LLMs learn a remarkable breadth of linguistic concepts implicitly through next-word prediction objectives. This knowledge spans multiple linguistic dimensions:
+
+\paragraph{Phonological knowledge} encompasses sound patterns and pronunciation. Despite training primarily on written text, LLMs demonstrate capabilities like rhyme generation and phonetic similarity recognition, though evaluations using PhonologyBench show that even advanced models like GPT-4 reach only 55-60\% accuracy on phonological tasks, compared to human performance around 90\%. This represents a significant weakness in their linguistic capabilities.
+
+\paragraph{Morphological knowledge} involves understanding word formation and structure. LLMs exhibit strong awareness of morphemes (the smallest meaningful units in language), particularly for languages with simpler morphological systems like English. Studies employing Wug tests demonstrate that models can extend morphological rules to novel words, though performance decreases significantly for complex morphological patterns or rare forms.
+
+\paragraph{Semantic knowledge} encompasses word meanings and relationships. LLMs capture extensive semantic associations between words, enabling them to generate synonyms, antonyms, and contextually relevant terms. However, they struggle with semantic consistency in complex compositions. Ettinger's (2020) evaluations revealed that while models like BERT exhibit solid word-level and taxonomic semantics, they frequently fail at event semantics requiring understanding of roles and relations in a scene.
+
+\paragraph{Pragmatic knowledge} involves understanding language in context and conversational norms and is LLMs' greatest linguistic weakness. Evaluations of conversational implicature (where literal meaning differs from intended meaning, like jokes or sarcasm) show that zero-shot LLMs perform no better than random chance. Models fine-tuned on dialogue data perform better but still exhibit substantial gaps compared to human understanding.
+
+This mosaic of capabilities and limitations shapes how effectively LLMs can leverage linguistic knowledge for specialized tasks like mnemonic generation. While they possess rich lexical and morphological knowledge, their inconsistencies in phonological and pragmatic understanding may impact the quality and diversity of generated mnemonics.
+
+\subsection{Neural Language Models and Transformer Architecture} \label{sec:pre-lm}
+
+Neural language models are probabilistic frameworks that assign probabilities to sequences of words or subword units, known as tokens. A token is the smallest unit of text that the model processes, which can be as granular as individual characters, subwords, or entire words, depending on the tokenization strategy employed.
+
+Given a sequence of tokens \( \mathbf{x} = (x_1, x_2, \ldots, x_T) \), a language model estimates the joint probability \( P(\mathbf{x}) \) by factorizing it into conditional probabilities:
+
+\[
+P(\mathbf{x}) = \prod_{t=1}^T P(x_t \mid x_1, x_2, \ldots, x_{t-1})
+\]
+
+At each timestep \( t \), the model predicts the next token \( x_t \) based on the preceding sequence \( (x_1, x_2, \ldots, x_{t-1}) \). This autoregressive approach enables the generation of coherent text by sequentially predicting subsequent tokens.
+
+The Transformer architecture \citep{vaswani2017attention} underpins many state-of-the-art language models due to its efficiency and capability to model long-range dependencies. It utilizes self-attention mechanisms to weigh the relevance of each token in a sequence relative to others, regardless of their positions. The architecture comprises stacked layers, each including multi-head self-attention and position-wise feed-forward networks, facilitating parallelization and effective learning of complex patterns in data.
+
+\subsubsection{Tokenizer} \label{sec:pre-tokenizer}
+
+A tokenizer is a preprocessing tool that converts raw text into tokens, aligning the text with the LM's vocabulary. Tokenizers can employ various strategies, such as word-based, character-based, or subword-based tokenization, each with distinct advantages and use cases.
+
+Byte Pair Encoding (BPE) is a subword tokenization algorithm that operates on the byte representation of text, enabling consistent handling of various scripts and special characters. It iteratively merges the most frequent pairs of adjacent bytes to form subword units, constructing a vocabulary that efficiently represents the training corpus. This method allows the tokenizer to decompose rare words into meaningful subword components, enhancing the model's capacity to process diverse and unseen terms.
+
+For instance, the word "preposterous" might be tokenized into subwords like "pre", "poster", and "ous," facilitating the model's understanding and generation of these subwords in novel contexts. This subword granularity enables the model to generalize across morphologically complex words and out-of-vocabulary words, enhancing its robustness and vocabulary coverage. However, not all subwords are valid morphemes, which can limit the model's ability to capture morphological structure accurately. For instance, \verb|tiktoken| (OpenAI's tokenizer)\footnote{\href{https://platform.openai.com/tokenizer}{https://platform.openai.com/tokenizer}} recognizes "ephemeral" as a single subword rather than three morphemes ("ept", "hemera", "-al"), because the affixes are not explicitly segmented, and 'epheremal' is a rare word so BPE better learns it as a single token.
+
+\subsection{Family of Fine-Tuning Methods}
+Fine-tuning is the process of adapting a pre-trained model to a specific task T or domain D by updating its parameters on a target dataset \(\mathcal{D}\). This process is crucial for leveraging pre-trained models' knowledge and enhancing their performance on downstream tasks.
+
+There are several approaches to fine-tuning, which can be categorized by: 1. the availability of labeled data (supervised vs unsupervised fine-tuning), 2. the extent of parameter updates (full-parameter vs parameter-efficient fine-tuning), and 3. task. We focus on supervised fine-tuning, which involves minimizing a task-specific loss function over a labeled dataset.
+
+\subsubsection{Supervised Fine-Tuning (SFT)}\label{sec:pre-sft}
+
+SFT involves adapting a pre-trained model to a target task by minimizing a task-specific loss function over a labeled dataset. For a dataset \( \mathcal{D} = \{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{x}^{(i)} \) is the input and \( \mathbf{y}^{(i)} \) is the target output, the objective is to minimize:
+
+\[
+\mathcal{L} = \frac{1}{N} \sum_{i=1}^N \ell(f(\mathbf{x}^{(i)}; \theta), \mathbf{y}^{(i)})
+\]
+
+where \( f(\mathbf{x}; \theta) \) represents the model's output with parameters \( \theta \), and \( \ell \) is the loss function, typically cross-entropy loss.
+
+\textbf{Instruction-tuning} is a specialized form of SFT where models are trained on datasets comprising instruction-response pairs. This approach enables models to generalize across various tasks described by natural language instructions, enhancing their ability to follow diverse prompts. Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) denotes the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
+
+\[
+\mathcal{L} = \frac{1}{N} \sum_{i=1}^N \ell(f(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}; \theta), \mathbf{y}^{(i)})
+\]
+
+where \( f \) represents the model parameterized by \( \theta \), and \( \ell \) is the loss function measuring the discrepancy between the model's prediction and the target output.
+
+\subsubsection{Parameter-Efficient Fine-Tuning} \label{sec:peft}
+Full-parameter fine-tuning updates \textit{all} parameters of a pre-trained model on the target dataset, which can be computationally expensive and memory-intensive for large models. Parameter-efficient fine-tuning (PEFT) methods adjust only a subset of the parameters, reducing computational and storage requirements while maintaining performance.
+
+The most common PEFT method is Low-Rank Adaptation (LoRA), and its variants. They are used in the training process.
+
+\paragraph{Low-Rank Adaptation (LoRA)} decomposes the weight updates into low-rank matrices, reducing the number of trainable parameters. Specifically, for a weight matrix \( W \in \mathbb{R}^{d \times k} \), LoRA introduces two low-rank matrices \( A \in \mathbb{R}^{d \times r} \) and \( B \in \mathbb{R}^{r \times k} \), where \( 0 < r \ll \min(d, k) \). The adapted weight is:
+
+\[
+W' = W + \alpha \cdot A B
+\]
+
+Here, \( \alpha \) is a scaling factor that controls the contribution of the low-rank adaptation. The rank \( r \) determines the capacity of the adaptation, balancing between expressiveness and efficiency.
+
+LoRA introduces \( 2dr \) trainable parameters (size of \( A \) and \( B \)), which is significantly smaller than the original \( dk \) parameters. This reduction in parameters enables efficient fine-tuning of large models on limited hardware. In practice, LoRA is applied to specific modules of the model, such as attention and feed-forward layers, to balance performance and efficiency.
+
+\paragraph{Quantized LoRA (QLoRA)} enhances LoRA by applying quantization to the pre-trained model's weights, enabling efficient fine-tuning of large models on limited hardware. Specifically, it utilizes 4-bit quantization to compress the model, allowing backpropagation through the quantized weights into the low-rank adapters. This approach significantly reduces memory usage while preserving performance.
+
+\paragraph{Rank-Stabilized LoRA (rsLoRA)} modifies the scaling factor in LoRA to improve performance across different ranks. The standard scaling factor \( \gamma_r = \alpha / r \) can slow learning for higher ranks. rsLoRA proposes adjusting the scaling factor to \( \gamma_r = \alpha / \sqrt{r} \), enhancing fine-tuning performance without increasing inference costs.
+
+\subsection{Hyperparameter Tuning} \label{sec:pre-hyperparam-tuning}
+
+Hyperparameter tuning is the process of optimizing parameters that govern the training process. The goal is to find the hyperparameter set \( \Lambda \) that minimizes the validation loss:
+
+\[
+\Lambda^* = \arg\min_{\Lambda} \mathcal{L}_{\text{val}}(\theta^*(\Lambda))
+\]
+
+where \( \theta^*(\Lambda) \) are the model parameters obtained after training with hyperparameters \( \Lambda \).
+
+In the context of SFT and LoRA, relevant hyperparameters include: learning rate (\( \alpha \)) that controls the step size during gradient descent, batch size (\( B \)) that determines the number of training examples utilized in one iteration, LoRA rank (\( r \)) that determines the dimensionality of the low-rank matrices, and LoRA scaling factor (\( \alpha_{\text{LoRA}} \)) that controls the contribution of the low-rank adaptation in LoRA.
+
+\textbf{Population-based training (PBT)} is an optimization technique for finding optimal parameters and hyperparameters. It maintains a population of hyperparameter configurations, evolving them over time based on performance. Unlike grid search, which exhaustively evaluates a predefined set of hyperparameters, population-based search explores the hyperparameter space more efficiently by exploiting and exploring promising regions, leading to faster convergence to optimal configurations.
+
+\section{Data Construction} \label{sec:met-data}
+\subsection{Dataset Curation and Annotation} \label{sec:curation}
+We constructed \dataset, a dataset of 1,309 English vocabulary-mnemonic pairs designed to capture diverse linguistic associations. This dataset combines 800+ manually curated examples focusing on abstract and academic vocabulary and 500+ examples from \textsc{Smart}, which was crawled from \href{https:\\www.mnemonicdictionary.com}{mnemonicdictionary.com}.
+
+To enhance the dataset's linguistic depth, we manually annotated 130 examples with explicit linguistic reasoning patterns that connect target vocabulary to their mnemonics. These annotations categorize the primary linguistic features leveraged in each mnemonic into morphological (38\%), etymological (32\%), phonological (25\%), semantic (19\%),  and others (12\%). Several examples are annotated with multiple linguistic features, reflecting the diverse strategies employed in mnemonic creation.
+
+\subsection{Preprocessing and Quality Control} \label{sec:preprocessing}
+The dataset underwent rigorous preprocessing to ensure consistency and quality. We performed deduplication by removing duplicate entries and consolidating multiple mnemonics for the same vocabulary item. Normalization standardized formatting, corrected spelling errors, and ensured consistent tense and voice. Quality filtering excluded mnemonics that employed circular reasoning, contained factual inaccuracies in etymological or semantic content, or lacked clear associations with the target vocabulary. We also enhanced diversity by ensuring balanced representation across linguistic categories and vocabulary difficulty levels. The resulting dataset covers vocabulary from intermediate (CEFR B1-B2) to advanced (CEFR C1-C2) English proficiency levels, with particular emphasis on abstract and academic terms that typically challenge learners.
+
+\subsection{Improve Dataset Quality} \label{sec:improve-dataset}
+
+
+\subsection{Dataset Statistics} \label{sec:dataset-stats}
+The final dataset for finetuning comprises 1,309 unique English vocabulary terms with an average word length of 8.4 characters and average mnemonic length (with linguistic reasoning) of 100.7 words. Frequency analysis shows that 72\% of vocabulary items fall outside the 5,000 most frequent English words, confirming the dataset's focus on advanced vocabulary. For experimental purposes, we split the dataset into 80\% training and 20\% validation sets, leaving out 200 examples for testing. For the annotated subset (130 examples), we ensured balanced distribution across training and evaluation sets to maintain representation of linguistic reasoning categories.
+
+\section{Experimental Setup} \label{sec:experiments}
+\subsection{Models and Baselines} \label{sec:models}
+We evaluated both open-source and closed-source LLMs to assess linguistic knowledge extraction across different model architectures. Our baseline models include OpenAI GPT-4o-mini (a state-of-the-art instruction-following model representing commercial capabilities) and Google Gemma-2-9B-it (a 9-billion parameter instruction-tuned model representing accessible open-source alternatives). The fine-tuned variants we developed are OpenAI \verb|GPT-4o-mini-ft| (fine-tuned using OpenAI's SFT API) and \verb|Gemma-2-9B-it-ft| (fine-tuned using PEFT techniques including QLoRA with rsLoRA scaling; training details in appendix \ref{sec:training-details}).
+
+\subsection{Prompting Strategies} \label{sec:prompting}
+We evaluated multiple prompting configurations to establish strong baselines. Zero-shot prompting provided minimal guidance:
+
+\texttt{Create a mnemonic device for the English vocabulary "[target]" so that I could remember its meaning and spelling.}
+
+Few-shot prompting included exemplars demonstrating desired patterns:
+
+\texttt{Create a mnemonic for English vocabulary "[target]" that help learners remember both meaning and spelling. Here are some examples:}
+
+Linguistic-aware prompting explicitly requested linguistic analysis:
+
+\texttt{Create a mnemonic for the English word "[target]". Analyze its morphology, etymology, or sound patterns, then create a memorable association that explains its meaning and spelling.}
+
+\subsection{Fine-tuning Methodology} \label{sec:ft-methodology}
+For OpenAI GPT-4o-mini, we prepared fine-tuning data in the required JSONL format compliant with the OpenAI fine-tuning API. We split 130 annotated examples into 104 training and 26 evaluation examples. We used the OpenAI fine-tuning API to fine-tune the model on the training set for 3 epochs with a batch size of 4. The model was evaluated on the validation set after each epoch to monitor performance. With training loss and validation both around 0.6, the model should theoretically generalize well to unseen data in our main dataset.
+
+After improving dataset quality, we fine-tuned the Gemma-2-9B-it model on this enhanced dataset. We employed parameter-efficient fine-tuning techniques, specifically QLoRA with rsLoRA scaling, which allows efficient adaptation of large models while minimizing computational requirements. Both fine-tuning processes incorporated linguistic reasoning annotations as part of the target outputs, encouraging models to learn explicit reasoning patterns alongside mnemonic generation.
+
+\subsection{Evaluation Setup} \label{sec:evaluation-metrics}
+\subsubsection{Semantic Relevance} \label{sec:relevance-eval}
+Semantic relevance measures the semantic alignment between target vocabulary and generated mnemonics. We evaluated this through computational metrics and human assessment. Embedding-based similarity calculated cosine similarity between target vocabulary and generated mnemonic embeddings, with high scores indicating that the mnemonic captures the semantic essence of the target word. Human relevance assessment involved rating 50 randomly selected test examples on a 5-point Likert scale, with 1 being completely irrelevant and 5 being highly relevant and accurate. Three raters with linguistic background or language learning experience independently rated the mnemonics to ensure consistency. Inter-rater reliability was measured using Gwet's AC2, suitable for ordinal ratings like Likert scales.
+
+\subsubsection{Linguistic Diversity} \label{sec:diversity-eval}
+Linguistic diversity assesses the variety of linguistic features leveraged in mnemonics. We implemented linguistic feature classification that assigned each mnemonic to categories (morphological, etymological, semantic, phonological) based on prominent linguistic features. We calculated Shannon entropy across these categories, with higher entropy indicating more diverse feature utilization across the generated mnemonics.
+
+\section{Results \& Error Analysis} \label{sec:results}
+\subsection{Semantic Relevance} \label{sec:relevance-results}
+
+\section{Discussion} \label{sec:discussion}
+
+
+\section{Conclusion} \label{sec:conclusion}
+This paper introduced \shorttitle, a pipeline to mining linguistic knowledge from LLMs for generating effective vocabulary mnemonics. Through careful dataset curation, targeted fine-tuning, and comprehensive evaluation, we have demonstrated that LLMs can successfully leverage diverse linguistic features to create mnemonics that enhance vocabulary learning. Our findings contribute to both computational linguistics and language education, offering insights into LLMs' linguistic capabilities while providing practical tools for vocabulary acquisition.
+
+\subsection{Limitations}
+Despite promising results, several limitations warrant acknowledgment. First, our evaluation focused primarily on intermediate measures of mnemonic quality rather than direct assessment of learning outcomes. Future work should include longitudinal studies measuring actual vocabulary retention. Second, our linguistic feature classification relied on manual annotation for a subset of examples, which may introduce inconsistencies. Finally, while our comparative analysis included both open and closed-source models, resource constraints limited the scale of fine-tuning experiments, particularly for larger models.
+
+\subsection{Future Work}
+Future research directions include expanding linguistic annotations to cover a broader range of features and vocabulary types, developing automated methods for linguistic feature extraction, and exploring personalized mnemonic generation that adapts to individual learning preferences and styles. Additionally, integrating multimodal elements that combine visual and textual mnemonics could further enhance learning effectiveness, particularly for concrete vocabulary.
+
+\section*{Acknowledgments}
+\section*{References}
+% Bibliography entries for the entire Anthology, followed by custom entries
+%\bibliography{anthology,custom}
+% Custom bibliography entries only
+%\bibliography{custom}
+Currently the citations and references could not be rendered on our Latex engine. We will fix this issue in the next version of the paper.
+
+\clearpage
+
+% Minerva specific
+\appendix
+
+
+\section{HC/LO Appendix}
+\label{sec:hclo}
+
+\subsection{LOs} \label{sec:los}
+\numpara{CS110-codeReadability} The codebase exemplifies best practices in Python programming, adhering strictly to PEP conventions. Each module is documented with detailed Google-style docstrings and descriptive inline comments to ensure that the logic behind functions and classes is transparent to collaborators and future users. By utilizing tools like Ruff for linting and formatting, and mypy for type-checking, the codebase achieves a consistent style and minimizes errors. Additionally, the inclusion of pre-commit hooks ensures that these standards are maintained across all contributions, fostering a robust and maintainable codebase.
+\numpara{CS162-communication} The documentation for strives to adhere to industry standards, by including an informative README, clear issue tracking, and documented pull request. Each module has a module-level docstring and function/class-level docstrings, to ensure that the code is understandable to users and collaborators. Linting and formatting tools, including Ruff and mypy, are employed to enforce consistent and error-free code presentation, to facilitate readability and maintainability for the author and future collaborators (if any).
+\numpara{CS156-MLCode} The machine learning pipeline was designed in Python to be both functional and comprehensible. The code integrates data processing, model fine-tuning, and hyperparameter tuning into a seamless pipeline, with each step working and documented. Hyperparameter tuning and model evaluation are explicitly defined in section \ref{sec:pre-hyperparam-tuning} and appendix \ref{sec:training-details}, ensuring replicability.
+\numpara{CS156-MLExplanation} Currently, most details and explanations are defined in section \ref{sec:background} and appendix \ref{sec:training-details}. The final paper will provide more high-level diagrams of the machine learning techniques used in fine-tuning the Gemma-2 model. The supporting diagrams will visualize key processes, such as hyperparameter tuning and model evaluation. It will ensure that the methodology and results are accessible to a less specialized audience.
+\numpara{CS162-separationofconcerns} The codebase is organized into distinct Python modules, each focused on a specific task such as data processing, mnemonic processing, and model fine-tuning. This separation of concerns aligns with best practices in software design, ensuring that each function is highly cohesive and performs a single well-defined responsibility. By maintaining modularity, the codebase facilitates easier debugging, testing, and future scaling, contributing to its long-term maintainability and effectiveness
+
+% TODO: Add capstone LOs
+
+\subsection{HCs} \label{sec:hcs}
+\numpara{gapanalysis} Section \ref{sec:intro} identifies critical limitations in existing mnemonic generation approaches: (1) overreliance on the keyword method, which fails for abstract vocabulary lacking concrete referents, and (2) neglect of the rich linguistic knowledge embedded in LLMs that could enable more diverse mnemonic strategies beyond simple keyword associations. Prior work has also passively delivered mnemonics to learners rather than leveraging individual learning preferences, despite research showing self-created mnemonics enhance retention. These identified gaps motivate our development of a linguistic knowledge mining approach from LLMs.
+
+\numpara{hypothesisdevelopment} The research questions in Section \ref{sec:intro} establish testable hypotheses regarding LLMs as linguistic knowledge bases for mnemonic generation. We hypothesize that fine-tuning LLMs on linguistically annotated examples will improve mnemonic quality across semantic relevance, diversity, and helpfulness dimensions. This hypothesis is predicated on the theoretical assumption that LLMs encode significant linguistic knowledge during pre-training that can be accessed through targeted fine-tuning. The hypothesis is operationalized through specific evaluation metrics described in Section \ref{sec:evaluation-metrics}, ensuring empirical testability.
+
+\numpara{optimization} Our approach optimizes model performance through systematic hyperparameter tuning with the objective function minimizing validation loss. We employ parameter-efficient fine-tuning techniques (QLoRA with rsLoRA scaling) that significantly reduce computational requirements while maintaining performance. The hyperparameter space exploration includes learning rate, batch size, LoRA rank, and scaling factors, with population-based training enabling efficient identification of optimal configurations. This iterative optimization process is crucial for extracting maximal linguistic knowledge from the models while preventing overfitting to the training data.
+
+\numpara{audience} The project addresses dual audiences: (1) NLP researchers investigating LLMs' linguistic capabilities, for whom we provide detailed technical methodologies and evaluation metrics; and (2) educational technology developers seeking practical approaches to vocabulary learning assistance, for whom we demonstrate application potential and implementation strategies. The Background section introduces key concepts with sufficient depth for computational linguists while remaining accessible to educational technology practitioners. Technical content is balanced with practical implications for vocabulary acquisition, ensuring relevance to both research and application-oriented readers.
+
+\numpara{organization} The paper follows standard ACL formatting conventions, with a logical progression from theoretical foundations through methodology to empirical results. The structure facilitates efficient information extraction, with each section building upon previous content. Key contributions are identified early (Section \ref{sec:intro}) and systematically developed throughout subsequent sections. Technical details that might interrupt argumentative flow are relegated to appendices, maintaining narrative coherence while ensuring methodological transparency for reproduction purposes. This organization aligns with expectations of the computational linguistics community while supporting efficient knowledge transfer.
+
+\numpara{algorithms} The fine-tuning methodology detailed in Section \ref{sec:ft-methodology} incorporates algorithmic innovations in parameter-efficient adaptation. Specifically, we implement QLoRA with rank-stabilized scaling (rsLoRA), modifying the standard scaling factor to improve performance across different ranks. This algorithm reduces memory requirements by quantizing the pre-trained model to 4-bit precision while allowing selective updates to low-rank adaptation matrices. Population-based training explores the hyperparameter space dynamically, pruning underperforming configurations and exploring promising regions to optimize validation performance.
+
+\numpara{heuristics} Our approach employs several problem-solving heuristics to enhance mnemonic generation. The linguistic feature classification system provides a structured framework for identifying and leveraging different linguistic aspects in vocabulary. We use problem decomposition by separating mnemonic creation into linguistic analysis and creative association phases, enabling more systematic knowledge utilization. Visualization techniques in the form of embedding space projections help identify semantic relationships between vocabulary terms and potential mnemonic content. These heuristics guide both the model fine-tuning process and the subsequent evaluation methodology.
+
+\numpara{sampling} The evaluation methodology employs stratified random sampling to ensure representation across linguistic feature categories and vocabulary complexity levels. For human evaluation, we randomly selected 50 test examples, stratified by linguistic feature type, to obtain unbiased assessments of mnemonic quality. This sampling strategy ensures balanced representation of different mnemonic types while maintaining statistical validity. Each example received multiple independent ratings to mitigate individual rater bias, with inter-rater reliability calculated using Gwet's AC2 to confirm assessment consistency.
+
+\numpara{studyreplication} To facilitate replication, we provide comprehensive implementation details in Appendix \ref{sec:training-details}, including environment configurations, model parameters, and hyperparameter settings. The dataset construction process is documented in Section \ref{sec:met-data}, with preprocessing steps explicitly specified. All code and datasets are made publicly available through GitHub and HuggingFace repositories, with standardized formats ensuring compatibility with common ML frameworks. This transparency ensures that other researchers can validate our findings and build upon our methodology.
+
+\numpara{observationalstudy} Our human evaluation component constitutes an observational study assessing how learners perceive and utilize generated mnemonics. The Likert-scale ratings provide quantitative metrics, while qualitative feedback offers insights into specific features that enhance mnemonic effectiveness. Though limited in scale, this observational component validates computational metrics and provides preliminary evidence regarding learning impact. Future work will extend this observational approach through longitudinal studies tracking actual vocabulary retention over time.
+
+\numpara{dataviz} We employ targeted data visualizations to communicate complex relationships between linguistic features and mnemonic effectiveness. Radar charts display the distribution of linguistic features across different model outputs, while heatmaps visualize correlation patterns between computational metrics and human evaluations. Embedding space projections illustrate semantic relationships between vocabulary terms and their mnemonics, providing intuitive visual confirmation of semantic relevance scores. These visualizations enhance interpretability of results while supporting our conclusions regarding the contribution of different linguistic features to mnemonic quality.
+
+\numpara{significance} Statistical significance testing confirms the reliability of our comparative results between baseline and fine-tuned models. We employ paired statistical tests (Wilcoxon signed-rank) to account for vocabulary-specific variation when comparing model outputs on identical test sets. Effect size calculations quantify the practical significance of improvements, while confidence intervals provide transparency regarding the precision of our estimates. Multiple comparison corrections maintain statistical rigor when evaluating performance across different linguistic feature categories.
+
+\numpara{shapingbehavior} The intended application of our approach shapes vocabulary learning behavior by encouraging deeper engagement with linguistic features. Rather than passive memorization, the generated mnemonics prompt learners to recognize morphological patterns, etymological connections, and semantic relationships, fostering more robust mental representations. By explicitly highlighting these linguistic features, the system promotes analytical processing of vocabulary, which research indicates enhances long-term retention. This behavior-shaping aspect represents a significant advantage over keyword-only approaches that rely on shallow phonetic associations.
+
+\numpara{ethicalconsiderations} Our work addresses ethical considerations in educational technology deployment. We prioritize linguistic diversity by including vocabulary from various etymological backgrounds rather than focusing exclusively on Latin/Greek derivatives. The evaluation process incorporates feedback from learners with diverse linguistic profiles to ensure the approach benefits various learning styles. We acknowledge limitations regarding potential cultural specificity in some mnemonics and identify this as an area for future refinement. All human evaluation participants provided informed consent, and data collection followed established ethical guidelines for educational research.
+
+\section{Training details} \label{sec:training-details}
+\subsection{Environment setup}
+The training was conducted, alternately, on a Google Colab notebook, or an instance of Google Cloud's Deep Learning Virtual Machine image. They both use Google Compute Engine and were configured with a NVIDIA Tesla T4 GPU. HuggingFace libraries \verb|bitsandbytes| (quantization), \verb|peft| (parameter-efficient fine-tuning), \verb|transformers|, \verb|trl| (transformer reinforcement learning), were loaded with \verb|torch| backend and CUDA support. \verb|unsloth| was used to reduce memory usage when interacting with LMs at the cost of small training speed.
+
+The base model used was Gemma-2-9B-it, a 9-billion parameter Transformer-based decoder-only language model pre-trained on general-purpose tasks, and already fine-tuned to increase instruction following capabilities.
+
+\subsection{LoRA configuration}
+
+To reduce computational overhead, we employed QLoRA with Rank-Stabilized LoRA (rsLoRA) scaling. The model was quantized to 4-bit precision using \texttt{unsloth}, which utilizes the \texttt{bitsandbytes} library, thereby decreasing memory usage. The LoRA configuration parameters were set as follows: rank \( r = 8 \), scaling factor \( \alpha_{\text{LoRA}} = 16 \), and dropout rate of 0. These configurations were applied to both the attention and feed-forward layers.
+
+The rank \( r \) determines the dimensionality of the low-rank adaptation matrices, controlling the number of trainable parameters introduced during fine-tuning. A higher rank allows the model to capture more complex adaptations but increases computational complexity. The scaling factor \( \alpha_{\text{LoRA}} \) modulates the impact of the low-rank updates on the original weights, effectively controlling the contribution of the adaptation matrices to the final model parameters. Setting the dropout rate to zero indicates that no dropout regularization was applied during the LoRA updates, allowing all connections to be utilized during training.
+
+\subsection{SFT configuration}
+
+For supervised fine-tuning (SFT), we utilized the \texttt{trl} library with the following hyperparameters: batch size \( b = 16 \), number of epochs \( \text{eps} = 4 \), learning rate \( \alpha = 2 \times 10^{-5} \), weight decay \( \lambda = 0.05 \), and a cosine annealing learning rate scheduler with restarts.
+
+The batch size \( b \) defines the number of training examples processed simultaneously during each forward and backward pass. A batch size of 16 balances computational efficiency and gradient estimation accuracy. Training for 4 epochs (\( \text{eps} = 4 \)) means the model will see the training data a total of four times, which ensures sufficient exposure to the training data without risking overfitting. The learning rate \( \alpha \) controls the step size for weight updates; a value of \( 2 \times 10^{-5} \) is typical for fine-tuning large language models, facilitating gradual convergence. Weight decay \( \lambda \) serves as a regularization term, penalizing large weights to prevent overfitting. The cosine annealing scheduler adjusts the learning rate following a cosine decay pattern, periodically restarting to allow the model to escape local minima and potentially achieve better generalization, compared to linear decay.
+
+\subsection{Hyperparameter tuning}
+
+To optimize the training process, PBT was used to explore hyperparameter configurations dynamically. Initial ranges included: learning rate $\alpha \in [1e^{-5}, 3e^{-5}]$, batch size $b\in [8,32]$, weight decay $d\in[0.01,0.1]$, and learning schedulers (either linear or cosine annealing with restarts).
+
+PBT iteratively refined these configurations based on evaluation loss on validation set.
+
+
+\end{document}
