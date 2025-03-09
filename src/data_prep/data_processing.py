@@ -20,6 +20,8 @@ from src.utils import check_dir_path, check_file_path
 from src.utils import constants as c
 
 if TYPE_CHECKING:
+    from typing import Optional
+
     from src.utils.aliases import PathLike
 
 

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from src.utils.aliases import PathLike
 
 
-def read_prompt(prompt_path: "Path") -> str:
+def read_prompt(prompt_path: "PathLike") -> str:
     """Read the system prompt from a .txt file.
 
     Args:
