@@ -1,3 +1,4 @@
+from .aliases import ExtensionsType, PathLike
 from .common import read_config, read_prompt, update_config
 from .error_handling import (
     check_dir_path,

@@ -22,7 +22,7 @@ from src.utils import constants as c
 if TYPE_CHECKING:
     from typing import Optional
 
-    from src.utils.aliases import PathLike
+    from src.utils import PathLike
 
 
 # Set up logging to console
@@ -225,7 +225,7 @@ def save_splits_locally(
     return file_paths
 
 
-def push_to_hf_hub(
+def push_data_to_hf_hub(
     dataset_dict: "DatasetDict",
     repo_id: str,
     private: bool = False,
@@ -275,6 +275,6 @@ if __name__ == "__main__":
     )
 
     # Push the splits to the Hugging Face hub
-    push_to_hf_hub(dataset_dict=splits, repo_id=c.HF_DATASET_NAME)
-    push_to_hf_hub(dataset_dict=test_split, repo_id=c.HF_TESTSET_NAME)
+    push_data_to_hf_hub(dataset_dict=splits, repo_id=c.HF_DATASET_NAME)
+    push_data_to_hf_hub(dataset_dict=test_split, repo_id=c.HF_TESTSET_NAME)
     logger.info("Finished processing data.")

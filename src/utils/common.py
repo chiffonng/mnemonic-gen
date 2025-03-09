@@ -8,7 +8,7 @@ from src.utils.error_handling import check_file_path
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from src.utils.aliases import PathLike
+    from src.utils import PathLike
 
 
 def read_prompt(prompt_path: "PathLike") -> str:

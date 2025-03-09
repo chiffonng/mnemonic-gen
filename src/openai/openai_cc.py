@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from typing import Any
 
     from openai import OpenAI
-    from src.utils.aliases import PathLike
+    from src.utils import PathLike
 
 from src.utils import check_file_path, read_config, read_prompt
 
