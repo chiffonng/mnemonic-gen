@@ -9,13 +9,14 @@ dependencies = [
   "evaluate>=0.4.3",
   "hf-transfer>=0.1.8",
   "huggingface-hub>=0.26.1",
+  "litellm>=1.63.3",
   "matplotlib>=3.9.2",
   "numpy<2.0.0",
   "peft>=0.13.2 ; sys_platform == 'linux'", # HF parameter-efficient training
-  "pre-commit>=4.0.1", # Pre-commit hooks
+  "pre-commit>=4.1.0", # Pre-commit hooks
   "python-dotenv>=1.0.1", # Load environment variables
   "pyyaml>=6.0.2", # YAML config
-  "ruff>=0.9.7",
+  "ruff>=0.9.10",
   "seaborn>=0.13.2",
   "torch==2.4.0 ; sys_platform == 'linux'",
   "transformers>=4.47.0",
@@ -43,18 +44,18 @@ docstring-code-format      = true # format code in docstrings
 docstring-code-line-length = 88
 
 [tool.ruff.lint]
-exclude = [".ipynb", "data", "logs", "tests"]
+exclude = ["*.ipynb", "data/*", "logs/*", "test**", "tests/*", "tmp/*", "venv/*"]
 extend-select = [
   "B",   # flake8-bugbear, bugbear checks
   "D",   # pydocstyle, all functions and classes must have docstrings
   "I",   # isort
   "N", # pep8-naming conventions
-  "PL", # pylint
+#  "PL", # pylint # TODO: enable
   "PT",  # flakes8-pytest-style, pytest fixtures and style
   "PTH", # flake8-use-pathlib, use pathlib instead of os.path
 ]
 extend-safe-fixes = [
-#  "ANN",  # missing type annotation
+#  "ANN",  # missing type annotation # TODO: enable
   "D",    # pydocstyle docstrings
   "DOC",  # pydoclint docstring conventions
   "F",    # pyflakes
@@ -75,7 +76,7 @@ ignore-fully-untyped = true # ignore fully untyped functions
 mypy-init-return = true  # omit return type in __init__ OK
 
 [tool.ruff.lint.per-file-ignores]
-"*__init__.py" = ["D100", "F401"]
+"*__init__.py" = ["D104", "F401"]
 
 [tool.uv]
 python-downloads = "manual"         # change to "automatic" to download Python specified in .python-version

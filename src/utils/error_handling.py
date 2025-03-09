@@ -1,6 +1,5 @@
 """Module for handling common errors and exceptions."""
 
-from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -58,7 +57,7 @@ def validate_and_normalize_extensions(
     return extensions
 
 
-def check_extension(path: Path, extensions: "ExtensionsType") -> None:
+def check_extension(path: "Path", extensions: "ExtensionsType") -> None:
     """Check if the path has one of the allowed extensions."""
     if extensions and path.suffix not in extensions:
         raise ValueError(
@@ -107,7 +106,7 @@ def check_dir_path(
     dir_path: "PathLike",
     new_ok: bool = False,
     extensions: "Optional[ExtensionsType]" = None,
-) -> Path | list[Path]:
+) -> "Path" | "list[Path]":
     """Check if the directory path exists, convert it to a Path object if it is a string, and return it. Optionally, check if the directory contains files with the specified extensions.
 
     Args:
@@ -143,7 +142,7 @@ def check_dir_path(
 
 def which_file_exists(
     *files: "PathLike", extensions: "Optional[ExtensionsType]" = None
-) -> Path:
+) -> "Path":
     """Return the first file found in the list of files. Optionally, return the first file with the specified extensions.
 
     Args:
@@ -161,13 +160,3 @@ def which_file_exists(
     raise FileNotFoundError(
         f"None of the specified files were found: {[str(p) for p in files]}."
     )
-
-
-class ExplicitEnum(str, Enum):
-    """Enum with more explicit error message for missing values."""
-
-    @classmethod
-    def _missing_(cls, value):
-        raise ValueError(
-            f"{value} is not a valid {cls.__name__}, please select one of {list(cls._value2member_map_.keys())}"
-        )

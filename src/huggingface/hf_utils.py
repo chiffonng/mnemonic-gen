@@ -9,9 +9,9 @@ def login_hf_hub(write_permission: bool = False):
     """
     from huggingface_hub import login
 
-    HF_ACCESS_TOKEN = get_hf_token()
+    hf_access_token = get_hf_token()
     login(
-        token=HF_ACCESS_TOKEN,
+        token=hf_access_token,
         add_to_git_credential=True,
         write_permission=write_permission,
     )

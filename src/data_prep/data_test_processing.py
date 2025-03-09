@@ -5,14 +5,15 @@ from pathlib import Path
 
 from src.data.data_loaders import load_hf_dataset
 from src.utils import check_file_path
+from src.utils.constants import FINAL_TEST_DATASET_TXT, RAW_TEST_DATASET_TXT
 
 sample_size: int | None = 200
 
 # Construct the path to raw/test.txt and final/test.txt
-current_file = Path(__file__).resolve()
-data_module = current_file.parent
-raw_test_data_path = check_file_path(data_module / "raw" / "test.txt")
-final_test_data_path = check_file_path(data_module / "final" / "test.txt", new_ok=True)
+raw_test_data_path = check_file_path(RAW_TEST_DATASET_TXT, new_ok=True)
+final_test_data_path = check_file_path(
+    FINAL_TEST_DATASET_TXT, new_ok=True, to_create=True
+)
 
 # Read the unique terms from test.txt (each term on a new line)
 with Path.open(raw_test_data_path, "r") as f:
@@ -42,7 +43,6 @@ else:
     sampled_test_terms = list(final_test_terms)
 
 # Create the file if not exists
-Path(final_test_data_path).touch(exist_ok=True)
-with Path.open(final_test_data_path, "w") as f:
+with final_test_data_path.open("w") as f:
     for term in sorted(sampled_test_terms):  # Sort the terms
         f.write(term + "\n")

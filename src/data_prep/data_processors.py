@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 from datasets import Dataset, DatasetDict
+
 from src.data import load_local_dataset, load_txt_file
 from src.huggingface import login_hf_hub
 from src.utils import check_dir_path, check_file_path
@@ -21,7 +22,7 @@ from src.utils import constants as c
 if TYPE_CHECKING:
     from typing import Optional
 
-    from src.utils.aliases import PathLike
+    from src.utils import PathLike
 
 
 # Set up logging to console
@@ -166,7 +167,6 @@ def train_val_split(
 
     Args:
         combined_data_path (PathLike): Path to the combined dataset (.csv or .parquet).
-        test_terms_path (PathLike, optional): Path to the .txt file containing test terms.
         val_size (float): The proportion of the dataset to include in the validation set.
         seed (int): Random seed for reproducibility.
 
@@ -225,7 +225,7 @@ def save_splits_locally(
     return file_paths
 
 
-def push_to_hf_hub(
+def push_data_to_hf_hub(
     dataset_dict: "DatasetDict",
     repo_id: str,
     private: bool = False,
@@ -275,6 +275,6 @@ if __name__ == "__main__":
     )
 
     # Push the splits to the Hugging Face hub
-    push_to_hf_hub(dataset_dict=splits, repo_id=c.HF_DATASET_NAME)
-    push_to_hf_hub(dataset_dict=test_split, repo_id=c.HF_TESTSET_NAME)
+    push_data_to_hf_hub(dataset_dict=splits, repo_id=c.HF_DATASET_NAME)
+    push_data_to_hf_hub(dataset_dict=test_split, repo_id=c.HF_TESTSET_NAME)
     logger.info("Finished processing data.")
