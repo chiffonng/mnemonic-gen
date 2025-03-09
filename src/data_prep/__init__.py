@@ -12,4 +12,9 @@ Outside of data module:
 """
 
 from .data_readers import read_csv_file
-from .data_validation import validate_enum_field, validate_mnemonic, validate_term
+from .data_validation import (
+    ExplicitEnum,
+    validate_enum_field,
+    validate_mnemonic,
+    validate_term,
+)
