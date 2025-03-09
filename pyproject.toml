@@ -13,10 +13,10 @@ dependencies = [
   "matplotlib>=3.9.2",
   "numpy<2.0.0",
   "peft>=0.13.2 ; sys_platform == 'linux'", # HF parameter-efficient training
-  "pre-commit>=4.0.1", # Pre-commit hooks
+  "pre-commit>=4.1.0", # Pre-commit hooks
   "python-dotenv>=1.0.1", # Load environment variables
   "pyyaml>=6.0.2", # YAML config
-  "ruff>=0.9.7",
+  "ruff>=0.9.10",
   "seaborn>=0.13.2",
   "torch==2.4.0 ; sys_platform == 'linux'",
   "transformers>=4.47.0",

@@ -4,7 +4,8 @@ import json
 import logging
 from typing import Annotated, Any, Optional
 
-from pydantic import BaseModel, BeforeValidator, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
+from pydantic.alias_generators import AliasGenerator, to_camel, to_snake
 
 from src.data_prep import (
     ExplicitEnum,
@@ -18,11 +19,21 @@ from src.utils.aliases import PathLike
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+if not logger.handlers:
+    logger.addHandler(logging.StreamHandler())
 
 
 class BasicMnemonic(BaseModel):
     """Basic mnemonic model."""
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        str_strip_whitespace=True,
+        alias_generator=AliasGenerator(
+            validation_alias=lambda field_name: to_snake(field_name),
+            serialization_alias=lambda field_name: to_camel(field_name),
+        ),
+    )
 
     term: Annotated[str, BeforeValidator(validate_term)] = Field(
         ..., description="The vocabulary term.", max_length=100, min_length=1
@@ -30,19 +41,7 @@ class BasicMnemonic(BaseModel):
     mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
         ..., description="The mnemonic aid for the term.", max_length=300, min_length=5
     )
-    source_id: int = Field(
-        ...,
-        description="The unique identifier for the source.",
-        alias="sourceId",
-        gt=0,
-        lt=100,
-        default=1,
-    )
-
-    model_config = {
-        "populate_by_name": True,
-        "str_strip_whitespace": True,
-    }
+    # TODO: Add source_id field
 
 
 class MnemonicType(ExplicitEnum):
@@ -66,27 +65,28 @@ class MnemonicType(ExplicitEnum):
 class Mnemonic(BasicMnemonic):
     """Full mnemonic model."""
 
-    reasoning: str = Field(
-        ..., description="The linguistic reasoning for the mnemonic."
+    linguistic_reasoning: str = Field(
+        ...,
+        description="The linguistic reasoning for the mnemonic.",
+        max_length=100,
+        min_length=5,
     )
     main_type: Annotated[
         MnemonicType, BeforeValidator(validate_enum_field(MnemonicType))
     ] = Field(
         ...,
         description="The main type of the mnemonic.",
-        alias="type",
     )
     sub_type: Annotated[
         Optional[MnemonicType], BeforeValidator(validate_enum_field(MnemonicType))
     ] = Field(
         default=None,
         description="The sub type of the mnemonic.",
-        alias="subType",
     )
 
     def __str__(self) -> str:
         """Return the string representation of the mnemonic."""
-        return f"{self.term}: {self.mnemonic}"
+        return f"{self.term}: {self.mnemonic} (types: {self.main_type} {self.sub_type})"
 
 
 class FullMnemonic(Mnemonic):
@@ -99,7 +99,10 @@ class ImprovedMnemonic(Mnemonic):
     """Include both old and improved mnemonics."""
 
     improved_mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
-        ..., description="The improved mnemonic aid for the term.", max_length=300
+        ...,
+        description="The improved mnemonic aid for the term.",
+        max_length=300,
+        min_length=5,
     )
 
 
@@ -112,10 +115,10 @@ def convert_csv_to_json(
     """Convert a CSV file to JSON using the specified Pydantic model.
 
     Args:
-        input_path: Path to the input CSV file
-        output_path: Optional path to save the JSON output. If None, JSON is not saved to disk.
-        model_class: Pydantic model class to use for validation and conversion
-        field_mappings: Optional dictionary mapping CSV column names to model field names
+        input_path (PathLike): Path to the input CSV file
+        output_path (PathLike, optional): Optional path to save the JSON output. If None, JSON is not saved to disk.
+        model_class (pydantic.BaseModel): Pydantic model class to use for validation and conversion
+        field_mappings (dict[str, str]): Optional dictionary mapping CSV column names to model field names
 
     Returns:
         List of validated dictionaries conforming to the model schema
