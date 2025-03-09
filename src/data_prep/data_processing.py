@@ -13,14 +13,13 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 from datasets import Dataset, DatasetDict
+
 from src.data import load_local_dataset, load_txt_file
 from src.huggingface import login_hf_hub
 from src.utils import check_dir_path, check_file_path
 from src.utils import constants as c
 
 if TYPE_CHECKING:
-    from typing import Optional
-
     from src.utils.aliases import PathLike
 
 
@@ -166,7 +165,6 @@ def train_val_split(
 
     Args:
         combined_data_path (PathLike): Path to the combined dataset (.csv or .parquet).
-        test_terms_path (PathLike, optional): Path to the .txt file containing test terms.
         val_size (float): The proportion of the dataset to include in the validation set.
         seed (int): Random seed for reproducibility.
 

@@ -6,7 +6,7 @@ CSV_EXT = ".csv"
 TXT_EXT = ".txt"
 
 # Data paths
-DATA_MODULE = "data_prep"
+DATA_MODULE = "data"
 RAW_DATA_DIR = DATA_MODULE + "/raw"
 PROCESSED_DATA_DIR = DATA_MODULE + "/processed"
 FINAL_DATA_DIR = DATA_MODULE + "/final"

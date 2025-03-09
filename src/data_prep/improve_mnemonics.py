@@ -11,6 +11,8 @@ import random
 from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
+
+from openai import OpenAI
 from src.openai import (
     batch_improve_mnemonics,
     finetune_from_config,
@@ -20,20 +22,18 @@ from src.openai import (
 )
 from src.utils import check_file_path, read_config, read_prompt, update_config
 
-from openai import OpenAI
-
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Optional
 
 # Set up and validates the paths
 prompt_path = check_file_path("prompts/improve_ft_system.txt")
-raw_input_path = check_file_path("data_prep/raw/improved_data.csv", extensions=["csv"])
+raw_input_path = check_file_path("data/raw/improved_data.csv", extensions=["csv"])
 train_input_path = check_file_path(
-    "data_prep/processed/improve_sft_train.jsonl", extensions=["jsonl"], new_ok=True
+    "data/processed/improve_sft_train.jsonl", extensions=["jsonl"], new_ok=True
 )
 val_input_path = check_file_path(
-    "data_prep/processed/improve_sft_val.jsonl", extensions=["jsonl"], new_ok=True
+    "data/processed/improve_sft_val.jsonl", extensions=["jsonl"], new_ok=True
 )
 config_file_path = check_file_path(
     "config/openai_sft_improve.json", extensions=["json"]
