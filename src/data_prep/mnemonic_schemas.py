@@ -6,7 +6,6 @@ from typing import Annotated, Optional
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 from pydantic.alias_generators import AliasGenerator, to_camel, to_snake
 
-from src.data_prep import read_csv_file
 from src.data_prep.data_validators import (
     ExplicitEnum,
     validate_enum_field,
