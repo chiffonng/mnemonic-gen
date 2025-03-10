@@ -1,18 +1,26 @@
 """Module for processing LLM requests and responses with litellm, endpoint: chat completion."""
 
+from __future__ import annotations
+
 import json
 import logging
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import TYPE_CHECKING
 
 from litellm import (
     batch_completion,
     completion,
     supports_response_schema,
+    validate_environment,
 )
-from pydantic import BaseModel
 
 from src.utils import check_file_path, read_config
-from src.utils.aliases import PathLike
+
+if TYPE_CHECKING:
+    from typing import Any, Optional
+
+    from pydantic import BaseModel
+
+    from src.utils.aliases import PathLike
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -27,10 +35,10 @@ def build_input_params(
     messages: list[dict[str, Any]] | list[list[dict[str, Any]]],
     config_path: Optional[PathLike] = None,
     default_config_path: Optional[PathLike] = default_config_path,
-    output_schema: Optional[Type[BaseModel]] = None,
+    output_schema: Optional[type[BaseModel]] = None,
     use_mock: bool = False,
     **kwargs,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Build input parameters for the LLM request.
 
     Args:
@@ -77,11 +85,11 @@ def build_input_params(
 
 
 def complete(
-    messages: list[dict[str, "Any"]],
-    config_path: "Optional[PathLike]" = None,
-    output_schema: "Optional[Type[BaseModel]]" = None,
+    messages: list[dict[str, Any]],
+    config_path: Optional[PathLike] = None,
+    output_schema: Optional[type[BaseModel]] = None,
     use_mock: bool = False,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Send a single completion request to the LLM API.
 
     Args:
@@ -101,6 +109,7 @@ def complete(
             output_schema=output_schema,
             use_mock=use_mock,
         )
+        validate_environment(model=params["model"])
         response = completion(**params)
 
         return process_llm_response(response, output_schema)
@@ -113,10 +122,10 @@ def complete(
 def batch_complete(
     messages: list[list[dict[str, Any]]],
     config_path: Optional[PathLike] = None,
-    output_schema: Optional[Type[BaseModel]] = None,
+    output_schema: Optional[type[BaseModel]] = None,
     use_mock: bool = False,
     **kwargs,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Send a batch completion request to the LLM API.
 
     Args:
@@ -137,6 +146,7 @@ def batch_complete(
             use_mock=use_mock,
             **kwargs,
         )
+        validate_environment(model=params["model"])
         response = batch_completion(**params)
 
         return process_llm_response(response, output_schema)
@@ -147,8 +157,8 @@ def batch_complete(
 
 
 def process_llm_response(
-    response: Any, output_schema: Optional[Type[BaseModel]] = None
-) -> List[Dict[str, Any]]:
+    response: Any, output_schema: Optional[type[BaseModel]] = None
+) -> list[dict[str, Any]]:
     """Process the LLM response (OpenAI format) and validate against the schema.
 
     Args:
@@ -180,7 +190,7 @@ def process_llm_response(
 
 
 def save_results(
-    results: List[Dict[str, Any]],
+    results: list[dict[str, Any]],
     output_path: PathLike,
     flatten: bool = True,
 ) -> None:
