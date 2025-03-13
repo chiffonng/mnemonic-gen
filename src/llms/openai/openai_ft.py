@@ -1,6 +1,5 @@
 """Module for fine-tuning OpenAI models."""
 
-import json
 import logging
 from typing import TYPE_CHECKING
 
@@ -10,7 +9,7 @@ if TYPE_CHECKING:
 
     from openai import OpenAI
 
-from src.utils import check_file_path, read_config
+from src.utils import read_config
 
 logger = logging.getLogger(__name__)
 
