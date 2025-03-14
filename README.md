@@ -12,7 +12,7 @@ Requirements: Linux, Python >=3.10.
 
 ### Installation (In development)
 
-Prerequisites: Have both [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) and [uv](https://docs.astral.sh/uv/) installed GLOBALLY.
+Prerequisites: Have [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html), [uv](https://docs.astral.sh/uv/), and git installed GLOBALLY (root user).
 
 If you have `conda`, you can create a new environment with the following command:
 
@@ -32,18 +32,24 @@ Create a `.env` by cloning `.env.template`. You will need:
 
 ## Development
 
+Install development dependencies:
+
+```bash
+bash scripts/setup-dev.sh
+bash scripts/update-deps.sh
+```
+
 Run pre-commit hooks to ensure code quality (formatting, linting, checking type hints, etc.):
 
 ```bash
-pre-commit install
 pre-commit run --all-files
 ```
 
 Dealing with dependencies:
 
-1. Add new dependencies to `pyproject.toml`
+1. Add new dependencies to `pyproject.toml` or use `uv add <package>`. To remove a package, use `uv remove <package>`.
 2. Compile to `requirements.txt` with `uv pip compile pyproject.toml -o requirements.txt`
-3. Sync the environment with `uv pip sync requirements.txt`
+3. Sync the environment with uv.lock and install dev dependencies: `uv sync`.
 
 ## Personal motivation
 
