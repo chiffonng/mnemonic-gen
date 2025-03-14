@@ -15,7 +15,7 @@ import pandas as pd
 from datasets import Dataset, DatasetDict
 
 from src.data import load_local_dataset, load_txt_file
-from src.huggingface import login_hf_hub
+from src.llms.huggingface import login_hf_hub
 from src.utils import check_dir_path, check_file_path
 from src.utils import constants as c
 

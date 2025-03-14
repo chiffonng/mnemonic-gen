@@ -1,4 +1,11 @@
 repos:
+  - repo: local
+    hooks:
+      - id: update-requirements
+        name: update requirements.txt and uv.lock
+        entry: bash -c 'uv pip compile pyproject.toml -o requirements.txt && uv pip sync pyproject.toml'
+        stages: [pre-commit, pre-push]
+        language: system
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.9
     hooks:
