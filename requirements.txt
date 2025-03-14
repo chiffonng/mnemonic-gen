@@ -150,7 +150,6 @@ pytz==2025.1
     # via pandas
 pyyaml==6.0.2
     # via
-    #   mnemonic-gen (pyproject.toml)
     #   datasets
     #   huggingface-hub
     #   transformers
