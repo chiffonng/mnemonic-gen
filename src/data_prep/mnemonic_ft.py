@@ -11,10 +11,9 @@ import random
 from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
-
 from openai import OpenAI
-from src.openai import (
-    batch_improve_mnemonics,
+
+from src.llms.openai import (
     finetune_from_config,
     improve_mnemonic,
     upload_file_to_openai,

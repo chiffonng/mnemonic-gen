@@ -1,6 +1,5 @@
 """Module for generating completions using OpenAI's Chat Completions API."""
 
-import json
 import logging
 from typing import TYPE_CHECKING
 
@@ -8,6 +7,7 @@ if TYPE_CHECKING:
     from typing import Any
 
     from openai import OpenAI
+
     from src.utils import PathLike
 
 from src.utils import check_file_path, read_config, read_prompt
