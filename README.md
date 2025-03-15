@@ -4,7 +4,7 @@
 
 Can we use LLMs to generate **diverse** mnemonic devices for vocabulary acquisition with **linguistic reasoning**?
 
----
+![](assets/pipeline.svg)
 
 ## Setup
 

@@ -1,10 +1,18 @@
 """Module for pydantic models for converting data to JSON schema."""
 
 import logging
+import re
 from typing import Annotated, Optional
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
-from pydantic.alias_generators import AliasGenerator, to_camel, to_snake
+from pydantic import (
+    AliasGenerator,
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    model_validator,
+)
+from pydantic.alias_generators import to_camel, to_snake
 
 from src.data_prep.data_validators import (
     ExplicitEnum,
@@ -84,6 +92,21 @@ class Mnemonic(BasicMnemonic):
         """Return the string representation of the mnemonic."""
         return f"{self.term}: {self.mnemonic} (types: {self.main_type} {self.sub_type})"
 
+    # @model_validator(mode="before")
+    @classmethod
+    def set_linguistic_reasoning(cls, values: dict) -> dict:
+        """Set the linguistic reasoning from the mnemonic if not provided."""
+        mnemonic = values.get("mnemonic", "")
+        linguistic = values.get("linguistic_reasoning")
+        if not linguistic and mnemonic:
+            # This regex captures the first sentence ending with a period.
+            match = re.match(r"^(.*?\.)\s*", mnemonic)
+            if match:
+                values["linguistic_reasoning"] = match.group(1).strip()
+            else:
+                values["linguistic_reasoning"] = mnemonic.strip()
+        return values
+
 
 class FullMnemonic(Mnemonic):
     """Full mnemonic model with additional fields."""
@@ -96,7 +119,18 @@ class ImprovedMnemonic(Mnemonic):
 
     improved_mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
         ...,
-        description="The improved mnemonic aid for the term.",
+        description="The improved mnemonic aid for the term. The first sentence include linguistic reasoning.",
         max_length=300,
         min_length=5,
     )
+
+    # replace mnemonic with improved mnemonic and remove improved mnemonic field
+    def sub(self) -> Mnemonic:
+        """Return a Mnemonic object with the improved mnemonic."""
+        return Mnemonic(
+            term=self.term,
+            mnemonic=self.improved_mnemonic,
+            linguistic_reasoning=self.linguistic_reasoning,
+            main_type=self.main_type,
+            sub_type=self.sub_type,
+        )
