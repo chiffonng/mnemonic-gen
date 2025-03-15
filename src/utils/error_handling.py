@@ -1,5 +1,7 @@
 """Module for handling common errors and exceptions."""
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -9,7 +11,7 @@ if TYPE_CHECKING:
     from src.utils.aliases import ExtensionsType, PathLike
 
 
-def validate_path(path: "PathLike") -> "Path":
+def validate_path(path: PathLike) -> Path:
     """Validate path and convert it to a Path object if it is a string.
 
     Args:
@@ -29,7 +31,7 @@ def validate_path(path: "PathLike") -> "Path":
 
 
 def validate_and_normalize_extensions(
-    extensions: "ExtensionsType",
+    extensions: ExtensionsType,
 ) -> list[str]:
     """Normalize extensions to a list format, ensuring each starts with a dot.
 
@@ -57,7 +59,7 @@ def validate_and_normalize_extensions(
     return extensions
 
 
-def check_extension(path: "Path", extensions: "ExtensionsType") -> None:
+def check_extension(path: Path, extensions: ExtensionsType) -> None:
     """Check if the path has one of the allowed extensions."""
     if extensions and path.suffix not in extensions:
         raise ValueError(
@@ -67,10 +69,10 @@ def check_extension(path: "Path", extensions: "ExtensionsType") -> None:
 
 # TODO: Refactor into two functions, one for file, and one for checking extensions
 def check_file_path(
-    path: "PathLike",
+    path: PathLike,
     new_ok: bool = False,
     to_create: bool = False,
-    extensions: "Optional[ExtensionsType]" = None,
+    extensions: Optional[ExtensionsType] = None,
 ) -> Path:
     """Convert path to a Path object if it is a string, and return it. Optionally, check if the file has one of the specified extensions or if it exists.
 
@@ -103,10 +105,10 @@ def check_file_path(
 
 # TODO: Refactor into two functions, one for file, and one for checking extensions
 def check_dir_path(
-    dir_path: "PathLike",
+    dir_path: PathLike,
     new_ok: bool = False,
-    extensions: "Optional[ExtensionsType]" = None,
-) -> "Path" | "list[Path]":
+    extensions: Optional[ExtensionsType] = None,
+) -> Path | list[Path]:
     """Check if the directory path exists, convert it to a Path object if it is a string, and return it. Optionally, check if the directory contains files with the specified extensions.
 
     Args:
@@ -141,8 +143,8 @@ def check_dir_path(
 
 
 def which_file_exists(
-    *files: "PathLike", extensions: "Optional[ExtensionsType]" = None
-) -> "Path":
+    *files: PathLike, extensions: Optional[ExtensionsType] = None
+) -> Path:
     """Return the first file found in the list of files. Optionally, return the first file with the specified extensions.
 
     Args:

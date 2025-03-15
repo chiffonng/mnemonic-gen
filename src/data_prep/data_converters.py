@@ -1,5 +1,7 @@
 """Converts data from one format to another."""
 
+from __future__ import annotations
+
 import json
 import logging
 from typing import TYPE_CHECKING
@@ -21,9 +23,9 @@ if not logger.handlers:
 
 
 def convert_csv_to_json(
-    input_path: "PathLike",
-    model_class: "type[BaseModel]",
-    output_path: "Optional[PathLike]" = None,
+    input_path: PathLike,
+    model_class: type[BaseModel],
+    output_path: Optional[PathLike] = None,
     field_mappings: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
     """Convert a CSV file to JSON using the specified Pydantic model.
@@ -82,9 +84,9 @@ def convert_csv_to_json(
 
 
 def convert_csv_to_jsonl(
-    input_path: "PathLike",
-    model_class: "type[BaseModel]",
-    output_path: "Optional[PathLike]" = None,
+    input_path: PathLike,
+    model_class: type[BaseModel],
+    output_path: Optional[PathLike] = None,
     field_mappings: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
     """Convert a CSV file to JSON Lines using the specified Pydantic model.
@@ -142,3 +144,46 @@ def convert_csv_to_jsonl(
                 f.write("\n")
 
     return validated_data
+
+
+def convert_json_to_csv(
+    input_path: PathLike,
+    output_path: Optional[PathLike] = None,
+) -> list[dict[str, Any]]:
+    """Convert a JSON file to CSV.
+
+    Args:
+        input_path (PathLike): Path to the input JSON file
+        output_path (PathLike, optional): Optional path to save the CSV output. If None, CSV is not saved to disk.
+
+    Returns:
+        List of dictionaries representing the JSON data
+    """
+    # Validate input path
+    input_path = check_file_path(input_path, extensions=[".json"])
+
+    # Validate output path if provided
+    if output_path:
+        output_path = check_file_path(
+            output_path, new_ok=True, to_create=True, extensions=[".csv"]
+        )
+
+    # Read JSON data
+    with input_path.open("r", encoding="utf-8") as f:
+        json_data = json.load(f)
+
+    # Write to output file if specified
+    if output_path:
+        with output_path.open("w", encoding="utf-8") as f:
+            if isinstance(json_data, list):
+                # Write CSV header
+                header = json_data[0].keys()
+                f.write(",".join(header) + "\n")
+                # Write CSV rows
+                for item in json_data:
+                    f.write(",".join(str(item.get(key, "")) for key in header) + "\n")
+            else:
+                logger.error("JSON data is not a list. Cannot convert to CSV.")
+                raise ValueError("JSON data is not a list. Cannot convert to CSV.")
+
+    return json_data
