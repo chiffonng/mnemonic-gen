@@ -1,5 +1,7 @@
 """Module for pydantic models for converting data to JSON schema."""
 
+from __future__ import annotations
+
 import logging
 import re
 from typing import Annotated, Optional
@@ -48,6 +50,23 @@ class BasicMnemonic(BaseModel):
     # TODO: Add source_id field
 
 
+class ImprovedMnemonic(BaseModel):
+    """Include both old and improved mnemonics."""
+
+    improved_mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
+        ...,
+        description="The improved mnemonic aid for the term. The first sentence include linguistic reasoning.",
+        max_length=300,
+        min_length=5,
+    )
+    linguistic_reasoning: str = Field(
+        ...,
+        description="The linguistic reasoning for the mnemonic.",
+        max_length=100,
+        min_length=5,
+    )
+
+
 class MnemonicType(ExplicitEnum):
     """Enum for mnemonic types."""
 
@@ -57,7 +76,6 @@ class MnemonicType(ExplicitEnum):
     morphology = "morphology"
     semantic_field = "semantic-field"
     context = "context"
-    other = "other"
     unknown = "unknown"  # fallback for when the type is not recognized.
 
     @classmethod
@@ -66,15 +84,9 @@ class MnemonicType(ExplicitEnum):
         return [member.value for member in cls]
 
 
-class Mnemonic(BasicMnemonic):
-    """Full mnemonic model."""
+class MnemonicClassification(BaseModel):
+    """Classification of the mnemonic."""
 
-    linguistic_reasoning: str = Field(
-        ...,
-        description="The linguistic reasoning for the mnemonic.",
-        max_length=100,
-        min_length=5,
-    )
     main_type: Annotated[
         MnemonicType, BeforeValidator(validate_enum_field(MnemonicType))
     ] = Field(
@@ -85,17 +97,13 @@ class Mnemonic(BasicMnemonic):
         Optional[MnemonicType], BeforeValidator(validate_enum_field(MnemonicType))
     ] = Field(
         default=None,
-        description="The sub type of the mnemonic.",
+        description="The sub type of the mnemonic, if applicable.",
     )
 
-    def __str__(self) -> str:
-        """Return the string representation of the mnemonic."""
-        return f"{self.term}: {self.mnemonic} (types: {self.main_type} {self.sub_type})"
-
-    # @model_validator(mode="before")
+    @model_validator(mode="before")
     @classmethod
     def set_linguistic_reasoning(cls, values: dict) -> dict:
-        """Set the linguistic reasoning from the mnemonic if not provided."""
+        """Extract the linguistic reasoning from the mnemonic if not provided."""
         mnemonic = values.get("mnemonic", "")
         linguistic = values.get("linguistic_reasoning")
         if not linguistic and mnemonic:
@@ -108,29 +116,43 @@ class Mnemonic(BasicMnemonic):
         return values
 
 
-class FullMnemonic(Mnemonic):
-    """Full mnemonic model with additional fields."""
+class Mnemonic(BasicMnemonic, MnemonicClassification):
+    """Ideal mnemonic model."""
 
-    id: str = Field(..., description="The unique identifier for the mnemonic.")
+    model_config = ConfigDict(
+        populate_by_name=True,
+        str_strip_whitespace=True,
+        alias_generator=AliasGenerator(
+            validation_alias=lambda field_name: to_snake(field_name),
+            serialization_alias=lambda field_name: to_camel(field_name),
+        ),
+    )
 
-
-class ImprovedMnemonic(Mnemonic):
-    """Include both old and improved mnemonics."""
-
-    improved_mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
-        ...,
-        description="The improved mnemonic aid for the term. The first sentence include linguistic reasoning.",
-        max_length=300,
+    linguistic_reasoning: str = Field(
+        default=None,
+        description="The linguistic reasoning for the mnemonic.",
+        max_length=100,
         min_length=5,
     )
 
-    # replace mnemonic with improved mnemonic and remove improved mnemonic field
-    def sub(self) -> Mnemonic:
-        """Return a Mnemonic object with the improved mnemonic."""
-        return Mnemonic(
-            term=self.term,
-            mnemonic=self.improved_mnemonic,
-            linguistic_reasoning=self.linguistic_reasoning,
-            main_type=self.main_type,
-            sub_type=self.sub_type,
-        )
+
+class MnemonicCombinedResponse(ImprovedMnemonic, MnemonicClassification):
+    """Response model for mnemonics."""
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        str_strip_whitespace=True,
+        alias_generator=AliasGenerator(
+            validation_alias=lambda field_name: to_snake(field_name),
+            serialization_alias=lambda field_name: to_camel(field_name),
+        ),
+    )
+
+
+class CombinedMnemonics(BasicMnemonic, MnemonicCombinedResponse):
+    """Mnemonic model for both input and output."""
+
+    def replace(self) -> Mnemonic:
+        """Return a Mnemonic object with the improved mnemonic as the main mnemonic."""
+        self.mnemonic = self.improved_mnemonic
+        return Mnemonic(**self.model_dump(exclude={"improved_mnemonic"}))
