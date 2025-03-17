@@ -16,6 +16,10 @@ COMBINED_DATASET_PARQUET = PROCESSED_DATA_DIR + "/combined.parquet"
 RAW_TEST_DATASET_TXT = RAW_DATA_DIR + "/test.txt"
 FINAL_TEST_DATASET_TXT = FINAL_DATA_DIR + "/test.txt"
 
+SEED_IMPROVED_CSV = PROCESSED_DATA_DIR + "/seed_improved.csv"
+SEED_IMPROVED_JSON = PROCESSED_DATA_DIR + "/seed_improved_stratified.jsonl"
+IMPROVED_CSV = PROCESSED_DATA_DIR + "/improved.csv"
+
 # Data columns
 TERM_COL = "term"
 MNEMONIC_COL = "mnemonic"

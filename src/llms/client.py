@@ -12,6 +12,7 @@ from litellm import (
     supports_response_schema,
     validate_environment,
 )
+from openai.error import OpenAIError
 
 from src.utils import check_file_path, read_config
 
@@ -36,7 +37,7 @@ def build_input_params(
     config_path: Optional[PathLike] = None,
     default_config_path: Optional[PathLike] = default_config_path,
     output_schema: Optional[type[BaseModel]] = None,
-    use_mock: bool = False,
+    mock_response: Optional[str] = None,
     **kwargs,
 ) -> dict[str, Any]:
     """Build input parameters for the LLM request.
@@ -46,7 +47,7 @@ def build_input_params(
         config_path (PathLike, optional): Path to configuration file
         default_config_path (PathLike, optional): Path to default configuration file
         output_schema (BaseModel, optional): Pydantic model for validation
-        use_mock (bool): Whether to use mock responses
+        mock_response (str, optional): Mock response to use instead of LLM response
         **kwargs: Additional keyword arguments for litellm.completion
 
     Returns:
@@ -75,7 +76,7 @@ def build_input_params(
         config["response_format"] = output_schema
 
     # Use mock response if requested
-    if use_mock:
+    if mock_response:
         config["mock_response"] = "A mock response"
 
     # Add messages + config to params
@@ -84,11 +85,12 @@ def build_input_params(
     return params
 
 
+# TODO: Add logging observability with MLFLOW
 def complete(
     messages: list[dict[str, Any]],
     config_path: Optional[PathLike] = None,
     output_schema: Optional[type[BaseModel]] = None,
-    use_mock: bool = False,
+    mock_response: Optional[str] = None,
 ) -> list[dict[str, Any]]:
     """Send a single completion request to the LLM API.
 
@@ -96,7 +98,7 @@ def complete(
         messages (list of dict of str, Any): List of messages to send to the LLM
         config_path (PathLike, optional): Path to configuration file
         output_schema (BaseModel, optional): Pydantic model for validation
-        use_mock (bool): Whether to use mock responses
+        mock_response (str, optional): Mock response to use instead of LLM response
 
     Returns:
         List of processed response data
@@ -107,13 +109,15 @@ def complete(
             messages,
             config_path=config_path,
             output_schema=output_schema,
-            use_mock=use_mock,
+            mock_response=mock_response,
         )
         validate_environment(model=params["model"])
         response = completion(**params)
 
         return process_llm_response(response, output_schema)
-
+    except OpenAIError as e:
+        logger.error(f"OpenAI API error: {e}")
+        raise e
     except Exception as e:
         logger.error(f"Error calling LLM API: {e}")
         raise e
@@ -123,7 +127,7 @@ def batch_complete(
     messages: list[list[dict[str, Any]]],
     config_path: Optional[PathLike] = None,
     output_schema: Optional[type[BaseModel]] = None,
-    use_mock: bool = False,
+    mock_response: Optional[str] = None,
     **kwargs,
 ) -> list[dict[str, Any]]:
     """Send a batch completion request to the LLM API.
@@ -132,7 +136,7 @@ def batch_complete(
         messages (list of list of dict of str, Any): List of messages to send to the LLM
         config_path (PathLike, optional): Path to configuration file
         output_schema (BaseModel, optional): Pydantic model for validation
-        use_mock (bool): Whether to use mock responses
+        mock_response (str, optional): Mock response to use instead of LLM response
         **kwargs: Additional keyword arguments for build_input_params
     Returns:
         List of processed response data
@@ -143,14 +147,16 @@ def batch_complete(
             messages,
             config_path=config_path,
             output_schema=output_schema,
-            use_mock=use_mock,
+            mock_response=mock_response,
             **kwargs,
         )
         validate_environment(model=params["model"])
         response = batch_completion(**params)
 
         return process_llm_response(response, output_schema)
-
+    except OpenAIError as e:
+        logger.error(f"OpenAI API error: {e}")
+        raise e
     except Exception as e:
         logger.error(f"Error calling LLM API: {e}")
         raise e
@@ -169,7 +175,7 @@ def process_llm_response(
     """
     if output_schema:
         assert isinstance(output_schema, BaseModel), (
-            "output_schema must be a Pydantic BaseModel."
+            f"output_schema must be a Pydantic BaseModel subclass. Current type: {type(output_schema)}"
         )
 
     # Process response

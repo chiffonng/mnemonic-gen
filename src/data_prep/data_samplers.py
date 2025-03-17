@@ -96,19 +96,3 @@ def stratify_by_column(
     sampled_df.sample(frac=1, random_state=seed).reset_index(drop=True)
 
     return sampled_df
-
-
-if __name__ == "__main__":
-    p = check_file_path("data/processed/seed_improved.csv", extensions=["csv"])
-    df = pd.read_csv(p)
-    stratified_df = stratify_by_column(
-        df,
-        col_name_to_stratify="main_type",
-        sample_size=10,
-        min_samples_per_type=1,
-    )
-    stratified_df.to_json(
-        "data/processed/seed_improved_stratified.jsonl",
-        orient="records",
-        lines=True,
-    )
