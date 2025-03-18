@@ -56,11 +56,9 @@ def build_input_params(
     # Load configuration if provided
     config = {}
     if config_path:
-        config_path = check_file_path(config_path, extensions=[".json"])
         config = read_config(config_path)
 
     if default_config_path:
-        default_config_path = check_file_path(default_config_path, extensions=[".json"])
         default_config = read_config(default_config_path)
     if default_config is None:
         default_config = {}
@@ -164,14 +162,14 @@ def batch_complete(
 
 def process_llm_response(
     response: Any, output_schema: Optional[type[BaseModel]] = None
-) -> list[dict[str, Any]]:
+) -> list[dict[str, Any]] | dict[str, Any]:
     """Process the LLM response (OpenAI format) and validate against the schema.
 
     Args:
         response: The raw response from the LLM. To access the first response content, use `response.choices[0].message.content`
         output_schema (BaseModel, optional): Pydantic model for validation
     Returns:
-        List of processed response content
+        List of processed response content, or a single processed response content
     """
     if output_schema:
         assert isinstance(output_schema, BaseModel), (
@@ -179,20 +177,23 @@ def process_llm_response(
         )
 
     # Process response
-    processed_responses = []
-    if isinstance(response, list):
-        for res in response:
-            content = res.choices[0].message.content
+    try:
+        processed_responses = []
+        if isinstance(response, list):
+            for res in response:
+                content = res.choices[0].message.content
+                if output_schema:
+                    content = output_schema.model_validate_json(content)
+                processed_responses.append(content)
+            return processed_responses
+        else:
+            content = response.choices[0].message.content
             if output_schema:
-                content = output_schema.model_validate_json(content)
-            processed_responses.append(content)
-    else:
-        content = response.choices[0].message.content
-        if output_schema:
-            content = output_schema.model_validate_json(content)
-        processed_responses.append(content)
-
-    return processed_responses
+                processed_response = output_schema.model_validate_json(content)
+            return processed_response
+    except Exception as e:
+        logger.error(f"Error processing LLM response: {e}")
+        raise e
 
 
 def save_results(
