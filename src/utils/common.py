@@ -3,7 +3,7 @@
 import json
 from typing import TYPE_CHECKING
 
-from src.utils.error_handling import check_file_path
+from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
     from pathlib import Path
