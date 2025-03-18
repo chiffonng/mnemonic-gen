@@ -60,7 +60,7 @@ class ImprovedMnemonic(BaseModel):
     improved_mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
         ...,
         description="The improved mnemonic aid for the term. The first sentence should say linguistic reasoning for the mnemonic.",
-        max_length=300,
+        max_length=400,
         min_length=5,
     )
     linguistic_reasoning: str = Field(
@@ -133,7 +133,7 @@ class Mnemonic(SQLModel, table=True):
         index=True,
     )
     mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = SQLField(
-        ..., description="The mnemonic aid for the term.", max_length=300, min_length=5
+        ..., description="The mnemonic aid for the term.", max_length=400, min_length=5
     )
     linguitic_reasoning: str = SQLField(
         ...,
