@@ -7,8 +7,6 @@ from typing import TYPE_CHECKING
 
 import pandas as pd
 
-from src.utils import check_file_path
-
 if TYPE_CHECKING:
     from typing import Optional
 

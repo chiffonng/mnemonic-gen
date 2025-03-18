@@ -6,7 +6,7 @@ import json
 import logging
 from typing import TYPE_CHECKING
 
-from src.data_prep import read_csv_file
+from src.data_prep.data_readers import read_csv_file
 from src.utils import PathLike, check_file_path
 
 if TYPE_CHECKING:
