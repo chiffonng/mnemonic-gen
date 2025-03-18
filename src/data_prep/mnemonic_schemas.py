@@ -15,6 +15,8 @@ from pydantic import (
     model_validator,
 )
 from pydantic.alias_generators import to_camel, to_snake
+from sqlmodel import Field as SQLField
+from sqlmodel import SQLModel
 
 from src.data_prep.data_validators import (
     ExplicitEnum,
@@ -28,18 +30,20 @@ logger.setLevel(logging.INFO)
 if not logger.handlers:
     logger.addHandler(logging.StreamHandler())
 
+default_config_dict = ConfigDict(
+    populate_by_name=True,
+    str_strip_whitespace=True,
+    alias_generator=AliasGenerator(
+        validation_alias=lambda field_name: to_snake(field_name),
+        serialization_alias=lambda field_name: to_camel(field_name),
+    ),
+)
+
 
 class BasicMnemonic(BaseModel):
     """Basic mnemonic model."""
 
-    model_config = ConfigDict(
-        populate_by_name=True,
-        str_strip_whitespace=True,
-        alias_generator=AliasGenerator(
-            validation_alias=lambda field_name: to_snake(field_name),
-            serialization_alias=lambda field_name: to_camel(field_name),
-        ),
-    )
+    model_config = default_config_dict
 
     term: Annotated[str, BeforeValidator(validate_term)] = Field(
         ..., description="The vocabulary term.", max_length=100, min_length=1
@@ -51,11 +55,11 @@ class BasicMnemonic(BaseModel):
 
 
 class ImprovedMnemonic(BaseModel):
-    """Include both old and improved mnemonics."""
+    """Include both old and improved mnemonic, together with linguistic reasoning."""
 
     improved_mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
         ...,
-        description="The improved mnemonic aid for the term. The first sentence include linguistic reasoning.",
+        description="The improved mnemonic aid for the term. The first sentence should say linguistic reasoning for the mnemonic.",
         max_length=300,
         min_length=5,
     )
@@ -65,6 +69,21 @@ class ImprovedMnemonic(BaseModel):
         max_length=100,
         min_length=5,
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def set_linguistic_reasoning(cls, values: dict) -> dict:
+        """Extract the linguistic reasoning from the mnemonic if not provided."""
+        mnemonic = values.get("mnemonic", "")
+        linguistic = values.get("linguistic_reasoning")
+        if not linguistic and mnemonic:
+            # This regex captures the first sentence ending with a period.
+            match = re.match(r"^(.*?\.)\s*", mnemonic)
+            if match:
+                values["linguistic_reasoning"] = match.group(1).strip()
+            else:
+                values["linguistic_reasoning"] = mnemonic.strip()
+        return values
 
 
 class MnemonicType(ExplicitEnum):
@@ -100,59 +119,37 @@ class MnemonicClassification(BaseModel):
         description="The sub type of the mnemonic, if applicable.",
     )
 
-    @model_validator(mode="before")
-    @classmethod
-    def set_linguistic_reasoning(cls, values: dict) -> dict:
-        """Extract the linguistic reasoning from the mnemonic if not provided."""
-        mnemonic = values.get("mnemonic", "")
-        linguistic = values.get("linguistic_reasoning")
-        if not linguistic and mnemonic:
-            # This regex captures the first sentence ending with a period.
-            match = re.match(r"^(.*?\.)\s*", mnemonic)
-            if match:
-                values["linguistic_reasoning"] = match.group(1).strip()
-            else:
-                values["linguistic_reasoning"] = mnemonic.strip()
-        return values
 
+class Mnemonic(SQLModel, table=True):
+    """Ideal mnemonic model. Fields: term, mnemonic, main_type, sub_type, linguistic_reasoning."""
 
-class Mnemonic(BasicMnemonic, MnemonicClassification):
-    """Ideal mnemonic model."""
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        str_strip_whitespace=True,
-        alias_generator=AliasGenerator(
-            validation_alias=lambda field_name: to_snake(field_name),
-            serialization_alias=lambda field_name: to_camel(field_name),
-        ),
+    id: Optional[int] = SQLField(default=None, primary_key=True)
+    term: Annotated[str, BeforeValidator(validate_term)] = SQLField(
+        ...,
+        description="The vocabulary term.",
+        max_length=100,
+        min_length=1,
+        unique=True,
+        index=True,
     )
-
-    linguistic_reasoning: str = Field(
-        default=None,
+    mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = SQLField(
+        ..., description="The mnemonic aid for the term.", max_length=300, min_length=5
+    )
+    linguitic_reasoning: str = SQLField(
+        ...,
         description="The linguistic reasoning for the mnemonic.",
         max_length=100,
         min_length=5,
     )
-
-
-class MnemonicCombinedResponse(ImprovedMnemonic, MnemonicClassification):
-    """Response model for mnemonics."""
-
-    model_config = ConfigDict(
-        populate_by_name=True,
-        str_strip_whitespace=True,
-        alias_generator=AliasGenerator(
-            validation_alias=lambda field_name: to_snake(field_name),
-            serialization_alias=lambda field_name: to_camel(field_name),
-        ),
+    main_type: Annotated[
+        MnemonicType, BeforeValidator(validate_enum_field(MnemonicType))
+    ] = SQLField(
+        ...,
+        description="The main type of the mnemonic.",
     )
-
-
-class CombinedMnemonics(BasicMnemonic, MnemonicCombinedResponse):
-    """Mnemonic model for both input and output."""
-
-    def replace(self) -> Mnemonic:
-        """Return a Mnemonic object with the improved mnemonic as the main mnemonic."""
-        self.mnemonic = self.improved_mnemonic
-        return Mnemonic(**self.model_dump(exclude={"improved_mnemonic"}))
+    sub_type: Annotated[
+        Optional[MnemonicType], BeforeValidator(validate_enum_field(MnemonicType))
+    ] = SQLField(
+        default=None,
+        description="The sub type of the mnemonic, if applicable.",
+    )

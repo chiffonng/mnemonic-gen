@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.urls]
-repository = "https://github.com/chiffonng/capstone"
+repository = "https://github.com/chiffonng/mnemonic-gen"
 dataset    = "https://doi.org/10.57967/hf/3750"
 
 # Publish to PyPI
@@ -29,6 +29,7 @@ data = [
     "openai>=1.66.0",
     "pandas>=2.2.3",
     "pyarrow>=18.1.0",
+    "sqlmodel>=0.0.24",
 ]
 
 # Development dependencies

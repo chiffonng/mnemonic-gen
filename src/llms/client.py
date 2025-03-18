@@ -85,7 +85,7 @@ def build_input_params(
     return params
 
 
-# TODO: Add logging observability with MLFLOW
+# TODO: Add logging observability with langfuse
 def complete(
     messages: list[dict[str, Any]],
     config_path: Optional[PathLike] = None,
