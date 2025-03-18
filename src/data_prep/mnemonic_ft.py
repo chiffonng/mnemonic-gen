@@ -4,6 +4,8 @@ Finetuning: https://platform.openai.com/docs/guides/fine-tuning
 Files API: https://platform.openai.com/docs/api-reference/files
 """
 
+from __future__ import annotations
+
 import csv
 import json
 import logging
@@ -13,9 +15,9 @@ from typing import TYPE_CHECKING
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from src import const
 from src.llms.openai import (
     finetune_from_config,
-    improve_mnemonic,
     upload_file_to_openai,
     validate_openai_file,
 )
@@ -26,17 +28,17 @@ if TYPE_CHECKING:
     from typing import Optional
 
 # Set up and validates the paths
-prompt_path = check_file_path("prompts/improve_ft_system.txt")
-raw_input_path = check_file_path("data/raw/improved_data.csv", extensions=["csv"])
+prompt_path = check_file_path(
+    const.FILE_PROMPT_IMPROVE_SFT_SYSTEM, extensions=const.TXT_EXT
+)
+raw_input_path = check_file_path(const.SEED_IMPROVED_CSV, extensions=const.CSV_EXT)
 train_input_path = check_file_path(
-    "data/processed/improve_sft_train.jsonl", extensions=["jsonl"], new_ok=True
+    const.SFT_IMPROVE_TRAIN, extensions=const.JSONL_EXT, new_ok=True
 )
 val_input_path = check_file_path(
-    "data/processed/improve_sft_val.jsonl", extensions=["jsonl"], new_ok=True
+    const.SFT_IMPROVE_VAL, extensions=const.JSONL_EXT, new_ok=True
 )
-config_file_path = check_file_path(
-    "config/openai_sft_improve.json", extensions=["json"]
-)
+config_file_path = check_file_path(const.CONF_OPENAI_SFT, extensions=const.JSON_EXT)
 finetune_model_id_path = check_file_path(
     "out/improve_sft_model_id.txt", extensions=["txt"], new_ok=True
 )
@@ -54,10 +56,10 @@ client = OpenAI()
 
 
 def prepare_and_split_finetune_data(
-    input_path: "Path" = raw_input_path,
-    input_prompt: "Path" = prompt_path,
-    output_train_jsonl: "Path" = train_input_path,
-    output_val_jsonl: "Optional[Path]" = None,
+    input_path: Path = raw_input_path,
+    input_prompt: Path = prompt_path,
+    output_train_jsonl: Path = train_input_path,
+    output_val_jsonl: Optional[Path] = None,
     split_ratio: float = 0.8,
 ) -> None:
     """Prepare the data (JSONL) for fine-tuning with OpenAI's API and split into training and validation files.
@@ -146,9 +148,9 @@ def prepare_and_split_finetune_data(
 
 
 def upload_finetune_data(
-    client: "OpenAI",
-    input_path: "Path",
-    config_file_path: "Path" = config_file_path,
+    client: OpenAI,
+    input_path: Path,
+    config_file_path: Path = config_file_path,
     file_type: str = "training",  # or "validation"
     use_cache: bool = True,
     to_overwrite: bool = True,
@@ -200,7 +202,7 @@ def upload_finetune_data(
 
 
 def _get_cached_file_id(
-    client: "OpenAI", config_file_path: "Path", file_type: str, to_overwrite: bool
+    client: OpenAI, config_file_path: Path, file_type: str, to_overwrite: bool
 ) -> str | None:
     """Retrieve the cached file ID for the specified file type from the config file.
 
@@ -274,22 +276,3 @@ def run_finetune_pipeline():
     upload_finetune_data(client, input_path=val_input_path, file_type="validation")
 
     finetune_from_config(client, config_file_path, finetune_model_id_path)
-
-
-if __name__ == "__main__":
-    # run_finetune_pipeline()
-
-    # Paths
-    config_path = check_file_path("config/openai_cc_improve.json", extensions=["json"])
-    prompt_path = check_file_path(
-        "prompts/icl0_system_mnemonic.txt", extensions=["txt"]
-    )
-
-    # Example 1: Improve a single mnemonic
-    term = "ephemeral"
-    mnemonic = "Things that are ephemeral don't last long."
-
-    print(f"\nImproving mnemonic for term '{term}':")
-    improved = improve_mnemonic(client, config_path, prompt_path, term, mnemonic)
-    print(f"\nOriginal: {mnemonic}")
-    print(f"Improved: {improved}")
