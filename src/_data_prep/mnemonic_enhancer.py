@@ -5,15 +5,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-import pandas as pd
 from sqlmodel import Session, select
 
 from src._data_prep.init_db import engine
-from src._data_prep.mnemonic_schemas import (
-    ImprovedMnemonic,
-    Mnemonic,
-    MnemonicClassification,
-)
+from src._data_prep.mnemonic_schemas import ImprovedMnemonic, MnemonicClassification
+from src.data.mnemonic_models import Mnemonic
 from src.llms.client import batch_complete, complete
 from src.utils import check_file_path, read_prompt
 
@@ -32,9 +28,11 @@ if not logger.handlers:
 def improve_mnemonic(
     term: str,
     mnemonic: str,
+    config_path: PathLike,
     improve_system_prompt_path: PathLike,
     classify_system_prompt_path: PathLike,
-    config_path: PathLike,
+    user_prompt_path: PathLike,
+    placeholders_json_path: PathLike,
     use_mock: bool = False,
 ) -> dict:
     """Improve a mnemonic using LLM API with structured output.
@@ -42,9 +40,11 @@ def improve_mnemonic(
     Args:
         term (str): The vocabulary term
         mnemonic (str): The mnemonic aid for the term
+        config_path (PathLike): Path to the LLM configuration
         improve_system_prompt_path (PathLike): Path to the system prompt for improving mnemonics
         classify_system_prompt_path (PathLike): Path to the system prompt for classify mnemonic linguistic features
-        config_path (PathLike): Path to the LLM configuration
+        user_prompt_path (PathLike): Path to the user prompt for mnemonics
+        placeholders_json_path (PathLike): Path to the JSON file containing placeholders for system prompts
         use_mock (bool): Whether to use a mock response
 
     Returns:
@@ -59,17 +59,16 @@ def improve_mnemonic(
             logger.info(f"Mnemonic for term '{term}' already exists in the database.")
             return existing_mnemonic
 
-    # Check prompts and configuration sources
-    improve_system_prompt_path = check_file_path(
-        improve_system_prompt_path, extensions=[".txt"]
-    )
-    classify_system_prompt_path = check_file_path(
-        classify_system_prompt_path, extensions=[".txt"]
-    )
-
     # Read prompts and configuration
-    improve_system_prompt = read_prompt(improve_system_prompt_path)
-    classify_system_prompt = read_prompt(classify_system_prompt_path)
+    improve_system_prompt = read_prompt(
+        improve_system_prompt_path, vars_json_path=placeholders_json_path
+    )
+    classify_system_prompt = read_prompt(
+        classify_system_prompt_path, vars_json_path=placeholders_json_path
+    )
+    improve_user_prompt = read_prompt(
+        user_prompt_path, vars={"term": term, "mnemonic": mnemonic}
+    )
 
     # Call the LLM API
     if use_mock:
@@ -84,10 +83,8 @@ def improve_mnemonic(
         # Improve the mnemonic
         logger.debug(f"Improving mnemonic for term '{term}'...")
         improve_messages = [
-            {
-                "role": "user",
-                "content": improve_system_prompt.format(term=term, mnemonic=mnemonic),
-            },
+            {"role": "system", "content": improve_system_prompt},
+            {"role": "user", "content": improve_user_prompt},
         ]
         improved_mnemonic_obj = complete(
             messages=improve_messages,
@@ -100,10 +97,14 @@ def improve_mnemonic(
 
         # Classify the mnemonic
         logger.debug(f"Classifying mnemonic for term '{term}'...")
+        classify_user_prompt = read_prompt(
+            user_prompt_path, vars={"term": term, "mnemonic": improved_mnemonic}
+        )
         classify_messages = [
+            {"role": "system", "content": classify_system_prompt},
             {
                 "role": "user",
-                "content": classify_system_prompt.format(mnemonic=improved_mnemonic),
+                "content": classify_user_prompt,
             },
         ]
         classification_obj = complete(
