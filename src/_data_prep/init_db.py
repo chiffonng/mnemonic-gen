@@ -13,7 +13,7 @@ engine = create_engine(f"sqlite:///{data_dir}/mnemonics.db")
 # Create tables based on SQLModel classes
 def init_db():
     """Initialize the database by creating all tables."""
-    from src.data_prep.mnemonic_schemas import Mnemonic
+    from src._data_prep.mnemonic_schemas import Mnemonic
 
     SQLModel.metadata.create_all(engine)
 

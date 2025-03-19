@@ -14,7 +14,7 @@ from src.utils.error_handlers import check_file_path
 if TYPE_CHECKING:
     from typing import Optional
 
-    from src.data_prep.mnemonic_schemas import Mnemonic, MnemonicType
+    from src._data_prep.mnemonic_schemas import Mnemonic, MnemonicType
     from src.utils.aliases import PathLike
 
 logger = logging.getLogger(__name__)

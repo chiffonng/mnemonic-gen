@@ -18,7 +18,7 @@ from pydantic.alias_generators import to_camel, to_snake
 from sqlmodel import Field as SQLField
 from sqlmodel import SQLModel
 
-from src.data_prep.data_validators import (
+from src._data_prep.data_validators import (
     ExplicitEnum,
     validate_enum_field,
     validate_mnemonic,
@@ -86,6 +86,7 @@ class ImprovedMnemonic(BaseModel):
         return values
 
 
+# TODO: Move this to a public module
 class MnemonicType(ExplicitEnum):
     """Enum for mnemonic types."""
 
@@ -120,6 +121,7 @@ class MnemonicClassification(BaseModel):
     )
 
 
+# TODO: Move this to a public module
 class Mnemonic(SQLModel, table=True):
     """Ideal mnemonic model. Fields: term, mnemonic, main_type, sub_type, linguistic_reasoning."""
 

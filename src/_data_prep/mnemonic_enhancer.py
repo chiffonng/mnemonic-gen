@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 import pandas as pd
 from sqlmodel import Session, select
 
-from src.data_prep.init_db import engine
-from src.data_prep.mnemonic_schemas import (
+from src._data_prep.init_db import engine
+from src._data_prep.mnemonic_schemas import (
     ImprovedMnemonic,
     Mnemonic,
     MnemonicClassification,
