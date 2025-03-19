@@ -5,14 +5,14 @@ from pathlib import Path
 
 from src.data.data_loaders import load_hf_dataset
 from src.utils import check_file_path
-from src.utils.constants import FINAL_TEST_DATASET_TXT, RAW_TEST_DATASET_TXT
+from src.utils import constants as const
 
 sample_size: int | None = 200
 
 # Construct the path to raw/test.txt and final/test.txt
-raw_test_data_path = check_file_path(RAW_TEST_DATASET_TXT, new_ok=True)
+raw_test_data_path = check_file_path(const.RAW_TEST_DATASET_TXT, new_ok=True)
 final_test_data_path = check_file_path(
-    FINAL_TEST_DATASET_TXT, new_ok=True, to_create=True
+    const.FINAL_TEST_DATASET_TXT, new_ok=True, to_create=True
 )
 
 # Read the unique terms from test.txt (each term on a new line)
