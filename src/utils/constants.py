@@ -44,6 +44,7 @@ DIR_PROMPT_GENERATE = DIR_PROMPT + "/generate"
 FILE_PROMPT_IMPROVE_SYSTEM = DIR_PROMPT_IMPROVE + "/improve_gen_system.txt"
 FILE_PROMPT_IMPROVE_SFT_SYSTEM = DIR_PROMPT_IMPROVE + "/improve_sft_system.txt"
 FILE_PROMPT_IMPROVE_USER = DIR_PROMPT_IMPROVE + "/improve_user.txt"
+FILE_PROMPT_CLASSIFY_SYSTEM = DIR_PROMPT_CLASSIFY + "/classify_system.txt"
 
 # Config files
 DIR_CONFIG = "config"

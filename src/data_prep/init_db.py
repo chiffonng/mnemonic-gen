@@ -8,4 +8,14 @@ from src import const
 
 data_dir = Path(const.PROCESSED_DATA_DIR).resolve()
 engine = create_engine(f"sqlite:///{data_dir}/mnemonics.db")
-SQLModel.metadata.create_all(engine)
+
+
+# Create tables based on SQLModel classes
+def init_db():
+    """Initialize the database by creating all tables."""
+    from src.data_prep.mnemonic_schemas import Mnemonic
+
+    SQLModel.metadata.create_all(engine)
+
+
+init_db()
