@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 # Set up logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 if not logger.handlers:
     logger.addHandler(logging.StreamHandler())
 
@@ -43,12 +43,17 @@ def build_input_params(
         messages (list of dict of str, Any): List of messages to send to the LLM
         config_path (PathLike, optional): Path to configuration file
         default_config_path (PathLike, optional): Path to default configuration file
-        output_schema (subclass of BaseModel, optional): Pydantic model for validation
-        mock_response (str, optional): Mock response to use instead of LLM response
+        output_schema (subclass of BaseModel, optional): Pydantic model for validation. If set, the model will be used to validate the response.
+            INCOMPATIBLE with mock_response
+        mock_response (str, optional): Mock response to use instead of LLM response. If set, the model will not be called.
+            INCOMPATIBLE with output_schema
         **kwargs: Additional keyword arguments for litellm.completion
 
     Returns:
         Dictionary of input parameters
+
+    Raises:
+        ValueError: If mock response is used with JSON schema output
     """
     # Load configuration if provided
     config = {}
@@ -60,19 +65,29 @@ def build_input_params(
     if default_config is None:
         default_config = {}
 
+    # Check for mock response and output schema compatibility
+    if mock_response and output_schema:
+        raise ValueError("Cannot use mock_response and output_schema at the same time.")
+    elif output_schema:
+        if not issubclass(output_schema, BaseModel):
+            raise TypeError("output_schema must be a subclass of pydantic.BaseModel")
+
+        elif supports_response_schema(model=config["model"]):
+            raise ValueError(
+                f"Model {config['model']} does not support JSON schema output."
+            )
+
+        config["response_format"] = output_schema
+        logger.debug(f"Using JSON schema output: {output_schema}")
+
+    elif mock_response:
+        if not isinstance(mock_response, str):
+            raise TypeError("mock_response must be a string.")
+        logger.debug(f"Using mock response: {mock_response}")
+        config["mock_response"] = mock_response
+
     # Prioritize user config over default, then kwargs
     config = {**default_config, **config, **kwargs}
-
-    # JSON mode
-    if output_schema:
-        assert supports_response_schema(model=config["model"]), (
-            f"Model {config['model']} does not support JSON schema output."
-        )
-        config["response_format"] = output_schema
-
-    # Use mock response if requested
-    if mock_response:
-        config["mock_response"] = "A mock response"
 
     # Add messages + config to params
     params = {"messages": messages, **config}
