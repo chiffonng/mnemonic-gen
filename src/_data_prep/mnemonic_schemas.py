@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 import re
 from typing import Annotated, Optional
 
@@ -15,20 +14,13 @@ from pydantic import (
     model_validator,
 )
 from pydantic.alias_generators import to_camel, to_snake
-from sqlmodel import Field as SQLField
-from sqlmodel import SQLModel
 
-from src._data_prep.data_validators import (
-    ExplicitEnum,
+from data.mnemonic_models import MnemonicType
+from src.data.data_validators import (
     validate_enum_field,
     validate_mnemonic,
     validate_term,
 )
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-if not logger.handlers:
-    logger.addHandler(logging.StreamHandler())
 
 default_config_dict = ConfigDict(
     populate_by_name=True,
@@ -86,24 +78,6 @@ class ImprovedMnemonic(BaseModel):
         return values
 
 
-# TODO: Move this to a public module
-class MnemonicType(ExplicitEnum):
-    """Enum for mnemonic types."""
-
-    phonetics = "phonetics"
-    orthography = "orthography"  # writing system
-    etymology = "etymology"
-    morphology = "morphology"
-    semantic_field = "semantic-field"
-    context = "context"
-    unknown = "unknown"  # fallback for when the type is not recognized.
-
-    @classmethod
-    def get_types(cls) -> list[str]:
-        """Return a list of all available types."""
-        return [member.value for member in cls]
-
-
 class MnemonicClassification(BaseModel):
     """Classification of the mnemonic."""
 
@@ -116,42 +90,6 @@ class MnemonicClassification(BaseModel):
     sub_type: Annotated[
         Optional[MnemonicType], BeforeValidator(validate_enum_field(MnemonicType))
     ] = Field(
-        default=None,
-        description="The sub type of the mnemonic, if applicable.",
-    )
-
-
-# TODO: Move this to a public module
-class Mnemonic(SQLModel, table=True):
-    """Ideal mnemonic model. Fields: term, mnemonic, main_type, sub_type, linguistic_reasoning."""
-
-    id: Optional[int] = SQLField(default=None, primary_key=True)
-    term: Annotated[str, BeforeValidator(validate_term)] = SQLField(
-        ...,
-        description="The vocabulary term.",
-        max_length=100,
-        min_length=1,
-        unique=True,
-        index=True,
-    )
-    mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = SQLField(
-        ..., description="The mnemonic aid for the term.", max_length=400, min_length=5
-    )
-    linguitic_reasoning: str = SQLField(
-        ...,
-        description="The linguistic reasoning for the mnemonic.",
-        max_length=100,
-        min_length=5,
-    )
-    main_type: Annotated[
-        MnemonicType, BeforeValidator(validate_enum_field(MnemonicType))
-    ] = SQLField(
-        ...,
-        description="The main type of the mnemonic.",
-    )
-    sub_type: Annotated[
-        Optional[MnemonicType], BeforeValidator(validate_enum_field(MnemonicType))
-    ] = SQLField(
         default=None,
         description="The sub type of the mnemonic, if applicable.",
     )
