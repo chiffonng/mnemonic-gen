@@ -93,9 +93,9 @@ def load_txt_file(
 
 
 def load_hf_dataset(
-    repo_id: "Optional[str]" = None,
+    repo_id: Optional[str] = None,
     to_csv: bool = False,
-    file_path: "Optional[PathLike]" = None,
+    file_path: Optional[PathLike] = None,
     **kwargs,
 ) -> DatasetDict:
     """Load a dataset from the Hugging Face hub.
