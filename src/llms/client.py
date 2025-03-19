@@ -72,7 +72,7 @@ def build_input_params(
         if not issubclass(output_schema, BaseModel):
             raise TypeError("output_schema must be a subclass of pydantic.BaseModel")
 
-        elif supports_response_schema(model=config["model"]):
+        elif not supports_response_schema(model=config["model"]):
             raise ValueError(
                 f"Model {config['model']} does not support JSON schema output."
             )
@@ -195,8 +195,8 @@ def process_llm_response(
             logger.debug("Processing single response.")
             content = response.choices[0].message.content
             if output_schema:
-                processed_response = output_schema.model_validate_json(content)
-            return processed_response
+                content = output_schema.model_validate_json(content)
+            return content
     except Exception as e:
         logger.error(f"Error processing LLM response: {e}")
         logger.error(f"Raw response: {response}")
