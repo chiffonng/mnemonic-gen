@@ -11,7 +11,7 @@ from src._data_prep.init_db import engine
 from src._data_prep.mnemonic_schemas import ImprovedMnemonic, MnemonicClassification
 from src.data.mnemonic_models import Mnemonic
 from src.llms.client import batch_complete, complete
-from src.utils import check_file_path, read_prompt
+from src.utils import read_prompt
 
 if TYPE_CHECKING:
     from src.utils import PathLike

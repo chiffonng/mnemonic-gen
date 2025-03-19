@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING
-from warnings import UserWarning, warn
+from warnings import warn
 
 from src.utils.error_handlers import check_file_path
 
@@ -37,7 +37,7 @@ def read_prompt(
     if vars_json_path and vars:
         warn(
             "Both vars and vars_json_path provided. Using vars.",
-            UserWarning,
+            category=UserWarning,
             stacklevel=2,
         )
         vars_json_path = None
