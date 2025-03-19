@@ -45,6 +45,7 @@ FILE_PROMPT_IMPROVE_SYSTEM = DIR_PROMPT_IMPROVE + "/improve_gen_system.txt"
 FILE_PROMPT_IMPROVE_SFT_SYSTEM = DIR_PROMPT_IMPROVE + "/improve_sft_system.txt"
 FILE_PROMPT_CLASSIFY_SYSTEM = DIR_PROMPT_CLASSIFY + "/classify_system.txt"
 FILE_PROMPT_USER = DIR_PROMPT + "/user.txt"
+FILE_PROMPT_PLACEHOLDER_DICT = DIR_PROMPT + "/placeholders.json"
 
 # Config files
 DIR_CONFIG = "config"
