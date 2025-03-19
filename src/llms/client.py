@@ -12,14 +12,13 @@ from litellm import (
     supports_response_schema,
     validate_environment,
 )
-from openai.error import OpenAIError
+from pydantic import BaseModel
 
+from src import const
 from src.utils import check_file_path, read_config
 
 if TYPE_CHECKING:
     from typing import Any, Optional
-
-    from pydantic import BaseModel
 
     from src.utils.aliases import PathLike
 
@@ -29,13 +28,11 @@ logger.setLevel(logging.INFO)
 if not logger.handlers:
     logger.addHandler(logging.StreamHandler())
 
-default_config_path = "config/default_conf.json"
-
 
 def build_input_params(
     messages: list[dict[str, Any]] | list[list[dict[str, Any]]],
     config_path: Optional[PathLike] = None,
-    default_config_path: Optional[PathLike] = default_config_path,
+    default_config_path: Optional[PathLike] = const.CONF_DEFAULT,
     output_schema: Optional[type[BaseModel]] = None,
     mock_response: Optional[str] = None,
     **kwargs,
@@ -46,7 +43,7 @@ def build_input_params(
         messages (list of dict of str, Any): List of messages to send to the LLM
         config_path (PathLike, optional): Path to configuration file
         default_config_path (PathLike, optional): Path to default configuration file
-        output_schema (BaseModel, optional): Pydantic model for validation
+        output_schema (subclass of BaseModel, optional): Pydantic model for validation
         mock_response (str, optional): Mock response to use instead of LLM response
         **kwargs: Additional keyword arguments for litellm.completion
 
@@ -95,7 +92,7 @@ def complete(
     Args:
         messages (list of dict of str, Any): List of messages to send to the LLM
         config_path (PathLike, optional): Path to configuration file
-        output_schema (BaseModel, optional): Pydantic model for validation
+        output_schema (subclass of BaseModel, optional): Pydantic model for validation
         mock_response (str, optional): Mock response to use instead of LLM response
 
     Returns:
@@ -113,9 +110,6 @@ def complete(
         response = completion(**params)
 
         return process_llm_response(response, output_schema)
-    except OpenAIError as e:
-        logger.error(f"OpenAI API error: {e}")
-        raise e
     except Exception as e:
         logger.error(f"Error calling LLM API: {e}")
         raise e
@@ -133,7 +127,7 @@ def batch_complete(
     Args:
         messages (list of list of dict of str, Any): List of messages to send to the LLM
         config_path (PathLike, optional): Path to configuration file
-        output_schema (BaseModel, optional): Pydantic model for validation
+        output_schema (subclass of BaseModel, optional): Pydantic model for validation
         mock_response (str, optional): Mock response to use instead of LLM response
         **kwargs: Additional keyword arguments for build_input_params
     Returns:
@@ -152,9 +146,6 @@ def batch_complete(
         response = batch_completion(**params)
 
         return process_llm_response(response, output_schema)
-    except OpenAIError as e:
-        logger.error(f"OpenAI API error: {e}")
-        raise e
     except Exception as e:
         logger.error(f"Error calling LLM API: {e}")
         raise e
@@ -167,19 +158,18 @@ def process_llm_response(
 
     Args:
         response: The raw response from the LLM. To access the first response content, use `response.choices[0].message.content`
-        output_schema (BaseModel, optional): Pydantic model for validation
+        output_schema (subclass of  BaseModel, optional): Pydantic model for validation
     Returns:
         List of processed response content, or a single processed response content
     """
-    if output_schema:
-        assert isinstance(output_schema, BaseModel), (
-            f"output_schema must be a Pydantic BaseModel subclass. Current type: {type(output_schema)}"
-        )
+    if output_schema is not None and not issubclass(output_schema, BaseModel):
+        raise TypeError("output_schema must be a subclass of pydantic.BaseModel")
 
     # Process response
     try:
         processed_responses = []
         if isinstance(response, list):
+            logger.debug(f"Processing batch response with {len(response)} items.")
             for res in response:
                 content = res.choices[0].message.content
                 if output_schema:
@@ -187,12 +177,14 @@ def process_llm_response(
                 processed_responses.append(content)
             return processed_responses
         else:
+            logger.debug("Processing single response.")
             content = response.choices[0].message.content
             if output_schema:
                 processed_response = output_schema.model_validate_json(content)
             return processed_response
     except Exception as e:
         logger.error(f"Error processing LLM response: {e}")
+        logger.error(f"Raw response: {response}")
         raise e
 
 
