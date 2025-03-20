@@ -7,7 +7,7 @@ from typing import Annotated, Optional
 from pydantic import BeforeValidator
 from sqlmodel import Field, SQLModel
 
-from data.data_validators import (
+from src.data.data_validators import (
     ExplicitEnum,
     validate_enum_field,
     validate_mnemonic,
