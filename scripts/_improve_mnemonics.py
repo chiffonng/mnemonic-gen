@@ -4,7 +4,7 @@ import argparse
 import logging
 
 from src import const
-from src._data_prep.mnemonic_enhancer import improve_mnemonic
+from src._mnemonic_enhancer.mnemonic_enhancer import improve_mnemonic
 
 # Set up logging
 logger = logging.getLogger(__name__)

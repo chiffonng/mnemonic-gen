@@ -9,8 +9,11 @@ import pandas as pd
 from sqlmodel import Session, select
 from tqdm import tqdm
 
-from src._data_prep.init_db import engine
-from src._data_prep.mnemonic_schemas import ImprovedMnemonic, MnemonicClassification
+from src._mnemonic_enhancer.init_db import engine
+from src._mnemonic_enhancer.mnemonic_schemas import (
+    ImprovedMnemonic,
+    MnemonicClassification,
+)
 from src.data.mnemonic_models import Mnemonic, MnemonicType
 from src.llms.client import batch_complete, complete
 from src.utils import check_file_path, read_prompt
