@@ -25,8 +25,14 @@ if TYPE_CHECKING:
 # Set up logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(
+    logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s"
+    )
+)
 if not logger.handlers:
-    logger.addHandler(logging.StreamHandler())
+    logger.addHandler(handler)
 
 
 def build_input_params(
@@ -91,7 +97,7 @@ def build_input_params(
 
     # Add messages + config to params
     params = {"messages": messages, **config}
-    logger.info(f"Sending request with params: {params}")
+    logger.debug(f"Sending request with config (excluding messages): {config}")
     return params
 
 
