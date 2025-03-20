@@ -13,6 +13,7 @@ dependencies = [
   "peft>=0.13.2 ; sys_platform == 'linux'",
   "pydantic>=2.10.6",
   "python-dotenv>=1.0.1",
+  "tenacity>=9.0.0",
   "torch==2.4.0 ; sys_platform == 'linux'",
   "transformers>=4.47.0",
   "trl>=0.11.4 ; sys_platform == 'linux'",
