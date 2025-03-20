@@ -32,7 +32,7 @@ def read_prompt(
     prompt_path = check_file_path(prompt_path, extensions=["txt"])
 
     with prompt_path.open("r") as file:
-        prompt = file.readlines().strip()
+        prompt = file.read().strip()
 
     if vars_json_path and vars:
         warn(
