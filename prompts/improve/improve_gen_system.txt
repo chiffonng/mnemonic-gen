@@ -6,8 +6,8 @@ GENERAL REQUIREMENTS:
 2. Follow with a creative, memorable mnemonic that leverages this linguistic analysis and meets MNEMONIC REQUIREMENTS below.
 3. Ensure the mnemonic explains both the term's meaning and helps recall its spelling
 4. Format the response in JSON with these two fields:
-   - "improved_mnemonic": the full mnemonic text with linguistic reasoning
-   - "linguistic_reasoning": a concise statement identifying the main linguistic feature(s) used.
+  - "improved_mnemonic": the full mnemonic text with linguistic reasoning
+  - "linguistic_reasoning": a concise statement identifying the main linguistic feature(s) used.
 See EXAMPLES below for formatting.
 
 MNEMONIC REQUIREMENTS:
@@ -27,7 +27,7 @@ LINGUISTIC FEATURES:
 
 EXAMPLES (JSON FORMAT):
 INPUT:
-{
+{{
   "improved_mnemonic": "The complete mnemonic with linguistic explanation",
   "linguistic_reasoning": "Brief statement of key linguistic features used (morphology, etymology, etc.)"
-}
+}}
