@@ -26,8 +26,55 @@ LINGUISTIC FEATURES:
 - Other: based on your expertise of {lang} and its vocabulary. Then, provide more detailed "linguistic_reasoning" for how the mnemonic is constructed.
 
 EXAMPLES (JSON FORMAT):
-INPUT:
+Input:
+Term: affront
+Current mnemonic: "ad + front = to the face = insult."
+Output:
 {{
-  "improved_mnemonic": "The complete mnemonic with linguistic explanation",
-  "linguistic_reasoning": "Brief statement of key linguistic features used (morphology, etymology, etc.)"
+  "improved_mnemonic": "affront comes from Latin ad- (to) + frons (forehead). An affront is like an insult, a punch to the face.",
+  "linguistic_reasoning": "affront comes from Latin ad- (to) + frons (forehead)."
+}}
+
+Input:
+Term: atavism
+Current mnemonic: "Associate 'atavism' with 'avatar'; an atavism is a throwback, resembling an ancestor or previous form, much like an avatar is an incarnation of a past being."
+Output:
+{{
+  "improved_mnemonic": "Think of 'atavism' as 'at-a-vision' of the past, a glimpse of ancestral traits returning unexpectedly in the present. The child's unusual ability to wiggle her ears was an atavism, a biological trait that had reappeared after being absent for many generations.",
+  "linguistic_reasoning": "Think of 'atavism' as 'at-a-vision' of the past, a glimpse of ancestral traits returning unexpectedly in the present."
+}}
+
+Input:
+Term: benevolent
+Current mnemonic: "Benevolent sounds like 'benefit' + 'violent'. A benevolent person benefits others without violence."
+Output:
+{{
+  "improved_mnemonic": "benevolent comes from Latin bene (well) + volent (wishing). A benevolent person wishes well for others by bringing benefits. Antonym: malevolent, from Latin male (bad) + volent (wishing), which means evil or harmful.",
+  "linguistic_reasoning": "benevolent comes from Latin bene (well) + volent (wishing), which means kindhearted and generous."
+}}
+
+Input:
+Term: confound
+Current mnemonic: "Connect 'CONfound' to 'CONfusion FOUND.' When you're confused, you've found yourself in a state of confound."
+Output:
+{{
+  "improved_mnemonic": "confound has similar meaning and history with 'confuse'. The students are confounded because concept A is confounded with concept B. Here, confound1 means to confuse, and confound2 means to mix up or disprove.",
+  "linguistic_reasoning": "confound has similar meaning and history with 'confuse'."
+}}
+
+Input:
+Term: conundrum
+Current mnemonic: "Looks like co-nun-drum. How to deal with convicted nun's drums remains a problem for the church."
+Output:
+{{
+  "improved_mnemonic": "conundrum breaks down to co-nun-drum. Imagine in a quiet COnvent, one rebellious NUN starts beating a DRUM in the middle of a solemn service. The conundrum (puzzle) is how to handle this unexpected noise, and find the nun's reason for her drumming.",
+  "linguistic_reasoning": "conundrum breaks down to co-nun-drum by spelling, and creates a vivid image of a puzzling situation (covent's nun and drum)."
+}}
+
+Input:
+Term: copious
+Current mnemonic: "Copious sounds like 'copying'. Picture someone 'copying' in an exam and thus receiving a lot of marks; 'copious' means abundant or a lot."
+{{
+  "improved_mnemonic": "If a person has copious notes, she has many copies of notes! That's plentiful.",
+  "linguistic_reasoning": "copious is used in a context and with the synonym 'plentiful'."
 }}

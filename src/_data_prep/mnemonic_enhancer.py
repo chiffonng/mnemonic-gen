@@ -85,6 +85,7 @@ def improve_mnemonic(
             {"role": "system", "content": improve_system_prompt},
             {"role": "user", "content": improve_user_prompt},
         ]
+        logger.debug(f"Messages for improving mnemonic: {improve_messages}")
         improved_mnemonic_obj = complete(
             messages=improve_messages,
             config_path=config_path,
@@ -103,6 +104,7 @@ def improve_mnemonic(
             {"role": "system", "content": classify_system_prompt},
             {"role": "user", "content": classify_user_prompt},
         ]
+        logger.debug(f"Messages for classifying mnemonic: {classify_messages}")
         classification_obj = complete(
             messages=classify_messages,
             config_path=config_path,
