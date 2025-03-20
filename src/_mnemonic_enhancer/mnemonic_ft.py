@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import csv
 import json
-import logging
 import random
 from typing import TYPE_CHECKING
 
+import structlog
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -44,12 +44,8 @@ finetune_model_id_path = check_file_path(
 )
 
 # Set up logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler("logs/mnemonic_processing.log"))
-logger.handlers[0].setFormatter(
-    logging.Formatter("%(asctime)s - %(levelname)s - %(funcName)s - %(message)s")
-)
+logger = structlog.getLogger(__name__)
+
 
 load_dotenv()
 client = OpenAI()
@@ -87,7 +83,7 @@ def prepare_and_split_finetune_data(
         split_ratio = float(split_ratio)
 
     if split_ratio < 0 or split_ratio > 1:
-        logging.error("Invalid split ratio. Must be between 0 and 1.")
+        logger.error("Invalid split ratio. Must be between 0 and 1.")
         raise ValueError(f"Invalid split ratio: {split_ratio}. Must be between 0 and 1")
 
     system_prompt = read_prompt(input_prompt)
@@ -99,7 +95,7 @@ def prepare_and_split_finetune_data(
 
     num_examples = len(rows)
     if num_examples == 0:
-        logging.error("No data found in the CSV file.")
+        logger.error("No data found in the CSV file.")
         return
 
     random.shuffle(rows)

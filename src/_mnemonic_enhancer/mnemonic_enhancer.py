@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 import pandas as pd
+import structlog
 from sqlmodel import Session, select
 from tqdm import tqdm
 
@@ -25,12 +25,7 @@ if TYPE_CHECKING:
     from src.utils import PathLike
 
 # Set up logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-if not logger.handlers:
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-    logger.addHandler(handler)
+logger = structlog.getLogger(__name__)
 
 
 def improve_mnemonic(

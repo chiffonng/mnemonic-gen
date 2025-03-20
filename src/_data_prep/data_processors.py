@@ -6,12 +6,12 @@
 """
 
 # mypy: disable-error-code="arg-type"
-import logging
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
+import structlog
 from datasets import Dataset, DatasetDict
 
 from src.data import load_txt_file
@@ -24,12 +24,7 @@ if TYPE_CHECKING:
 
 
 # Set up logging to console
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
-logger.handlers[0].setFormatter(
-    logging.Formatter("%(levelname)s - %(funcName)s - %(message)s")
-)
+logger = structlog.getLogger(__name__)
 
 
 def load_clean_txt_csv_data(dir_path: "PathLike") -> pd.DataFrame:  # type: ignore

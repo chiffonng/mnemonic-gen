@@ -3,9 +3,10 @@
 
 from __future__ import annotations
 
-import logging
 import re
 from typing import TYPE_CHECKING
+
+import structlog
 
 from src.llms.client import complete
 from src.utils.common import read_config
@@ -17,8 +18,7 @@ if TYPE_CHECKING:
     from src._mnemonic_enhancer.mnemonic_schemas import Mnemonic, MnemonicType
     from src.utils.aliases import PathLike
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger = structlog.getLogger(__name__)
 
 
 def keyword_match(mnemonic: str) -> tuple[MnemonicType, Optional[MnemonicType]]:

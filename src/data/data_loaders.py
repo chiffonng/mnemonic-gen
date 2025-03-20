@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 import pandas as pd
+import structlog
 from datasets import Dataset, DatasetDict, load_dataset
 
 from src.llms.huggingface import login_hf_hub
@@ -18,12 +18,7 @@ if TYPE_CHECKING:
     from src.utils.constants import HF_DATASET_NAME, HF_TESTSET_NAME
 
 # Set up logging to console
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
-logger.handlers[0].setFormatter(
-    logging.Formatter("%(levelname)s - %(funcName)s - %(message)s")
-)
+logger = structlog.getLogger(__name__)
 
 
 def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:

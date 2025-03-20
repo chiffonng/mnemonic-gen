@@ -1,7 +1,8 @@
 """Module for fine-tuning OpenAI models."""
 
-import logging
 from typing import TYPE_CHECKING
+
+import structlog
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 
 from src.utils import read_config
 
-logger = logging.getLogger(__name__)
+logger = structlog.getLogger(__name__)
 
 
 def finetune_from_config(

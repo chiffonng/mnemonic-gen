@@ -2,17 +2,15 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 import pandas as pd
+import structlog
 
 if TYPE_CHECKING:
     from typing import Optional
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+logger = structlog.getLogger(__name__)
 
 
 def stratify_by_column(

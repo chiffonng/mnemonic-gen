@@ -1,9 +1,10 @@
 """Utility functions for OpenAI API interactions."""
 
 import json
-import logging
 from collections import defaultdict
 from typing import TYPE_CHECKING
+
+import structlog
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
 
 from src.utils import check_file_path, read_config
 
-logger = logging.getLogger(__name__)
+logger = structlog.getLogger(__name__)
 
 
 def validate_openai_config(input_path: "Path"):
