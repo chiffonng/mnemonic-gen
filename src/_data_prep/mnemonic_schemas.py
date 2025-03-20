@@ -52,14 +52,10 @@ class ImprovedMnemonic(BaseModel):
     improved_mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
         ...,
         description="The improved mnemonic aid for the term. The first sentence should say linguistic reasoning for the mnemonic.",
-        max_length=400,
-        min_length=5,
     )
     linguistic_reasoning: str = Field(
         ...,
         description="The linguistic reasoning for the mnemonic.",
-        max_length=100,
-        min_length=5,
     )
 
     @model_validator(mode="before")
