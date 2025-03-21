@@ -13,8 +13,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
-import structlog
 from datasets import Dataset, DatasetDict
+from structlog import getLogger
 
 from src.data import load_txt_file
 from src.llms.huggingface import login_hf_hub
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 # Set up logging to console
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 def load_clean_txt_csv_data(dir_path: PathLike) -> pd.DataFrame:  # type: ignore

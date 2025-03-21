@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import structlog
+from structlog import getLogger
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 from src.utils import read_config
 
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 def finetune_from_config(

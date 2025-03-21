@@ -11,9 +11,9 @@ import json
 import random
 from typing import TYPE_CHECKING
 
-import structlog
 from dotenv import load_dotenv
 from openai import OpenAI
+from structlog import getLogger
 
 from src.llms.openai import (
     finetune_from_config,
@@ -46,7 +46,7 @@ finetune_model_id_path = check_file_path(
 )
 
 # Set up logging
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 load_dotenv()
