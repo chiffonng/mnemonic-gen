@@ -1,6 +1,8 @@
-"""Global settings for the application."""
+"""Global settings for the application, including logging configuration.
 
-import logging
+structlog reference: https://www.structlog.org/en/stable/standard-library.html#rendering-within-structlog
+"""
+
 import logging.config
 
 import structlog
@@ -44,22 +46,22 @@ logging.config.dictConfig(LOGGING_CONF)
 
 structlog.configure(
     processors=[
-        structlog.contextvars.merge_contextvars,
-        # Add module name and line number from the call site
         structlog.stdlib.filter_by_level,
         structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.add_logger_name,
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.UnicodeDecoder(),  # decode bytes to str
+        structlog.stdlib.PositionalArgumentsFormatter(),  # perform %-style formatting.
         structlog.processors.CallsiteParameterAdder(
             [
-                structlog.processors.CallsiteParameter.MODULE,
                 structlog.processors.CallsiteParameter.FUNC_NAME,
                 structlog.processors.CallsiteParameter.LINENO,
             ]
         ),
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-        structlog.dev.ConsoleRenderer(),
+        structlog.dev.ConsoleRenderer(
+            exception_formatter=structlog.dev.RichTracebackFormatter()
+        ),
     ],
     context_class=dict,
     logger_factory=structlog.stdlib.LoggerFactory(),
