@@ -53,7 +53,7 @@ docstring-code-format      = true # format code in docstrings
 docstring-code-line-length = 88
 
 [tool.ruff.lint]
-exclude = ["*.ipynb", "data/*", "logs/*", "test**", "tests/*", "tmp/*", "venv/*"]
+exclude = ["*.ipynb", "data/*", "logs/*", "tmp/*", "venv/*"]
 extend-select = [
   "B",   # flake8-bugbear, bugbear checks
   "D",   # pydocstyle, all functions and classes must have docstrings

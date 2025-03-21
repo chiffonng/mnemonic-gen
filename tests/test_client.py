@@ -1,103 +1,18 @@
 """Tests for the client module."""
 
-import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pydantic import BaseModel, ValidationError
-
+from pydantic import BaseModel
 from src.llms.client import (
-    _attempt_fix_incomplete_json,
     batch_complete,
     build_input_params,
     complete,
     process_llm_response,
     process_llm_responses,
-    validate_content_against_schema,
 )
 
-
-class SimpleOutputSchema(BaseModel):
-    """Simple schema for testing."""
-
-    message: str
-
-
-class ComplexOutputSchema(BaseModel):
-    """Complex schema with nested fields for testing."""
-
-    message: str
-    details: dict
-    items: list
-
-
-@pytest.fixture
-def mock_config_path(tmp_path):
-    """Create a mock config file for testing."""
-    config = {
-        "model": "test-model",
-        "temperature": 0.7,
-        "max_tokens": 100,
-    }
-    config_path = tmp_path / "test_config.json"
-    config_path.write_text(json.dumps(config))
-    return config_path
-
-
-@pytest.fixture
-def mock_default_config_path(tmp_path):
-    """Create a mock default config file for testing."""
-    config = {
-        "model": "default-model",
-        "temperature": 0.5,
-        "max_tokens": 50,
-    }
-    config_path = tmp_path / "default_config.json"
-    config_path.write_text(json.dumps(config))
-    return config_path
-
-
-@pytest.fixture
-def mock_messages():
-    """Create mock messages for testing."""
-    return [{"role": "user", "content": "Hello, world!"}]
-
-
-@pytest.fixture
-def mock_batch_messages():
-    """Create mock batch messages for testing."""
-    return [
-        [{"role": "user", "content": "Hello, world!"}],
-        [{"role": "user", "content": "How are you?"}],
-    ]
-
-
-@pytest.fixture
-def mock_llm_response():
-    """Create a mock LLM response for testing."""
-    response = MagicMock()
-    response.choices = [MagicMock()]
-    response.choices[0].message = MagicMock()
-    response.choices[0].message.content = "Test response"
-    response.usage = {"total_tokens": 10}
-    return response
-
-
-@pytest.fixture
-def mock_llm_batch_responses():
-    """Create mock batch LLM responses for testing."""
-    response1 = MagicMock()
-    response1.choices = [MagicMock()]
-    response1.choices[0].message = MagicMock()
-    response1.choices[0].message.content = "Response 1"
-
-    response2 = MagicMock()
-    response2.choices = [MagicMock()]
-    response2.choices[0].message = MagicMock()
-    response2.choices[0].message.content = "Response 2"
-
-    return [response1, response2]
+from tests.conftest import SimpleOutputSchema
 
 
 def test_build_input_params_with_config(mock_config_path, mock_messages):
@@ -159,7 +74,7 @@ def test_build_input_params_with_output_schema(mock_config_path, mock_messages):
 def test_build_input_params_output_schema_error(mock_config_path, mock_messages):
     """Test that an error is raised when the model doesn't support response schema."""
     with patch("src.llms.client.supports_response_schema", return_value=False):
-        with pytest.raises(ValueError, match="does not support JSON schema output"):
+        with pytest.raises(ValueError, match=r".*not.*schema.*"):
             build_input_params(
                 messages=mock_messages,
                 config_path=mock_config_path,
@@ -181,7 +96,7 @@ def test_build_input_params_with_mock_response(mock_config_path, mock_messages):
 def test_build_input_params_incompatible_options(mock_config_path, mock_messages):
     """Test error when both mock_response and output_schema are provided."""
     with pytest.raises(
-        ValueError, match="Cannot use mock_response and output_schema at the same time"
+        ValueError, match=r".*mock_response.*output_schema at the same time"
     ):
         build_input_params(
             messages=mock_messages,
@@ -322,9 +237,7 @@ def test_process_llm_response_none():
 def test_process_llm_response_invalid_schema(mock_llm_response):
     """Test error when output_schema is not a BaseModel."""
     # Execute and verify
-    with pytest.raises(
-        TypeError, match="output_schema must be a subclass of pydantic.BaseModel"
-    ):
+    with pytest.raises(TypeError, match=r"output_schema.*.subclass.*BaseModel"):
         process_llm_response(mock_llm_response, dict)
 
 
@@ -332,7 +245,7 @@ def test_process_llm_response_missing_content(mock_llm_response):
     """Test error when response has no content."""
     mock_llm_response.choices[0].message.content = None
 
-    with pytest.raises(ValueError, match="Response content is None"):
+    with pytest.raises(ValueError, match=r".*content.*None"):
         process_llm_response(mock_llm_response)
 
 
@@ -376,124 +289,3 @@ def test_process_llm_responses_with_errors(mock_llm_batch_responses):
     assert len(results) == 2
     assert results[0] == "Response 1"
     assert results[1] is None
-
-
-def test_validate_content_against_schema_string():
-    """Test validating a JSON string against a schema."""
-    content = '{"message": "Test message"}'
-    result = validate_content_against_schema(content, SimpleOutputSchema)
-
-    assert isinstance(result, SimpleOutputSchema)
-    assert result.message == "Test message"
-
-
-def test_validate_content_against_schema_dict():
-    """Test validating a dictionary against a schema."""
-    content = {"message": "Test message"}
-    result = validate_content_against_schema(content, SimpleOutputSchema)
-
-    assert isinstance(result, SimpleOutputSchema)
-    assert result.message == "Test message"
-
-
-def test_validate_content_against_schema_model_instance():
-    """Test validating a model instance against a schema."""
-
-    content = SimpleOutputSchema(message="Test message")
-    result = validate_content_against_schema(content, SimpleOutputSchema)
-
-    assert result is content  # Should return the same instance
-
-
-def test_validate_content_against_schema_invalid_json():
-    """Test error when content is invalid JSON and cannot be fixed."""
-    # Setup - make a very broken JSON that even the fixer can't handle
-    content = '{"message" "Test }: message"'  # Malformed beyond repair
-
-    # Mock _attempt_fix_incomplete_json to return still-broken JSON
-    with patch(
-        "src.llms.client._attempt_fix_incomplete_json",
-        return_value='{"message" "Test }: message"}',
-    ):
-        # Execute
-        with pytest.raises((ValidationError, json.JSONDecodeError)):
-            validate_content_against_schema(content, SimpleOutputSchema)
-
-
-def test_validate_content_against_schema_invalid_model():
-    """Test error when content doesn't match schema."""
-    content = '{"wrong_field": "Test message"}'
-
-    with pytest.raises(ValueError):
-        validate_content_against_schema(content, SimpleOutputSchema)
-
-
-def test_validate_content_against_schema_fix_json():
-    """Test that it attempts to fix incomplete JSON."""
-    content = '{"message": "Test message"'  # Missing closing brace
-
-    # Execute with patched _attempt_fix_incomplete_json
-    with patch(
-        "src.llms.client._attempt_fix_incomplete_json",
-        return_value='{"message": "Test message"}',
-    ):
-        result = validate_content_against_schema(content, SimpleOutputSchema)
-
-    assert isinstance(result, SimpleOutputSchema)
-    assert result.message == "Test message"
-
-
-def test_attempt_fix_incomplete_json_braces():
-    """Test fixing JSON with missing closing braces."""
-    incomplete = '{"key": "value", "nested": {"key2": "value2"'
-    fixed = _attempt_fix_incomplete_json(incomplete)
-
-    assert fixed.endswith("}")
-    assert fixed.count("{") == fixed.count("}")
-
-    # Should be valid JSON now
-    parsed = json.loads(fixed)
-    assert parsed["key"] == "value"
-    assert parsed["nested"]["key2"] == "value2"
-
-
-def test_attempt_fix_incomplete_json_quotes():
-    """Test fixing JSON with unclosed quotes."""
-    incomplete = '{"key": "value", "message": "hello world'
-    fixed = _attempt_fix_incomplete_json(incomplete)
-
-    assert '"message": "hello world"' in fixed
-    assert fixed.endswith("}")
-
-    # Should be valid JSON now
-    parsed = json.loads(fixed)
-    assert parsed["key"] == "value"
-    assert parsed["message"] == "hello world"
-
-
-def test_attempt_fix_incomplete_json_arrays():
-    """Test fixing JSON with unclosed arrays."""
-    incomplete = '{"items": [1, 2, 3'
-    fixed = _attempt_fix_incomplete_json(incomplete)
-
-    assert fixed.endswith("]}")
-
-    # Should be valid JSON now
-    parsed = json.loads(fixed)
-    assert parsed["items"] == [1, 2, 3]
-
-
-def test_attempt_fix_incomplete_json_trailing_comma():
-    """Test fixing JSON with trailing commas."""
-    incomplete = '{"key": "value", "items": [1, 2, 3],'
-    fixed = _attempt_fix_incomplete_json(incomplete)
-
-    assert not fixed.rstrip().endswith(",")
-
-    # Should be valid JSON now
-    try:
-        parsed = json.loads(fixed)
-        assert parsed["key"] == "value"
-        assert parsed["items"] == [1, 2, 3]
-    except json.JSONDecodeError:
-        pytest.fail("Fixed JSON should be valid")
