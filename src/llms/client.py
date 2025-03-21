@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import json
-import logging
 from typing import TYPE_CHECKING
 
+import structlog
 from litellm import (
     batch_completion,
     completion,
     supports_response_schema,
     validate_environment,
 )
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from src import const
 from src.utils import check_file_path, read_config
@@ -23,16 +23,7 @@ if TYPE_CHECKING:
     from src.utils.aliases import PathLike
 
 # Set up logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-handler = logging.StreamHandler()
-handler.setFormatter(
-    logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(module)s - %(lineno)d - %(message)s"
-    )
-)
-if not logger.handlers:
-    logger.addHandler(handler)
+logger = structlog.get_logger(__name__)
 
 
 def build_input_params(
@@ -194,19 +185,49 @@ def process_llm_response(
             for res in response:
                 content = res.choices[0].message.content
                 if output_schema:
-                    content = output_schema.model_validate_json(content)
+                    content = validate_content_against_schema(content, output_schema)
                 processed_responses.append(content)
             return processed_responses
         else:
             logger.debug("Processing single response.")
             content = response.choices[0].message.content
+
             if output_schema:
-                content = output_schema.model_validate_json(content)
+                content = validate_content_against_schema(content, output_schema)
             return content
     except Exception as e:
         logger.error(f"Error processing LLM response: {e}")
         logger.error(f"Raw response: {response}")
         raise e
+
+
+def validate_content_against_schema(
+    content: Any, schema: type[BaseModel]
+) -> dict[str, Any]:
+    """Validate the content against the schema.
+
+    Args:
+        content (Any): The content to validate. Ideally a JSON string.
+        schema (subclass of pydantic.BaseModel): The schema to validate against
+
+    Returns:
+        dict[str, Any]: The validated content
+    """
+    try:
+        content = schema.model_validate_json(content)
+    except ValidationError as e:
+        logger.warning(f"Validation error: {e}")
+        logger.warning(f"Attempting to fix incomplete JSON: {content}")
+        content = _attempt_fix_incomplete_json(content)
+        try:
+            content = schema.model_validate_json(content)
+        except Exception as e:
+            logger.error(f"Failed to fix JSON: {content}")
+            raise e from e
+    except Exception as e:
+        logger.error(f"Error validating content with schema: {e}")
+        logger.error(f"Raw response: {content}")
+        raise e from e
 
 
 def save_results(
@@ -240,3 +261,38 @@ def save_results(
         json.dump(final_results, f, ensure_ascii=False, indent=2)
 
     logger.info(f"Saved {len(final_results)} results to {output_path}")
+
+
+def _attempt_fix_incomplete_json(content: str) -> str:
+    """Attempt to fix incomplete JSON by closing open brackets and quotes.
+
+    Args:
+        content: The incomplete JSON string
+
+    Returns:
+        str: The fixed JSON string
+    """
+    # Count open brackets and quotes
+    open_braces = content.count("{") - content.count("}")
+    open_quotes = content.count('"') % 2
+
+    # Simple case: just need to close braces
+    if open_braces > 0 and open_quotes == 0:
+        return content + "}" * open_braces
+
+    # More complex case: need to close quotes and possibly fields
+    if open_quotes > 0:
+        # Try to find the last property name
+        last_property = content.rfind('"')
+        if last_property > 0:
+            # Check if we're in a property name or value
+            prev_colon = content.rfind(":", 0, last_property)
+            prev_comma = content.rfind(",", 0, last_property)
+
+            if prev_colon > prev_comma:  # We're in a value
+                return content + '"' + "}" * open_braces
+            else:  # We're in a property name
+                return content + '":""' + "}" * open_braces
+
+    # If all else fails, just return the original content
+    return content
