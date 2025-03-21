@@ -184,7 +184,9 @@ def validate_openai_file(input_path: Path):
                     format_errors["tool_unrecognized_key"] += 1
 
     if format_errors:
-        logger.error(f"Errors found in formatting data from {input_path}:")
+        logger.exception(
+            "Errors found in formatting data from input", input_path=input_path
+        )
         for k, v in format_errors.items():
             logger.error(f"{k}: {v}")
     else:
@@ -222,5 +224,5 @@ def upload_file_to_openai(client: OpenAI, input_path: Path) -> Optional[str]:
         return file_obj.id
 
     except Exception as e:
-        logger.error(f"Error during file upload: {e}")
+        logger.exception("Error during file upload")
         raise e

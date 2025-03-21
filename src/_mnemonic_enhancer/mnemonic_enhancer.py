@@ -80,7 +80,7 @@ def improve_mnemonic(
     with Session(engine) as session:
         # Send the request to the LLM API and get the response
         # Improve the mnemonic
-        logger.debug(f"Improving mnemonic for term '{term}'...")
+        logger.debug("Improving mnemonic for term", term=term)
         improve_messages = [
             {"role": "system", "content": improve_system_prompt},
             {"role": "user", "content": improve_user_prompt},
@@ -91,11 +91,11 @@ def improve_mnemonic(
             output_schema=ImprovedMnemonic,
             mock_response=improve_mock_response,
         )
-        logger.debug(f"Improved mnemonic: {improved_mnemonic_obj}")
+        logger.debug("Improved mnemonic", improve_mnemonic=improved_mnemonic_obj)
         improved_mnemonic = improved_mnemonic_obj.improved_mnemonic
 
         # Classify the mnemonic
-        logger.debug(f"Classifying mnemonic for term '{term}'...")
+        logger.debug("Classifying mnemonic for term", term=term)
         classify_user_prompt = read_prompt(
             const.FILE_PROMPT_USER, vars={"term": term, "mnemonic": improved_mnemonic}
         )
@@ -109,7 +109,11 @@ def improve_mnemonic(
             output_schema=MnemonicClassification,
             mock_response=classify_mock_response,
         )
-        logger.debug(f"Mnemonic classification: {classification_obj}")
+        logger.debug(
+            "Mnemonic classification",
+            mnemonic=improve_mnemonic,
+            mnemonic_classes=classification_obj,
+        )
 
         # Create the final response
         mnemonic_entry = Mnemonic(
@@ -150,12 +154,10 @@ def batch_improve_mnemonics(
     # Read the dataset
     input_path = check_file_path(input_path, extensions=[".csv"])
     df = pd.read_csv(input_path)
-    logger.info(f"Loaded {len(df)} mnemonics from {input_path}")
 
     # Limit the number of items if specified
     if max_items and max_items < len(df):
         df = df.sample(max_items, random_state=42)
-        logger.info(f"Limited to {max_items} mnemonics")
 
     # Read prompts
     improve_system_prompt = read_prompt(
@@ -203,12 +205,9 @@ def batch_improve_mnemonics(
                 output_schema=ImprovedMnemonic,
                 mock_response=improve_mock_response,
             )
-            logger.debug(
-                f"Batch improvement successful. Results: {len(improved_batch)}"
-            )
         except Exception as e:
-            logger.error(f"Error in batch improvement: {e}")
-            improved_batch = [None] * len(batch)
+            logger.exception("Error in batch improvement")
+            raise e
 
         # Step 3: Prepare batched classify messages based on improvement results
         classify_messages_batch = []
@@ -255,12 +254,9 @@ def batch_improve_mnemonics(
                 output_schema=MnemonicClassification,
                 mock_response=classify_mock_response,
             )
-            logger.debug(
-                f"Batch classification successful. Results: {len(classification_batch)}"
-            )
         except Exception as e:
-            logger.error(f"Error in batch classification: {e}")
-            classification_batch = [None] * len(batch)
+            logger.exception("Error in batch classification")
+            raise e
 
         # Step 5: Process results and store in database
         with Session(engine) as session:
@@ -302,18 +298,12 @@ def batch_improve_mnemonics(
 
                     batch_processed += 1
 
-                except Exception as e:
-                    logger.error(
-                        f"Error processing result for term '{data['term']}': {e}"
+                except Exception:
+                    logger.exception(
+                        "Error processing result for term", term=data["term"]
                     )
 
             # Commit all changes at once
             session.commit()
             processed_count += batch_processed
-
-            logger.info(
-                f"Processed batch {i // batch_size + 1}: {batch_processed} mnemonics stored in database"
-            )
-
-    logger.info(f"Total mnemonics processed and stored in database: {processed_count}")
     return processed_count

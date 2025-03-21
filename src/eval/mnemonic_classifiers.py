@@ -151,12 +151,9 @@ def classify_with_llm(
         return Mnemonic.model_validate_json(result)
 
     except Exception as e:
-        logger.error(f"Error classifying mnemonic for term '{term}': {e}")
-        # Fallback classification
-        return Mnemonic(
+        logger.exception(
+            "Error classifying mnemonic for term",
             term=term,
             mnemonic=mnemonic,
-            linguistic_reasoning="Failed to classify automatically",
-            main_type=MnemonicType.unknown,
-            sub_type=None,
         )
+        raise e

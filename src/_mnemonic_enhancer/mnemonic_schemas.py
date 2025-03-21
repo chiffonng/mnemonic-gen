@@ -14,7 +14,6 @@ from pydantic import (
     model_validator,
 )
 from pydantic.alias_generators import to_camel, to_snake
-from structlog.stdlib import BoundLogger
 
 from src.data.data_validators import (
     validate_enum_field,
@@ -27,6 +26,8 @@ default_config_dict = ConfigDict(
     populate_by_name=True,
     str_strip_whitespace=True,
     alias_generator=AliasGenerator(
+        # Use snake_case for validation/deserialization
+        # and camelCase for serialization (JSON)
         validation_alias=lambda field_name: to_snake(field_name),
         serialization_alias=lambda field_name: to_camel(field_name),
     ),

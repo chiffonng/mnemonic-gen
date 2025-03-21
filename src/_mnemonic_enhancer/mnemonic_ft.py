@@ -15,13 +15,13 @@ import structlog
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from src import const
 from src.llms.openai import (
     finetune_from_config,
     upload_file_to_openai,
     validate_openai_file,
 )
 from src.utils import check_file_path, read_config, read_prompt, update_config
+from src.utils import constants as const
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -224,28 +224,25 @@ def _get_cached_file_id(
             if file_info:
                 if to_overwrite:
                     client.files.delete(file_id)
-                    logger.info(f"Deleted cached file id: {file_id}")
+                    logger.debug("Deleted cached file id", file_id=file_id)
                     return None
                 else:
-                    logger.info(f"Using cached file id: {file_id}")
+                    logger.debug("Using cached file id:", file_id=file_id)
                     return file_id
-            else:
-                logger.info(f"File id {file_id} not found in API.")
-                return None
-        except Exception as e:
-            logger.error(f"Error retrieving file {file_id}: {e}")
+        except Exception:
+            logger.exception("Error retrieving file", file_id=file_id)
             return None
 
     # Handle file types
     if not isinstance(file_type, str):
-        logger.error("Invalid file type. Must be a string.")
+        logger.exception("Invalid file type. Must be a string.")
         raise TypeError(f"Invalid file_type {type(file_type)}. Must be a string.")
     elif file_type.lower().startswith("train"):
         file_type = "training_file"
     elif file_type.lower().startswith("val"):
         file_type = "validation_file"
     else:
-        logger.error("Invalid file_type. Must be 'training' or 'validation'.")
+        logger.exception("Invalid file_type. Must be 'training' or 'validation'.")
         raise ValueError("Invalid file_type. Must be 'training' or 'validation'.")
 
     # Read the config file and get the file id
@@ -257,7 +254,7 @@ def _get_cached_file_id(
         else:
             return None
     except Exception as e:
-        logger.error(f"Error reading config file {config_file_path}: {e}")
+        logger.exception("Error reading config file:", config_file=config_file_path)
         raise e
 
 

@@ -49,7 +49,7 @@ def finetune_from_config(
         # TODO: Add wandb integrations
         job_response = client.fine_tuning.jobs.create(**config_kwargs)
     except Exception as e:
-        logger.error(f"Error creating fine-tuning job: {e}")
+        logger.exception("Error creating fine-tuning job:")
         raise e
 
     job_id = job_response.id
@@ -61,8 +61,8 @@ def finetune_from_config(
     while True:
         try:
             job_info = client.fine_tuning.jobs.retrieve(job_id)
-        except Exception as e:
-            logger.error(f"Error retrieving job {job_id}: {e}")
+        except Exception:
+            logger.exception("Error retrieving fine-tuning job", finetune_job_id=job_id)
             break
 
         status = job_info.status

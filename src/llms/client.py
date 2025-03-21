@@ -124,9 +124,8 @@ def complete(
         response = completion(**params)
 
         return process_llm_response(response, output_schema)
-    except Exception as e:
-        logger.error(f"Error calling LLM API: {e}")
-        raise e
+    except Exception:
+        logger.exception("Error calling LLM API", stack_info=True)
 
 
 def batch_complete(
@@ -161,7 +160,7 @@ def batch_complete(
 
         return process_llm_response(response, output_schema)
     except Exception as e:
-        logger.error(f"Error calling LLM API: {e}")
+        logger.exception("Error calling LLM API", stack_info=True)
         raise e
 
 
@@ -198,8 +197,7 @@ def process_llm_response(
                 content = validate_content_against_schema(content, output_schema)
             return content
     except Exception as e:
-        logger.error(f"Error processing LLM response: {e}")
-        logger.error(f"Raw response: {response}")
+        logger.exception("Error processing LLM response:", raw_respose=response)
         raise e
 
 
@@ -217,18 +215,22 @@ def validate_content_against_schema(
     """
     try:
         content = schema.model_validate_json(content)
-    except ValidationError as e:
-        logger.warning(f"Validation error: {e}")
-        logger.warning(f"Attempting to fix incomplete JSON: {content}")
+    except ValidationError:
+        logger.warning("Validation error. Attempting to fix incomplete JSON: {content}")
         content = _attempt_fix_incomplete_json(content)
         try:
             content = schema.model_validate_json(content)
-        except Exception as e:
-            logger.error(f"Failed to fix JSON: {content}")
-            raise e from e
+        except ValidationError as validation_error:
+            logger.exception(
+                "Error validating content with schema", content=content, schema=schema
+            )
+            raise validation_error
     except Exception as e:
-        logger.error(f"Error validating content with schema: {e}")
-        logger.error(f"Raw response: {content}")
+        logger.error(
+            "Non-validation error while validating content",
+            content=content,
+            schema=schema,
+        )
         raise e from e
 
 
