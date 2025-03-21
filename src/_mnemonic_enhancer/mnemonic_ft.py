@@ -25,7 +25,7 @@ from src.utils import constants as const
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Optional
+    from typing import Literal, Optional
 
     from structlog.stdlib import BoundLogger
 
@@ -149,7 +149,7 @@ def upload_finetune_data(
     client: OpenAI,
     input_path: Path,
     config_file_path: Path = config_file_path,
-    file_type: str = "training",  # or "validation"
+    file_type: Literal["train", "val", "training", "valid", "validation"] = "train",
     use_cache: bool = True,
     to_overwrite: bool = True,
 ) -> str | None:
@@ -159,7 +159,7 @@ def upload_finetune_data(
         client (OpenAI): The OpenAI client object.
         input_path (Path): Path to the JSONL input data.
         config_file_path (Path): Path to the JSON config file.
-        file_type (str): The type of file to upload (e.g., "training" or "validation").
+        file_type (str): The type of file to upload (e.g., "train", "val", "training", "valid", "validation").
         use_cache (bool): If True, reuse the cached file id from config.
         to_overwrite (bool): If True, delete the cached file from OpenAI and reupload. Only relevant if use_cache is False.
 
