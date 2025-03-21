@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from typing import Annotated, Optional
 
 from pydantic import (
@@ -11,7 +10,6 @@ from pydantic import (
     BeforeValidator,
     ConfigDict,
     Field,
-    model_validator,
 )
 from pydantic.alias_generators import to_camel, to_snake
 
@@ -51,6 +49,8 @@ class BasicMnemonic(BaseModel):
 class ImprovedMnemonic(BaseModel):
     """Include both old and improved mnemonic, together with linguistic reasoning."""
 
+    model_config = default_config_dict
+
     improved_mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
         ...,
         description="The improved mnemonic aid for the term. The first sentence should say linguistic reasoning for the mnemonic.",
@@ -60,24 +60,11 @@ class ImprovedMnemonic(BaseModel):
         description="The linguistic reasoning for the mnemonic.",
     )
 
-    @model_validator(mode="before")
-    @classmethod
-    def set_linguistic_reasoning(cls, values: dict) -> dict:
-        """Extract the linguistic reasoning from the mnemonic if not provided."""
-        mnemonic = values.get("mnemonic", "")
-        linguistic = values.get("linguistic_reasoning")
-        if not linguistic and mnemonic:
-            # This regex captures the first sentence ending with a period.
-            match = re.match(r"^(.*?\.)\s*", mnemonic)
-            if match:
-                values["linguistic_reasoning"] = match.group(1).strip()
-            else:
-                values["linguistic_reasoning"] = mnemonic.strip()
-        return values
-
 
 class MnemonicClassification(BaseModel):
     """Classification of the mnemonic."""
+
+    model_config = default_config_dict
 
     main_type: Annotated[
         MnemonicType, BeforeValidator(validate_enum_field(MnemonicType))

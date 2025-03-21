@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from multiprocessing import process
 from typing import TYPE_CHECKING
 
 import structlog
@@ -13,12 +14,13 @@ from litellm import (
     validate_environment,
 )
 from pydantic import BaseModel, ValidationError
+from tqdm import tqdm
 
-from src import const
-from src.utils import check_file_path, read_config
+from src.utils import constants as const
+from src.utils import read_config
 
 if TYPE_CHECKING:
-    from typing import Any, Optional
+    from typing import Any, Optional, Sequence
 
     from structlog.stdlib import BoundLogger
 
@@ -39,7 +41,7 @@ def build_input_params(
     """Build input parameters for the LLM request.
 
     Args:
-        messages (list of dict of str, Any): List of messages to send to the LLM
+        messages (list of dict of [str, Any], or list of list of dict of [str, Any]): List of messages to send to the LLM
         config_path (PathLike, optional): Path to configuration file
         default_config_path (PathLike, optional): Path to default configuration file
         output_schema (subclass of BaseModel, optional): Pydantic model for validation. If set, the model will be used to validate the response.
@@ -77,12 +79,14 @@ def build_input_params(
             )
 
         config["response_format"] = output_schema
-        logger.debug(f"Using JSON schema output: {output_schema}")
+        logger.debug(
+            "Using JSON schema output:", model=config["model"], schema=output_schema
+        )
 
     elif mock_response:
         if not isinstance(mock_response, str):
             raise TypeError("mock_response must be a string.")
-        logger.debug(f"Using mock response: {mock_response}")
+        logger.debug("Using mock response", mock_response=mock_response)
         config["mock_response"] = mock_response
 
     # Prioritize user config over default, then kwargs
@@ -90,7 +94,7 @@ def build_input_params(
 
     # Add messages + config to params
     params = {"messages": messages, **config}
-    logger.debug(f"Sending request with config (excluding messages): {config}")
+    logger.debug("Sending request with config (excluding messages):", config=config)
     return params
 
 
@@ -120,12 +124,17 @@ def complete(
             output_schema=output_schema,
             mock_response=mock_response,
         )
-        validate_environment(model=params["model"])
-        response = completion(**params)
+        if validate_environment(model=params["model"]):
+            logger.debug("Environment is valid for model", model=params["model"])
+            response = completion(**params)
+        else:
+            logger.warning("Environment is NOT valid for model", model=params["model"])
+            raise ValueError("Environment is NOT valid for model")
 
         return process_llm_response(response, output_schema)
-    except Exception:
-        logger.exception("Error calling LLM API", stack_info=True)
+    except Exception as e:
+        logger.exception("Error calling LLM API")
+        raise e
 
 
 def batch_complete(
@@ -160,50 +169,78 @@ def batch_complete(
 
         return process_llm_response(response, output_schema)
     except Exception as e:
-        logger.exception("Error calling LLM API", stack_info=True)
+        logger.exception("Error calling LLM API")
         raise e
 
 
 def process_llm_response(
     response: Any, output_schema: Optional[type[BaseModel]] = None
-) -> list[dict[str, Any]] | dict[str, Any]:
+) -> str | BaseModel | dict[str, Any]:
     """Process the LLM response (OpenAI format) and validate against the schema.
 
     Args:
-        response: The raw response from the LLM. To access the first response content, use `response.choices[0].message.content`
+        response (Any): The raw response from the LLM. To access the first response content, use `response.choices[0].message.content`
         output_schema (subclass of  BaseModel, optional): Pydantic model for validation
     Returns:
-        List of processed response content, or a single processed response content
+        content (str | type[BaseModel] | dict[str, Any]): A single processed response content, or a structured object if output_schema is provided
+
+    Raises:
+        ValueError: If the response is None
+        TypeError: If output_schema is not a subclass of pydantic.BaseModel
+        Exception: Any error during response processing
     """
+    if response is None:
+        logger.exception("Response from LLM is None")
+        raise ValueError("Response is None")
     if output_schema is not None and not issubclass(output_schema, BaseModel):
+        logger.exception("output_schema is not a subclass of pydantic.BaseModel")
         raise TypeError("output_schema must be a subclass of pydantic.BaseModel")
 
     # Process response
     try:
-        processed_responses = []
-        if isinstance(response, list):
-            logger.debug(f"Processing batch response with {len(response)} items.")
-            for res in response:
-                content = res.choices[0].message.content
-                if output_schema:
-                    content = validate_content_against_schema(content, output_schema)
-                processed_responses.append(content)
-            return processed_responses
-        else:
-            logger.debug("Processing single response.")
-            content = response.choices[0].message.content
+        logger.debug("Processing raw response", raw_response=response)
+        content = response.choices[0].message.content
+        logger.debug("Content of the response", content=content)
+        logger.debug("Usage of the response", usage=response.usage)
 
-            if output_schema:
-                content = validate_content_against_schema(content, output_schema)
-            return content
+        if content is None:
+            logger.exception("response.choices[0].message.content is None")
+            raise ValueError("response.choices[0].message.content is None")
+        if output_schema:
+            content = validate_content_against_schema(content, output_schema)
+        return content
+
     except Exception as e:
         logger.exception("Error processing LLM response:", raw_respose=response)
         raise e
 
 
+def process_llm_multiple_responses(
+    responses: Sequence[Any], output_schema: Optional[type[BaseModel]] = None
+) -> list[str] | list[type[BaseModel]] | list[dict[str, Any]]:
+    """Process multiple LLM responses and validate against the schema.
+
+    Args:
+        responses (Sequence[Any]): List of raw responses from the LLM
+        output_schema (subclass of BaseModel, optional): Pydantic model for validation
+
+    Returns:
+        processed_responses: List of processed response data
+    """
+    processed_responses = []
+    for response in tqdm(responses):
+        try:
+            processed_response = process_llm_response(response, output_schema)
+            processed_responses.append(processed_response)
+        except Exception:
+            logger.exception("Error processing LLM response:", raw_respose=response)
+            processed_responses.append(None)
+    return processed_responses
+
+
 def validate_content_against_schema(
     content: Any, schema: type[BaseModel]
-) -> dict[str, Any]:
+) -> BaseModel | dict[str, Any]:
     """Validate the content against the schema.
 
     Args:
@@ -211,60 +248,64 @@ def validate_content_against_schema(
         schema (subclass of pydantic.BaseModel): The schema to validate against
 
     Returns:
-        dict[str, Any]: The validated content
+        parsed (BaseModel or dict[str, Any]): The content parsed and validated against the schema
+
+    Raises:
+        ValueError: If the content is not a string or dictionary
+        json.JSONDecodeError: If the content is not valid JSON
+        pydantic.ValidationError: If the content does not match the schema
     """
     try:
-        content = schema.model_validate_json(content)
-    except ValidationError:
-        logger.warning("Validation error. Attempting to fix incomplete JSON: {content}")
-        content = _attempt_fix_incomplete_json(content)
-        try:
-            content = schema.model_validate_json(content)
-        except ValidationError as validation_error:
-            logger.exception(
-                "Error validating content with schema", content=content, schema=schema
+        if isinstance(content, (dict, schema)):
+            logger.debug(
+                "Validating content against schema using model_validate method"
             )
-            raise validation_error
+            return schema.model_validate(content)
+        elif isinstance(content, (str, bytearray, bytes)):
+            try:
+                # First try direct JSON validation
+                logger.debug("Validating JSON string against schema")
+                return schema.model_validate_json(content)
+            except ValidationError as e:
+                # If direct validation fails, try parsing JSON first then validate
+                logger.warning(
+                    "Direct validation failed, parsing JSON first", error=str(e)
+                )
+                parsed_json = json.loads(content)
+                return schema.model_validate(parsed_json)
+        else:
+            logger.warning(f"Unexpected content type: {type(content)}")
+            content_str = str(content)
+            logger.debug("Validating content string against schema")
+            return schema.model_validate_json(content_str)
+
+    except json.JSONDecodeError:
+        logger.exception("JSON decode error", content=content)
+        # Try to fix incomplete JSON
+        fixed_content = _attempt_fix_incomplete_json(str(content))
+        logger.debug("Attempting with fixed JSON", content=fixed_content)
+        try:
+            return schema.model_validate_json(fixed_content)
+        except Exception as fix_error:
+            logger.exception(
+                "Error validating fixed JSON",
+                content=fixed_content,
+                schema=schema,
+            )
+            raise fix_error
+
+    except ValidationError as validation_error:
+        logger.exception(
+            "Error validating content with schema", content=content, schema=schema
+        )
+        raise validation_error
     except Exception as e:
         logger.error(
-            "Non-validation error while validating content",
+            "Unexpected error validating content with schema",
             content=content,
             schema=schema,
         )
-        raise e from e
-
-
-def save_results(
-    results: list[dict[str, Any]],
-    output_path: PathLike,
-    flatten: bool = True,
-) -> None:
-    """Save results to a JSON file.
-
-    Args:
-        results: List of result data
-        output_path: Path to save the results
-        flatten: Whether to flatten nested lists
-    """
-    output_path = check_file_path(
-        output_path, new_ok=True, to_create=True, extensions=[".json"]
-    )
-
-    # Flatten if needed and requested
-    final_results = []
-    if flatten:
-        for result in results:
-            if isinstance(result, list):
-                final_results.extend(result)
-            else:
-                final_results.append(result)
-    else:
-        final_results = results
-
-    with output_path.open("w", encoding="utf-8") as f:
-        json.dump(final_results, f, ensure_ascii=False, indent=2)
-
-    logger.info(f"Saved {len(final_results)} results to {output_path}")
+        raise e
 
 
 def _attempt_fix_incomplete_json(content: str) -> str:
@@ -278,25 +319,42 @@ def _attempt_fix_incomplete_json(content: str) -> str:
     """
     # Count open brackets and quotes
     open_braces = content.count("{") - content.count("}")
+    open_brackets = content.count("[") - content.count("]")
     open_quotes = content.count('"') % 2
 
-    # Simple case: just need to close braces
-    if open_braces > 0 and open_quotes == 0:
-        return content + "}" * open_braces
+    # Fix open braces and brackets
+    fixed_content = content
 
-    # More complex case: need to close quotes and possibly fields
+    # First fix quotes if needed
     if open_quotes > 0:
-        # Try to find the last property name
-        last_property = content.rfind('"')
-        if last_property > 0:
+        # Try to find the last property name or value
+        last_quote = content.rfind('"')
+        if last_quote > 0:
             # Check if we're in a property name or value
-            prev_colon = content.rfind(":", 0, last_property)
-            prev_comma = content.rfind(",", 0, last_property)
+            prev_colon = content.rfind(":", 0, last_quote)
+            prev_comma = content.rfind(",", 0, last_quote)
 
             if prev_colon > prev_comma:  # We're in a value
-                return content + '"' + "}" * open_braces
+                fixed_content = content + '"'
             else:  # We're in a property name
-                return content + '":""' + "}" * open_braces
+                fixed_content = content + '":""'
 
-    # If all else fails, just return the original content
-    return content
+    # Then close brackets and braces
+    if open_brackets > 0:
+        fixed_content += "]" * open_brackets
+
+    if open_braces > 0:
+        fixed_content += "}" * open_braces
+
+    return fixed_content
+
+
+# from src._mnemonic_enhancer.mnemonic_schemas import ImprovedMnemonic
+
+# json_data = "{\"improved_mnemonic\":\"Think of 'anachronism' as 'an-a-chronic-mistake.' Imagine a caveman using an iPhone; that's a funny and clear example of an anachronism—something mistakenly placed in the wrong time period. The prefix 'an-' means not, 'chron' relates to time, and '-ism' denotes a practice or condition, making it evident that this term refers to something out of its proper chronological context.\",\"linguistic_reasoning\":\"The mnemonic breaks down the word into components: 'an-' (not), 'chron' (time), and '-ism' (condition). It uses a vivid scenario to illustrate the definition.\"}"
+# validated = validate_content_against_schema(json_data, ImprovedMnemonic)
+
+# print(validated)  # works
+
+# TODO: Test other functions with pytest and patching
+# TODO: Then test with real LLM
