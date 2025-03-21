@@ -1,5 +1,7 @@
 """Utility functions for OpenAI API interactions."""
 
+from __future__ import annotations
+
 import json
 from collections import defaultdict
 from typing import TYPE_CHECKING
@@ -11,13 +13,14 @@ if TYPE_CHECKING:
     from typing import Optional
 
     from openai import OpenAI
+    from structlog.stdlib import BoundLogger
 
 from src.utils import check_file_path, read_config
 
-logger = structlog.getLogger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
-def validate_openai_config(input_path: "Path"):
+def validate_openai_config(input_path: Path):
     """Validate the configuration file to be used for fine-tuning or generating completions using OpenAI.
 
     Args:
@@ -82,7 +85,7 @@ def validate_openai_config(input_path: "Path"):
     return config
 
 
-def validate_openai_file(input_path: "Path"):
+def validate_openai_file(input_path: Path):
     """Validate the data to be uploaded to OpenAI's API. Source code from OpenAI Cookbook: https://cookbook.openai.com/examples/chat_finetuning_data_prep.
 
     Args:
@@ -191,7 +194,7 @@ def validate_openai_file(input_path: "Path"):
         logger.info(f"Number of examples: {len(dataset)}")
 
 
-def upload_file_to_openai(client: "OpenAI", input_path: "Path") -> "Optional[str]":
+def upload_file_to_openai(client: OpenAI, input_path: Path) -> Optional[str]:
     """Upload the input file to OpenAI's Files API.
 
     Args:

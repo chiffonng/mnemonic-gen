@@ -22,10 +22,12 @@ from src.utils import constants as const
 if TYPE_CHECKING:
     from typing import Optional
 
+    from structlog.stdlib import BoundLogger
+
     from src.utils import PathLike
 
 # Set up logging
-logger = structlog.getLogger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
 def improve_mnemonic(

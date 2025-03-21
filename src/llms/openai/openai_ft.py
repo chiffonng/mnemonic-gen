@@ -1,5 +1,7 @@
 """Module for fine-tuning OpenAI models."""
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import structlog
@@ -9,16 +11,17 @@ if TYPE_CHECKING:
     from typing import Optional
 
     from openai import OpenAI
+    from structlog.stdlib import BoundLogger
 
 from src.utils import read_config
 
-logger = structlog.getLogger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
 def finetune_from_config(
-    client: "OpenAI",
-    config_file_path: "Path",
-    finetuned_model_id_path: "Path",
+    client: OpenAI,
+    config_file_path: Path,
+    finetuned_model_id_path: Path,
     poll_seconds: int = 60,
 ) -> "Optional[str]":
     """Fine tune an OpenAI model using the configuration specified in the config file. This function creates a fine-tuning job via the OpenAI API and polls until the job reaches a terminal state.

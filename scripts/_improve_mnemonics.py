@@ -1,13 +1,17 @@
 """Script to generate full dataset of improved mnemonics and classified linguistic reasoning. From BasicMnemonic to Mnemonic (see src/data_prep/mnemonic_schemas.py)."""
 
 import argparse
+from typing import TYPE_CHECKING
 
 import structlog
 from src import const
 from src._mnemonic_enhancer.mnemonic_enhancer import improve_mnemonic
 
+if TYPE_CHECKING:
+    from structlog.stdlib import BoundLogger
+
 # Set up logging
-logger = structlog.getLogger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
 def improve_single_mnemonic():

@@ -20,10 +20,12 @@ from src.utils import check_file_path, read_config
 if TYPE_CHECKING:
     from typing import Any, Optional
 
+    from structlog.stdlib import BoundLogger
+
     from src.utils.aliases import PathLike
 
 # Set up logging
-logger = structlog.get_logger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
 def build_input_params(

@@ -10,7 +10,8 @@ import structlog
 if TYPE_CHECKING:
     from typing import Optional
 
-logger = structlog.getLogger(__name__)
+    from structlog.stdlib import BoundLogger
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
 def stratify_by_column(

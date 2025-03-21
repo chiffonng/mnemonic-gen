@@ -15,10 +15,12 @@ from src.utils.error_handlers import check_file_path
 if TYPE_CHECKING:
     from typing import Optional
 
+    from structlog.stdlib import BoundLogger
+
     from src._mnemonic_enhancer.mnemonic_schemas import Mnemonic, MnemonicType
     from src.utils.aliases import PathLike
 
-logger = structlog.getLogger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
 def keyword_match(mnemonic: str) -> tuple[MnemonicType, Optional[MnemonicType]]:

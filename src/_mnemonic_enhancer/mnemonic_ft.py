@@ -27,6 +27,8 @@ if TYPE_CHECKING:
     from pathlib import Path
     from typing import Optional
 
+    from structlog.stdlib import BoundLogger
+
 # Set up and validates the paths
 prompt_path = check_file_path(
     const.FILE_PROMPT_IMPROVE_SFT_SYSTEM, extensions=const.TXT_EXT
@@ -44,7 +46,7 @@ finetune_model_id_path = check_file_path(
 )
 
 # Set up logging
-logger = structlog.getLogger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
 load_dotenv()

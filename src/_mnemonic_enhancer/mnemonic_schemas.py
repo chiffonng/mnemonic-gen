@@ -14,6 +14,7 @@ from pydantic import (
     model_validator,
 )
 from pydantic.alias_generators import to_camel, to_snake
+from structlog.stdlib import BoundLogger
 
 from src.data.data_validators import (
     validate_enum_field,

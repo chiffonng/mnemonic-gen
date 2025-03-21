@@ -14,11 +14,13 @@ from src.utils import check_file_path
 if TYPE_CHECKING:
     from typing import Optional
 
+    from structlog.stdlib import BoundLogger
+
     from src.utils import PathLike
     from src.utils.constants import HF_DATASET_NAME, HF_TESTSET_NAME
 
 # Set up logging to console
-logger = structlog.getLogger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
 def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:

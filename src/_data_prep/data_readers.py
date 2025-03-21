@@ -1,5 +1,7 @@
 """Module for reading data from various sources, into various formats (json, csv)."""
 
+from __future__ import annotations
+
 import csv
 import json
 from typing import Any
@@ -7,7 +9,7 @@ from typing import Any
 from src.utils import PathLike, check_file_path
 
 
-def read_csv_file(file_path: "PathLike") -> list[dict[str, Any]]:
+def read_csv_file(file_path: PathLike) -> list[dict[str, Any]]:
     """Read a CSV file and return its contents as a list of dictionaries.
 
     Args:
@@ -31,7 +33,7 @@ def read_csv_file(file_path: "PathLike") -> list[dict[str, Any]]:
     return rows
 
 
-def read_json_file(file_path: "PathLike") -> list[dict[str, Any]]:
+def read_json_file(file_path: PathLike) -> list[dict[str, Any]]:
     """Read a JSON file and return its contents as a list of dictionaries.
 
     Args:
@@ -48,7 +50,7 @@ def read_json_file(file_path: "PathLike") -> list[dict[str, Any]]:
     return data
 
 
-def read_jsonl_file(file_path: "PathLike") -> list[dict[str, Any]]:
+def read_jsonl_file(file_path: PathLike) -> list[dict[str, Any]]:
     """Read a JSON Lines file and return its contents as a list of dictionaries.
 
     Args:
@@ -67,7 +69,7 @@ def read_jsonl_file(file_path: "PathLike") -> list[dict[str, Any]]:
     return data
 
 
-def read_txt_file(file_path: "PathLike") -> list[str]:
+def read_txt_file(file_path: PathLike) -> list[str]:
     """Read a text file and return its contents as a list of strings.
 
     Args:
