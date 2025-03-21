@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Optional
 
-    from src.utils.aliases import ExtensionsType, PathLike
+    from src.utils.types import ExtensionsType, PathLike
 
 
 def validate_path(path: PathLike) -> Path:
