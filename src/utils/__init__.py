@@ -1,4 +1,3 @@
-from .aliases import ExtensionsType, PathLike
 from .common import read_config, read_prompt, update_config
 from .error_handlers import (
     check_dir_path,
@@ -6,3 +5,4 @@ from .error_handlers import (
     check_file_path,
     which_file_exists,
 )
+from .types import ExtensionsType, PathLike

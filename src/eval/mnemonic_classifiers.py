@@ -9,21 +9,21 @@ from typing import TYPE_CHECKING
 import structlog
 
 from src.llms.client import complete
-from src.utils.common import read_config
-from src.utils.error_handlers import check_file_path
+from src.utils import constants as const
+from src.utils.common import read_prompt
+from src.utils.types import MnemonicClassification
 
 if TYPE_CHECKING:
     from typing import Optional
 
     from structlog.stdlib import BoundLogger
 
-    from src._mnemonic_enhancer.mnemonic_schemas import Mnemonic, MnemonicType
-    from src.utils.aliases import PathLike
+    from src.utils.types import MnemonicType, PathLike
 
 logger: BoundLogger = structlog.getLogger(__name__)
 
 
-def keyword_match(mnemonic: str) -> tuple[MnemonicType, Optional[MnemonicType]]:
+def classify_by_keywords(mnemonic: str) -> tuple[MnemonicType, Optional[MnemonicType]]:
     """Match keywords in the mnemonic to classify it.
 
     Args:
@@ -76,7 +76,7 @@ def keyword_match(mnemonic: str) -> tuple[MnemonicType, Optional[MnemonicType]]:
     type_scores = {mtype: 0 for mtype in MnemonicType}
     for mtype, keywords in keywords_by_type_dict.items():
         for keyword in keywords:
-            if keyword.lower() in keywords_by_type_dict.lower():
+            if keyword.lower() in keywords_by_type_dict:
                 type_scores[mtype] += 1
 
     # Sort by score
@@ -103,28 +103,38 @@ def keyword_match(mnemonic: str) -> tuple[MnemonicType, Optional[MnemonicType]]:
 def classify_with_llm(
     term: str,
     mnemonic: str,
-    config_path: PathLike = "config/openai_conf.json",
-    prompt_path: PathLike = "prompts/classify_5shot.txt",
+    config_path: PathLike,
+    system_prompt_path: PathLike,
+    user_prompt_path: Optional[PathLike] = None,
     use_mock: bool = False,
-) -> Mnemonic:
+) -> tuple[MnemonicType, Optional[MnemonicType]]:
     """Classify a mnemonic by its linguistic features using an LLM.
 
     Args:
         term: The vocabulary term
         mnemonic: The mnemonic to classify
         config_path: Path to LLM configuration file
-        prompt_path: Path to the system prompt file
+        system_prompt_path: Path to the system prompt file
+        user_prompt_path: Path to the user prompt file
         use_mock: Whether to use mock responses for testing
 
     Returns:
-        MnemonicClassification: The classified linguistic features
-    """
-    # Validate config path
-    config_path = check_file_path(config_path, extensions=["json"])
+        tuple: The main type and sub type of the mnemonic
 
-    # Prepare the prompt for classification
-    system_prompt = read_config(prompt_path)
-    user_prompt = f"Term: {term}\nMnemonic: {mnemonic}"
+    Raises:
+        Exception: If an error occurs during src.llms.client.complete, or if the mnemonic is empty
+    """
+    if not mnemonic or not term:
+        raise ValueError("Mnemonic and term cannot be empty")
+    elif not isinstance(mnemonic, str) or not isinstance(term, str):
+        raise TypeError("Mnemonic and term must be strings")
+
+    # Prepare the prompts for classification
+    system_prompt = read_prompt(system_prompt_path)
+    if user_prompt_path:
+        user_prompt = read_prompt(user_prompt_path)
+    else:
+        user_prompt = f"Classify the mnemonic '{mnemonic}' for the term '{term}' by its linguistic features."
 
     messages = [
         {"role": "system", "content": system_prompt},
@@ -132,23 +142,21 @@ def classify_with_llm(
     ]
 
     # Mock response for testing
-    if use_mock:
-        mock_response = "Mock response for classifying mnemonic with llm."
-    else:
-        mock_response = None
+    mock_response = (
+        "Mock response for classifying mnemonic with llm." if use_mock else None
+    )
 
     # Get classification from LLM
     try:
-        response = complete(
+        mnemonic_classes_obj = complete(
             messages=messages,
             config_path=config_path,
-            output_schema=Mnemonic,
+            output_schema=MnemonicClassification,
             mock_response=mock_response,
         )
-        result = response.choices[0].message.content
 
         # Parse the result
-        return Mnemonic.model_validate_json(result)
+        return mnemonic_classes_obj.main_type, mnemonic_classes_obj.sub_type
 
     except Exception as e:
         logger.exception(
