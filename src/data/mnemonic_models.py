@@ -47,7 +47,7 @@ class Mnemonic(SQLModel, table=True):
     mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
         ..., description="The mnemonic aid for the term.", max_length=400, min_length=5
     )
-    linguitic_reasoning: str = Field(
+    linguistic_reasoning: str = Field(
         ...,
         description="The linguistic reasoning for the mnemonic.",
         max_length=100,

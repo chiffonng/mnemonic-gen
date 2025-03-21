@@ -3,9 +3,33 @@
 structlog reference: https://www.structlog.org/en/stable/standard-library.html#rendering-within-structlog
 """
 
+import logging
 import logging.config
 
 import structlog
+
+
+# Create a custom filter to ignore litellm errors about __annotations__
+class IgnoreFilter(logging.Filter):
+    """Filter to ignore specific litellm errors about __annotations__."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        """Filter out logs matching specific patterns.
+
+        Args:
+            record: The log record to check
+
+        Returns:
+            bool: True if the record should be processed, False if it should be filtered out
+        """
+        # Check if it's a LiteLLM error about __annotations__
+        if hasattr(record, "msg") and isinstance(record.msg, str):
+            if "LiteLLM:ERROR" in record.msg and "__annotations__" in record.msg:
+                return False
+
+        # Allow the log record
+        return True
+
 
 LOGGING_CONF = {
     "version": 1,
@@ -19,15 +43,22 @@ LOGGING_CONF = {
             "processor": structlog.dev.ConsoleRenderer(),
         },
     },
+    "filters": {
+        "ignore_litellm_annotations": {
+            "()": IgnoreFilter,
+        }
+    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "plain_console",
+            "filters": ["ignore_litellm_annotations"],
         },
         "json_file": {
             "class": "logging.handlers.WatchedFileHandler",
             "filename": "logs/json.log",
             "formatter": "json_formatter",
+            "filters": ["ignore_litellm_annotations"],
         },
     },
     "loggers": {
@@ -47,7 +78,7 @@ logging.config.dictConfig(LOGGING_CONF)
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
-        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.TimeStamper(fmt="iso", utc=False),
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,
         structlog.processors.StackInfoRenderer(),
