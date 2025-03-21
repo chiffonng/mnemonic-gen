@@ -73,5 +73,4 @@ def improve_single_mnemonic():
         logger.exception("Error during mnemonic enhancement")
 
 
-if __name__ == "__main__":
-    improve_single_mnemonic()
+improve_single_mnemonic()
