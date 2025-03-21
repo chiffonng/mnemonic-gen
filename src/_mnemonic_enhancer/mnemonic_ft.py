@@ -4,60 +4,60 @@ Finetuning: https://platform.openai.com/docs/guides/fine-tuning
 Files API: https://platform.openai.com/docs/api-reference/files
 """
 
+from __future__ import annotations
+
 import csv
 import json
-import logging
 import random
 from typing import TYPE_CHECKING
 
+import structlog
 from dotenv import load_dotenv
 from openai import OpenAI
 
 from src.llms.openai import (
     finetune_from_config,
-    improve_mnemonic,
     upload_file_to_openai,
     validate_openai_file,
 )
 from src.utils import check_file_path, read_config, read_prompt, update_config
+from src.utils import constants as const
 
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Optional
+    from typing import Literal, Optional
+
+    from structlog.stdlib import BoundLogger
 
 # Set up and validates the paths
-prompt_path = check_file_path("prompts/improve_ft_system.txt")
-raw_input_path = check_file_path("data/raw/improved_data.csv", extensions=["csv"])
+prompt_path = check_file_path(
+    const.FILE_PROMPT_IMPROVE_SFT_SYSTEM, extensions=const.TXT_EXT
+)
+raw_input_path = check_file_path(const.SEED_IMPROVED_CSV, extensions=const.CSV_EXT)
 train_input_path = check_file_path(
-    "data/processed/improve_sft_train.jsonl", extensions=["jsonl"], new_ok=True
+    const.SFT_IMPROVE_TRAIN, extensions=const.JSONL_EXT, new_ok=True
 )
 val_input_path = check_file_path(
-    "data/processed/improve_sft_val.jsonl", extensions=["jsonl"], new_ok=True
+    const.SFT_IMPROVE_VAL, extensions=const.JSONL_EXT, new_ok=True
 )
-config_file_path = check_file_path(
-    "config/openai_sft_improve.json", extensions=["json"]
-)
+config_file_path = check_file_path(const.CONF_OPENAI_SFT, extensions=const.JSON_EXT)
 finetune_model_id_path = check_file_path(
     "out/improve_sft_model_id.txt", extensions=["txt"], new_ok=True
 )
 
 # Set up logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.FileHandler("logs/mnemonic_processing.log"))
-logger.handlers[0].setFormatter(
-    logging.Formatter("%(asctime)s - %(levelname)s - %(funcName)s - %(message)s")
-)
+logger: BoundLogger = structlog.getLogger(__name__)
+
 
 load_dotenv()
 client = OpenAI()
 
 
 def prepare_and_split_finetune_data(
-    input_path: "Path" = raw_input_path,
-    input_prompt: "Path" = prompt_path,
-    output_train_jsonl: "Path" = train_input_path,
-    output_val_jsonl: "Optional[Path]" = None,
+    input_path: Path = raw_input_path,
+    input_prompt: Path = prompt_path,
+    output_train_jsonl: Path = train_input_path,
+    output_val_jsonl: Optional[Path] = None,
     split_ratio: float = 0.8,
 ) -> None:
     """Prepare the data (JSONL) for fine-tuning with OpenAI's API and split into training and validation files.
@@ -85,7 +85,7 @@ def prepare_and_split_finetune_data(
         split_ratio = float(split_ratio)
 
     if split_ratio < 0 or split_ratio > 1:
-        logging.error("Invalid split ratio. Must be between 0 and 1.")
+        logger.error("Invalid split ratio. Must be between 0 and 1.")
         raise ValueError(f"Invalid split ratio: {split_ratio}. Must be between 0 and 1")
 
     system_prompt = read_prompt(input_prompt)
@@ -97,7 +97,7 @@ def prepare_and_split_finetune_data(
 
     num_examples = len(rows)
     if num_examples == 0:
-        logging.error("No data found in the CSV file.")
+        logger.error("No data found in the CSV file.")
         return
 
     random.shuffle(rows)
@@ -146,10 +146,10 @@ def prepare_and_split_finetune_data(
 
 
 def upload_finetune_data(
-    client: "OpenAI",
-    input_path: "Path",
-    config_file_path: "Path" = config_file_path,
-    file_type: str = "training",  # or "validation"
+    client: OpenAI,
+    input_path: Path,
+    config_file_path: Path = config_file_path,
+    file_type: Literal["train", "val", "training", "valid", "validation"] = "train",
     use_cache: bool = True,
     to_overwrite: bool = True,
 ) -> str | None:
@@ -159,7 +159,7 @@ def upload_finetune_data(
         client (OpenAI): The OpenAI client object.
         input_path (Path): Path to the JSONL input data.
         config_file_path (Path): Path to the JSON config file.
-        file_type (str): The type of file to upload (e.g., "training" or "validation").
+        file_type (str): The type of file to upload (e.g., "train", "val", "training", "valid", "validation").
         use_cache (bool): If True, reuse the cached file id from config.
         to_overwrite (bool): If True, delete the cached file from OpenAI and reupload. Only relevant if use_cache is False.
 
@@ -200,7 +200,7 @@ def upload_finetune_data(
 
 
 def _get_cached_file_id(
-    client: "OpenAI", config_file_path: "Path", file_type: str, to_overwrite: bool
+    client: OpenAI, config_file_path: Path, file_type: str, to_overwrite: bool
 ) -> str | None:
     """Retrieve the cached file ID for the specified file type from the config file.
 
@@ -224,28 +224,25 @@ def _get_cached_file_id(
             if file_info:
                 if to_overwrite:
                     client.files.delete(file_id)
-                    logger.info(f"Deleted cached file id: {file_id}")
+                    logger.debug("Deleted cached file id", file_id=file_id)
                     return None
                 else:
-                    logger.info(f"Using cached file id: {file_id}")
+                    logger.debug("Using cached file id:", file_id=file_id)
                     return file_id
-            else:
-                logger.info(f"File id {file_id} not found in API.")
-                return None
-        except Exception as e:
-            logger.error(f"Error retrieving file {file_id}: {e}")
+        except Exception:
+            logger.exception("Error retrieving file", file_id=file_id)
             return None
 
     # Handle file types
     if not isinstance(file_type, str):
-        logger.error("Invalid file type. Must be a string.")
+        logger.exception("Invalid file type. Must be a string.")
         raise TypeError(f"Invalid file_type {type(file_type)}. Must be a string.")
     elif file_type.lower().startswith("train"):
         file_type = "training_file"
     elif file_type.lower().startswith("val"):
         file_type = "validation_file"
     else:
-        logger.error("Invalid file_type. Must be 'training' or 'validation'.")
+        logger.exception("Invalid file_type. Must be 'training' or 'validation'.")
         raise ValueError("Invalid file_type. Must be 'training' or 'validation'.")
 
     # Read the config file and get the file id
@@ -257,7 +254,7 @@ def _get_cached_file_id(
         else:
             return None
     except Exception as e:
-        logger.error(f"Error reading config file {config_file_path}: {e}")
+        logger.exception("Error reading config file:", config_file=config_file_path)
         raise e
 
 
@@ -274,22 +271,3 @@ def run_finetune_pipeline():
     upload_finetune_data(client, input_path=val_input_path, file_type="validation")
 
     finetune_from_config(client, config_file_path, finetune_model_id_path)
-
-
-if __name__ == "__main__":
-    # run_finetune_pipeline()
-
-    # Paths
-    config_path = check_file_path("config/openai_cc_improve.json", extensions=["json"])
-    prompt_path = check_file_path(
-        "prompts/icl0_system_mnemonic.txt", extensions=["txt"]
-    )
-
-    # Example 1: Improve a single mnemonic
-    term = "ephemeral"
-    mnemonic = "Things that are ephemeral don't last long."
-
-    print(f"\nImproving mnemonic for term '{term}':")
-    improved = improve_mnemonic(client, config_path, prompt_path, term, mnemonic)
-    print(f"\nOriginal: {mnemonic}")
-    print(f"Improved: {improved}")

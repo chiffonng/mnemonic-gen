@@ -1,23 +1,27 @@
 """Module for fine-tuning OpenAI models."""
 
-import logging
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
+import structlog
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Optional
 
     from openai import OpenAI
+    from structlog.stdlib import BoundLogger
 
 from src.utils import read_config
 
-logger = logging.getLogger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
 def finetune_from_config(
-    client: "OpenAI",
-    config_file_path: "Path",
-    finetuned_model_id_path: "Path",
+    client: OpenAI,
+    config_file_path: Path,
+    finetuned_model_id_path: Path,
     poll_seconds: int = 60,
 ) -> "Optional[str]":
     """Fine tune an OpenAI model using the configuration specified in the config file. This function creates a fine-tuning job via the OpenAI API and polls until the job reaches a terminal state.
@@ -45,7 +49,7 @@ def finetune_from_config(
         # TODO: Add wandb integrations
         job_response = client.fine_tuning.jobs.create(**config_kwargs)
     except Exception as e:
-        logger.error(f"Error creating fine-tuning job: {e}")
+        logger.exception("Error creating fine-tuning job:")
         raise e
 
     job_id = job_response.id
@@ -57,8 +61,8 @@ def finetune_from_config(
     while True:
         try:
             job_info = client.fine_tuning.jobs.retrieve(job_id)
-        except Exception as e:
-            logger.error(f"Error retrieving job {job_id}: {e}")
+        except Exception:
+            logger.exception("Error retrieving fine-tuning job", finetune_job_id=job_id)
             break
 
         status = job_info.status

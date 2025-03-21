@@ -1,9 +1,11 @@
 """Module for loading data using pandas and/or Hugging Face datasets / HuggingFace hub."""
 
-import logging
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 import pandas as pd
+import structlog
 from datasets import Dataset, DatasetDict, load_dataset
 
 from src.llms.huggingface import login_hf_hub
@@ -12,19 +14,16 @@ from src.utils import check_file_path
 if TYPE_CHECKING:
     from typing import Optional
 
+    from structlog.stdlib import BoundLogger
+
     from src.utils import PathLike
     from src.utils.constants import HF_DATASET_NAME, HF_TESTSET_NAME
 
 # Set up logging to console
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
-logger.handlers[0].setFormatter(
-    logging.Formatter("%(levelname)s - %(funcName)s - %(message)s")
-)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
-def load_local_dataset(file_path: "PathLike", **kwargs) -> "Dataset":
+def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
     """Load a dataset from a file (parquet or csv).
 
     Args:
@@ -67,8 +66,8 @@ def load_local_dataset(file_path: "PathLike", **kwargs) -> "Dataset":
 
 
 def load_txt_file(
-    file_path: "PathLike", split_name: str = "test", col_name: str = "term"
-) -> "DatasetDict":
+    file_path: PathLike, split_name: str = "test", col_name: str = "term"
+) -> DatasetDict:
     """Load a txt file as a pandas DataFrame.
 
     Args:
@@ -82,7 +81,7 @@ def load_txt_file(
     file_path = check_file_path(file_path, extensions=[".txt"])
 
     with file_path.open("r") as f:
-        data = f.readlines()
+        data = f.readlines().strip()
 
     df = pd.DataFrame(data, columns=[col_name])
     dataset = Dataset.from_pandas(df)
@@ -91,11 +90,11 @@ def load_txt_file(
 
 
 def load_hf_dataset(
-    repo_id: "Optional[str]" = None,
+    repo_id: Optional[str] = None,
     to_csv: bool = False,
-    file_path: "Optional[PathLike]" = None,
+    file_path: Optional[PathLike] = None,
     **kwargs,
-) -> "DatasetDict":
+) -> DatasetDict:
     """Load a dataset from the Hugging Face hub.
 
     Args:
@@ -126,7 +125,7 @@ def load_hf_dataset(
 
 
 # Example usage
-# smart_dataset: "Dataset" = load_hf_dataset(
+# smart_dataset: Dataset = load_hf_dataset(
 #     "nbalepur/Mnemonic_SFT",
 #     split="train+test",
 #     to_csv=True,
@@ -135,5 +134,5 @@ def load_hf_dataset(
 
 if __name__ == "__main__":
     # Load a dataset from the Hugging Face hub
-    mnemonic_dataset: "Dataset" = load_hf_dataset()
+    mnemonic_dataset: Dataset = load_hf_dataset()
     logger.info(f"\n\n{mnemonic_dataset}")

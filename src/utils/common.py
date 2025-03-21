@@ -1,21 +1,30 @@
 """Module for common utility functions."""
 
+from __future__ import annotations
+
 import json
 from typing import TYPE_CHECKING
+from warnings import warn
 
-from src.utils.error_handling import check_file_path
+from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    from typing import Any, Optional
 
     from src.utils import PathLike
 
 
-def read_prompt(prompt_path: "PathLike") -> str:
+def read_prompt(
+    prompt_path: PathLike,
+    vars: Optional[dict[str, Any]] = None,
+    vars_json_path: Optional[PathLike] = None,
+) -> str:
     """Read the system prompt from a .txt file.
 
     Args:
         prompt_path (Path): The path to the prompt file.
+        vars (dict, optional): A dictionary of variables to replace in the prompt.
+        vars_json_path (PathLike, optional): The path to a JSON file containing variables. Ignored if vars is provided.
 
     Returns:
         str: The prompt.
@@ -24,10 +33,25 @@ def read_prompt(prompt_path: "PathLike") -> str:
 
     with prompt_path.open("r") as file:
         prompt = file.read().strip()
+
+    if vars_json_path and vars:
+        warn(
+            "Both vars and vars_json_path provided. Using vars.",
+            category=UserWarning,
+            stacklevel=2,
+        )
+        vars_json_path = None
+
+    elif vars_json_path:
+        vars_json_path = check_file_path(vars_json_path, extensions=["json"])
+        vars = read_config(vars_json_path)
+
+    if vars:
+        return prompt.format(**vars)
     return prompt
 
 
-def read_config(conf_path: "PathLike") -> dict:
+def read_config(conf_path: PathLike) -> dict:
     """Read a configuration file.
 
     Args:
@@ -43,7 +67,7 @@ def read_config(conf_path: "PathLike") -> dict:
         return json.load(file)
 
 
-def update_config(config_filepath: "PathLike", key: str, new_value: str):
+def update_config(config_filepath: PathLike, key: str, new_value: str):
     """Update the config file with the new_value for the key.
 
     Args:
@@ -51,11 +75,11 @@ def update_config(config_filepath: "PathLike", key: str, new_value: str):
         key (str): The key to update.
         new_value (str): The new value to set for the key.
     """
-    config_file_path: "Path" = check_file_path(config_filepath, extensions=["json"])
+    config_path = check_file_path(config_filepath, extensions=["json"])
     try:
-        config_data: dict = read_config(config_file_path)
+        config_data: dict = read_config(config_path)
         config_data[key] = new_value
-        with config_file_path.open("w", encoding="utf-8") as f:
+        with config_path.open("w", encoding="utf-8") as f:
             json.dump(config_data, f)
     except Exception as e:
         raise e

@@ -1,22 +1,26 @@
 """Utility functions for OpenAI API interactions."""
 
+from __future__ import annotations
+
 import json
-import logging
 from collections import defaultdict
 from typing import TYPE_CHECKING
+
+import structlog
 
 if TYPE_CHECKING:
     from pathlib import Path
     from typing import Optional
 
     from openai import OpenAI
+    from structlog.stdlib import BoundLogger
 
 from src.utils import check_file_path, read_config
 
-logger = logging.getLogger(__name__)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
-def validate_openai_config(input_path: "Path"):
+def validate_openai_config(input_path: Path):
     """Validate the configuration file to be used for fine-tuning or generating completions using OpenAI.
 
     Args:
@@ -81,7 +85,7 @@ def validate_openai_config(input_path: "Path"):
     return config
 
 
-def validate_openai_file(input_path: "Path"):
+def validate_openai_file(input_path: Path):
     """Validate the data to be uploaded to OpenAI's API. Source code from OpenAI Cookbook: https://cookbook.openai.com/examples/chat_finetuning_data_prep.
 
     Args:
@@ -180,7 +184,9 @@ def validate_openai_file(input_path: "Path"):
                     format_errors["tool_unrecognized_key"] += 1
 
     if format_errors:
-        logger.error(f"Errors found in formatting data from {input_path}:")
+        logger.exception(
+            "Errors found in formatting data from input", input_path=input_path
+        )
         for k, v in format_errors.items():
             logger.error(f"{k}: {v}")
     else:
@@ -190,7 +196,7 @@ def validate_openai_file(input_path: "Path"):
         logger.info(f"Number of examples: {len(dataset)}")
 
 
-def upload_file_to_openai(client: "OpenAI", input_path: "Path") -> "Optional[str]":
+def upload_file_to_openai(client: OpenAI, input_path: Path) -> Optional[str]:
     """Upload the input file to OpenAI's Files API.
 
     Args:
@@ -218,5 +224,5 @@ def upload_file_to_openai(client: "OpenAI", input_path: "Path") -> "Optional[str
         return file_obj.id
 
     except Exception as e:
-        logger.error(f"Error during file upload: {e}")
+        logger.exception("Error during file upload")
         raise e

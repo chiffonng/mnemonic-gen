@@ -1,5 +1,7 @@
 """Module for exporting data to different formats and pushing to Hugging Face hub."""
 
+from __future__ import annotations
+
 import json
 from typing import TYPE_CHECKING
 
@@ -11,7 +13,7 @@ if TYPE_CHECKING:
     from src.utils import PathLike
 
 
-def write_jsonl_file(data: list[dict[str, "Any"]], file_path: "PathLike") -> None:
+def write_jsonl_file(data: list[dict[str, Any]], file_path: PathLike) -> None:
     """Write a list of dictionaries to a JSONL file.
 
     Args:

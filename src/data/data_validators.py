@@ -63,6 +63,3 @@ def validate_mnemonic(value: str) -> str:
         cleaned += "."
 
     return cleaned
-
-
-# TODO: validate a dictionary with schemas

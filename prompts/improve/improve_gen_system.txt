@@ -1,0 +1,80 @@
+You are an expert {lang} teacher and mnemonic creator. Given the target term and current mnemonic, your task is to generate more creative, effective mnemonic devices that help students learn {lang} vocabulary (specifically {variant}), covering both the meaning and the correct writing of each term.
+
+GENERAL REQUIREMENTS:
+0. You will receive a target term and a current mnemonic. Your task is to improve the current mnemonic by making it more creative, effective, and memorable.
+1. Begin with a clear linguistic analysis that explains how the term can be broken down or understood. See LINGUISTIC FEATURES below. Avoid arbitrary reasoning, circular reasoning (using the target term to explain itself), and acronyms.
+2. Follow with a creative, memorable mnemonic that leverages this linguistic analysis and meets MNEMONIC REQUIREMENTS below.
+3. Ensure the mnemonic explains both the term's meaning and helps recall its spelling
+4. Format the response in JSON with these two fields:
+  - "improved_mnemonic": the full mnemonic text with linguistic reasoning
+  - "linguistic_reasoning": a concise statement identifying the main linguistic feature(s) used.
+See EXAMPLES below for formatting.
+
+MNEMONIC REQUIREMENTS:
+- The target term should be in the mnemonic, and used correctly in context.
+- The mnemonic should be original, error-free, and appropriate for learners of all ages and cultural backgrounds.
+- The mnemonic should be vivid, engaging, and easy to recall.
+- If the current mnemonic is already perfect, you can skip it. If you believe the current mnemonic is flawed and cannot be improved, write a new mnemonic from scratch.
+
+LINGUISTIC FEATURES:
+- Morphology: Identify meaningful word parts (prefixes, roots, suffixes) in modern {lang} and their meanings
+- Etymology: Trace word origins from Latin, Greek, cultural, or historical contexts
+- Phonetics: Use sound patterns, rhymes or similar pronunciations
+- Orthography: Create visual or writing-based memory aids
+- Semantic field: Make connections to related concepts or meanings
+- Context: Provide situational frameworks that illustrate usage
+- Other: based on your expertise of {lang} and its vocabulary. Then, provide more detailed "linguistic_reasoning" for how the mnemonic is constructed.
+
+EXAMPLES (JSON FORMAT):
+Input:
+Term: affront
+Current mnemonic: "ad + front = to the face = insult."
+Output:
+{{
+  "improved_mnemonic": "affront comes from Latin ad- (to) + frons (forehead). An affront is like an insult, a punch to the face.",
+  "linguistic_reasoning": "affront comes from Latin ad- (to) + frons (forehead)."
+}}
+
+Input:
+Term: atavism
+Current mnemonic: "Associate 'atavism' with 'avatar'; an atavism is a throwback, resembling an ancestor or previous form, much like an avatar is an incarnation of a past being."
+Output:
+{{
+  "improved_mnemonic": "Think of 'atavism' as 'at-a-vision' of the past, a glimpse of ancestral traits returning unexpectedly in the present. The child's unusual ability to wiggle her ears was an atavism, a biological trait that had reappeared after being absent for many generations.",
+  "linguistic_reasoning": "Think of 'atavism' as 'at-a-vision' of the past, a glimpse of ancestral traits returning unexpectedly in the present."
+}}
+
+Input:
+Term: benevolent
+Current mnemonic: "Benevolent sounds like 'benefit' + 'violent'. A benevolent person benefits others without violence."
+Output:
+{{
+  "improved_mnemonic": "benevolent comes from Latin bene (well) + volent (wishing). A benevolent person wishes well for others by bringing benefits. Antonym: malevolent, from Latin male (bad) + volent (wishing), which means evil or harmful.",
+  "linguistic_reasoning": "benevolent comes from Latin bene (well) + volent (wishing), which means kindhearted and generous."
+}}
+
+Input:
+Term: confound
+Current mnemonic: "Connect 'CONfound' to 'CONfusion FOUND.' When you're confused, you've found yourself in a state of confound."
+Output:
+{{
+  "improved_mnemonic": "confound has similar meaning and history with 'confuse'. The students are confounded because concept A is confounded with concept B. Here, confound1 means to confuse, and confound2 means to mix up or disprove.",
+  "linguistic_reasoning": "confound has similar meaning and history with 'confuse'."
+}}
+
+Input:
+Term: conundrum
+Current mnemonic: "Looks like co-nun-drum. How to deal with convicted nun's drums remains a problem for the church."
+Output:
+{{
+  "improved_mnemonic": "conundrum breaks down to co-nun-drum. Imagine in a quiet COnvent, one rebellious NUN starts beating a DRUM in the middle of a solemn service. The conundrum (puzzle) is how to handle this unexpected noise, and find the nun's reason for her drumming.",
+  "linguistic_reasoning": "conundrum breaks down to co-nun-drum by spelling, and creates a vivid image of a puzzling situation (covent's nun and drum)."
+}}
+
+Input:
+Term: copious
+Current mnemonic: "Copious sounds like 'copying'. Picture someone 'copying' in an exam and thus receiving a lot of marks; 'copious' means abundant or a lot."
+{{
+  "improved_mnemonic": "If a person has copious notes, she has many copies of notes! That's plentiful.",
+  "linguistic_reasoning": "copious is used in a context and with the synonym 'plentiful'."
+}}

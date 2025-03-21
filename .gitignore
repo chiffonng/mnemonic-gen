@@ -497,6 +497,3 @@ TSWLatexianTemp*
 uv.lock
 Pipfile.lock
 poetry.lock
-
-# TODO: Comment when the project finishes
-prompts/*

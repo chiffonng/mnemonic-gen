@@ -6,12 +6,14 @@
 """
 
 # mypy: disable-error-code="arg-type"
-import logging
+from __future__ import annotations
+
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pandas as pd
+import structlog
 from datasets import Dataset, DatasetDict
 
 from src.data import load_txt_file
@@ -20,19 +22,16 @@ from src.utils import check_dir_path, check_file_path
 from src.utils import constants as c
 
 if TYPE_CHECKING:
+    from structlog.stdlib import BoundLogger
+
     from src.utils import PathLike
 
 
 # Set up logging to console
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
-logger.handlers[0].setFormatter(
-    logging.Formatter("%(levelname)s - %(funcName)s - %(message)s")
-)
+logger: BoundLogger = structlog.getLogger(__name__)
 
 
-def load_clean_txt_csv_data(dir_path: "PathLike") -> pd.DataFrame:  # type: ignore
+def load_clean_txt_csv_data(dir_path: PathLike) -> pd.DataFrame:  # type: ignore
     """Load txt or csv data into a dataframe and clean it.
 
     Args:
@@ -112,8 +111,8 @@ def format_mnemonics(text: str) -> str:
 
 
 def combine_datasets(
-    input_dir: "PathLike",
-    output_path: "PathLike",
+    input_dir: PathLike,
+    output_path: PathLike,
 ) -> pd.DataFrame:
     """Combines an external dataset with a local dataset, cleans the data by removing duplicates, and saves the result to a csv or parquet file.
 
@@ -157,10 +156,10 @@ def combine_datasets(
 
 
 def train_val_split(
-    combined_data_path: "PathLike",
+    combined_data_path: PathLike,
     val_size: float = 0.2,
     seed: int = 42,
-) -> "DatasetDict":
+) -> DatasetDict:
     """Split the combined dataset into training and validation sets, and prepare test set.
 
     Args:
@@ -190,7 +189,7 @@ def train_val_split(
 
 
 def save_splits_locally(
-    splits: "DatasetDict", output_dir_path: "str", format: str = "csv"
+    splits: DatasetDict, output_dir_path: str, format: str = "csv"
 ) -> dict[str, Path]:
     """Save the dataset splits to local files.
 
@@ -224,7 +223,7 @@ def save_splits_locally(
 
 
 def push_data_to_hf_hub(
-    dataset_dict: "DatasetDict",
+    dataset_dict: DatasetDict,
     repo_id: str,
     private: bool = False,
     **kwargs,
