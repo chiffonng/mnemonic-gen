@@ -1,12 +1,12 @@
 """Global settings for the application."""
 
 import logging
+import logging.config
 
 import structlog
 
 LOGGING_CONF = {
     "version": 1,
-    "disable_existing_loggers": True,
     "formatters": {
         "json_formatter": {
             "()": structlog.stdlib.ProcessorFormatter,
@@ -59,7 +59,7 @@ structlog.configure(
         structlog.stdlib.add_logger_name,
         structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-        structlog.processors.ConsoleRenderer(),
+        structlog.dev.ConsoleRenderer(),
     ],
     context_class=dict,
     logger_factory=structlog.stdlib.LoggerFactory(),
