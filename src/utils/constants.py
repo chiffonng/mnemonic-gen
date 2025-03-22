@@ -6,6 +6,7 @@ JSONL_EXT = ".jsonl"
 PARQUET_EXT = ".parquet"
 CSV_EXT = ".csv"
 TXT_EXT = ".txt"
+PROMPT_EXT = ".txt"
 
 # Data paths
 DATA_MODULE = "data"
@@ -34,6 +35,7 @@ HF_MODEL_NAME = "chiffonng/gemma2-9b-it-mnemonics"  # <user>/<model_name>
 # OpenAI Finetuning API
 SFT_IMPROVE_TRAIN = PROCESSED_DATA_DIR + "/sft_improve_train.jsonl"
 SFT_IMPROVE_VAL = PROCESSED_DATA_DIR + "/sft_improve_val.jsonl"
+SFT_OPENAI_MODEL_ID = "ft:gpt-4o-mini-2024-07-18:personal:improve-sft:B62kPWoy"
 
 # Prompts
 DIR_PROMPT = "prompts"

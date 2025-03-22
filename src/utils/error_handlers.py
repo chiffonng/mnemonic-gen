@@ -5,10 +5,16 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from structlog import getLogger
+
 if TYPE_CHECKING:
     from typing import Optional
 
+    from structlog.stdlib import BoundLogger
+
     from src.utils.types import ExtensionsType, PathLike
+
+logger: BoundLogger = getLogger(__name__)
 
 
 def validate_path(path: PathLike) -> Path:
@@ -67,7 +73,6 @@ def check_extension(path: Path, extensions: ExtensionsType) -> None:
         )
 
 
-# TODO: Refactor into two functions, one for file, and one for checking extensions
 def check_file_path(
     path: PathLike,
     new_ok: bool = False,
@@ -79,7 +84,7 @@ def check_file_path(
     Args:
         path (PathLike): The path to the file.
         new_ok (bool, optional): If True, the file does not have to exist. Defaults to False.
-        to_create (bool, optional): If True, the file will be created if it does not exist. Defaults to False. Ignored if 'new_ok' is False.
+        to_create (bool, optional): If True, the file will be created if it does not exist (including its parents). Defaults to False. Ignored if 'new_ok' is False.
         extensions (list[str], optional): A list of allowed file extensions. Defaults to []. If provided, the file must have one of the specified extensions.
 
     Returns:
@@ -87,8 +92,8 @@ def check_file_path(
 
     Raises:
         TypeError: If 'path' is not a string or a Path object OR if 'extensions' is not a string or a list of strings.
-        FileNotFoundError: If the file does not exist.
-        ValueError: If the extensions do not start with a dot OR if the file does not have the specified extension
+        FileNotFoundError: If the file does not exist and 'new_ok' is False.
+        ValueError: If the file does not have the specified extensions
     """
     path = validate_path(path)
     if not new_ok and not path.exists():
@@ -101,6 +106,35 @@ def check_file_path(
     check_extension(path, extensions)
 
     return path
+
+
+def check_file_paths(
+    *paths: PathLike,
+    new_ok: bool = False,
+    to_create: bool = False,
+    extensions: Optional[list[ExtensionsType]] = None,
+) -> tuple[Path]:
+    """Check if the file paths exist, convert them to Path objects if they are strings, and return them. Optionally, check if the files have one of the specified extensions.
+
+    Args:
+        paths (PathLike): The paths to the files.
+        new_ok (bool, optional): If True, the files do not have to exist. Defaults to False.
+        to_create (bool, optional): If True, the files will be created if they do not exist. Defaults to False. Ignored if 'new_ok' is False.
+        extensions (list[str], optional): A list of allowed file extensions. Defaults to []. If provided, all files must have one of the specified extensions.
+
+    Returns:
+        paths (tuple[Path]): The paths to the files.
+
+    Raises (inherits from check_file_path):
+        TypeError: If 'paths' is not a list of strings or Path objects OR if 'extensions' is not a string or a list of strings.
+        FileNotFoundError: If the files do not exist.
+        ValueError: If the extensions do not start with a dot OR if the files do not have the specified extension
+    """
+    paths = (
+        check_file_path(path, new_ok=new_ok, to_create=to_create, extensions=extensions)
+        for path in paths
+    )
+    return paths
 
 
 def check_dir_path(
@@ -157,7 +191,7 @@ def find_files_with_extensions(
     return paths
 
 
-def which_file_exists(
+def first_file_exists(
     *files: PathLike, extensions: Optional[ExtensionsType] = None
 ) -> Path:
     """Return the first file found in the list of files. Optionally, return the first file with the specified extensions.
