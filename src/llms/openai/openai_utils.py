@@ -9,22 +9,23 @@ from typing import TYPE_CHECKING
 from structlog import getLogger
 
 if TYPE_CHECKING:
-    from pathlib import Path
     from typing import Optional
 
     from openai import OpenAI
     from structlog.stdlib import BoundLogger
+
+    from src.utils.types import PathLike
 
 from src.utils import check_file_path, read_config
 
 logger: BoundLogger = getLogger(__name__)
 
 
-def validate_openai_config(input_path: Path):
+def validate_openai_config(input_path: PathLike):
     """Validate the configuration file to be used for fine-tuning or generating completions using OpenAI.
 
     Args:
-        input_path (Path): The path to the input configuration file. The configuration should be in JSON format.
+        input_path (PathLike): The path to the input configuration file. The configuration should be in JSON format.
 
     Raises:
         ValueError: If the input configuration is empty or not a dictionary.
@@ -85,11 +86,11 @@ def validate_openai_config(input_path: Path):
     return config
 
 
-def validate_openai_file(input_path: Path):
+def validate_openai_file(input_path: PathLike) -> None:
     """Validate the data to be uploaded to OpenAI's API. Source code from OpenAI Cookbook: https://cookbook.openai.com/examples/chat_finetuning_data_prep.
 
     Args:
-        input_path (Path): The path to the input data. The data should be in JSONL format.
+        input_path (PathLike): The path to the input data. The data should be in JSONL format.
 
     Raises:
         ValueError: If the input data is empty or not a list of dictionaries.
@@ -196,12 +197,12 @@ def validate_openai_file(input_path: Path):
         logger.info(f"Number of examples: {len(dataset)}")
 
 
-def upload_file_to_openai(client: OpenAI, input_path: Path) -> Optional[str]:
+def upload_file_to_openai(client: OpenAI, input_path: PathLike) -> Optional[str]:
     """Upload the input file to OpenAI's Files API.
 
     Args:
         client (OpenAI): The OpenAI client object.
-        input_path (Path): The path to the input file.
+        input_path (PathLike): The path to the input file.
 
     Returns:
         Optional[str]: The id of the uploaded file.

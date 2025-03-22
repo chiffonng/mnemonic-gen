@@ -13,7 +13,8 @@ if TYPE_CHECKING:
     from openai import OpenAI
     from structlog.stdlib import BoundLogger
 
-from src.utils import read_config
+from src.utils import constants as const
+from src.utils.common import read_config
 
 logger: BoundLogger = getLogger(__name__)
 
@@ -21,7 +22,6 @@ logger: BoundLogger = getLogger(__name__)
 def finetune_from_config(
     client: OpenAI,
     config_file_path: Path,
-    finetuned_model_id_path: Path,
     poll_seconds: int = 60,
 ) -> "Optional[str]":
     """Fine tune an OpenAI model using the configuration specified in the config file. This function creates a fine-tuning job via the OpenAI API and polls until the job reaches a terminal state.
@@ -31,7 +31,6 @@ def finetune_from_config(
     Args:
         client (OpenAI): The OpenAI client object.
         config_file_path (Path): The path to the config file.
-        finetuned_model_id_path (Path): The path to the file where the fine-tuned model id will be written.
         poll_seconds (int): The number of seconds to wait between querying the job status.
 
     Returns:
@@ -79,9 +78,8 @@ def finetune_from_config(
         finetuned_model_id = job_info.fine_tuned_model
         logger.info(f"Fine-tuning succeeded. Fine-tuned model: {finetuned_model_id}")
 
-        # Write the fine-tuned model id to a file.
-        with finetuned_model_id_path.open("w", encoding="utf-8") as f:
-            f.write(finetuned_model_id)
+        # Save the fine-tuned model id
+        const.SFT_OPENAI_MODEL_ID = finetuned_model_id
 
         return finetuned_model_id
     elif status == "failed":
