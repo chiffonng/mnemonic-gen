@@ -18,7 +18,7 @@ from structlog import getLogger
 
 from src.data import load_txt_file
 from src.llms.huggingface import login_hf_hub
-from src.utils import check_dir_path, check_file_path
+from src.utils import check_dir_path, check_file_path, find_files_with_extensions
 from src.utils import constants as c
 
 if TYPE_CHECKING:
@@ -128,7 +128,7 @@ def combine_datasets(
     Raises:
         ValueError: If the provided output format is not 'csv' or 'parquet'.
     """
-    checked_input_dir = check_dir_path(input_dir)
+    checked_input_dir = find_files_with_extensions(input_dir)
 
     # Load and combine the datasets
     combined_df = load_clean_txt_csv_data(checked_input_dir)
