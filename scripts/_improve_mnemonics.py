@@ -4,11 +4,11 @@ import argparse
 
 from src import const
 from src._mnemonic_enhancer.mnemonic_enhancer import improve_mnemonic
-from structlog import get_logger
+from structlog import getLogger
 from structlog.stdlib import BoundLogger
 
 # Set up logging
-logger: BoundLogger = get_logger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 def improve_single_mnemonic():

@@ -5,13 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pandas as pd
-import structlog
+from structlog import getLogger
 
 if TYPE_CHECKING:
     from typing import Optional
 
     from structlog.stdlib import BoundLogger
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 def stratify_by_column(
