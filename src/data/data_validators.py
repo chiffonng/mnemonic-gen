@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from pydantic import ValidationError
 from structlog import getLogger
 
+
 if TYPE_CHECKING:
     from typing import Any, Callable
 
@@ -16,7 +17,6 @@ if TYPE_CHECKING:
 
     from src.utils.types import ModelT, StrNoneType
 
-# Set up logging
 logger: BoundLogger = getLogger(__name__)
 
 
