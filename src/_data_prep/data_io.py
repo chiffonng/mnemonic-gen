@@ -2,35 +2,52 @@
 
 from __future__ import annotations
 
-import csv
 import json
-from typing import Any
+from typing import TYPE_CHECKING
 
-from src.utils import PathLike, check_file_path
+import pandas as pd
+
+from src.utils import constants as const
+from src.utils.error_handlers import check_file_path
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from src.utils.types import PathLike
 
 
-def read_csv_file(file_path: PathLike) -> list[dict[str, Any]]:
+def read_csv_file(file_path: PathLike, **kwargs) -> Any:
     """Read a CSV file and return its contents as a list of dictionaries.
 
     Args:
         file_path: Path to the CSV file
+        **kwargs: Additional arguments to process dataframe further
 
     Returns:
         List of dictionaries representing CSV rows
     """
-    # Validate path using existing utility
-    validated_path = check_file_path(file_path, extensions=[".csv"])
+    validated_path = check_file_path(file_path, extensions=[const.CSV_EXT])
 
-    rows = []
-    with validated_path.open("r", encoding="utf-8") as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            # Clean up whitespace in values
-            rows.append(
-                {k: v.strip() if isinstance(v, str) else v for k, v in row.items()}
-            )
+    df = pd.read_csv(validated_path, encoding="utf-8")
 
-    return rows
+    # Process the dataframe further if needed
+    to_dict = kwargs.get("to_dict", False)
+    to_lst_dict = kwargs.get("to_lst_dict", False)
+    to_json = kwargs.get("to_json", False)
+    to_jsonl = kwargs.get("to_jsonl", False)
+
+    if to_dict:
+        content: dict[dict[str, Any]] = df.to_dict()
+    elif to_lst_dict:
+        content: list[dict[str, Any]] = df.to_dict(orient="records")
+    elif to_json:
+        content: str = df.to_json(orient="records")
+    elif to_jsonl:
+        content: str = df.to_json(orient="records", lines=True)
+    else:
+        return df
+
+    return content
 
 
 def read_json_file(file_path: PathLike) -> list[dict[str, Any]]:
@@ -58,7 +75,7 @@ def read_jsonl_file(file_path: PathLike) -> list[dict[str, Any]]:
     Returns:
         List of dictionaries representing JSON Lines objects
     """
-    validated_path = check_file_path(file_path, extensions=[".jsonl"])
+    validated_path = check_file_path(file_path, extensions=[const.JSONL_EXT])
 
     data = []
     with validated_path.open("r", encoding="utf-8") as jsonlfile:
@@ -77,9 +94,25 @@ def read_txt_file(file_path: PathLike) -> list[str]:
     Returns:
         List of strings representing lines in the text file
     """
-    validated_path = check_file_path(file_path, extensions=[".txt"])
+    validated_path = check_file_path(file_path, extensions=[const.TXT_EXT])
 
     with validated_path.open("r", encoding="utf-8") as txtfile:
         data = [line.strip() for line in txtfile if line.strip()]
 
     return data
+
+
+def write_jsonl_file(data: list[dict[str, Any]], file_path: PathLike) -> None:
+    """Write a list of dictionaries to a JSONL file.
+
+    Args:
+        data: List of dictionaries to write
+        file_path: Path to the output JSONL file
+    """
+    file_path = check_file_path(
+        file_path, new_ok=True, to_create=True, extensions=[".jsonl"]
+    )
+
+    with file_path.open("w", encoding="utf-8") as f:
+        for item in data:
+            f.write(json.dumps(item, ensure_ascii=False) + "\n")
