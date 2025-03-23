@@ -28,7 +28,7 @@ def read_csv_file(file_path: PathLike, **kwargs) -> Any:
     """
     validated_path = check_file_path(file_path, extensions=[const.CSV_EXT])
 
-    df = pd.read_csv(validated_path, encoding="utf-8")
+    df = pd.read_csv(validated_path, na_values=[None], keep_default_na=False)
 
     # Process the dataframe further if needed
     to_dict = kwargs.get("to_dict", False)
@@ -110,7 +110,7 @@ def write_jsonl_file(data: list[dict[str, Any]], file_path: PathLike) -> None:
         file_path: Path to the output JSONL file
     """
     file_path = check_file_path(
-        file_path, new_ok=True, to_create=True, extensions=[".jsonl"]
+        file_path, new_ok=True, to_create=True, extensions=[const.JSONL_EXT]
     )
 
     with file_path.open("w", encoding="utf-8") as f:
