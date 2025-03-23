@@ -3,6 +3,7 @@ from .error_handlers import (
     check_dir_path,
     check_extension,
     check_file_path,
-    which_file_exists,
+    find_files_with_extensions,
+    first_file_exists,
 )
 from .types import ExtensionsType, PathLike

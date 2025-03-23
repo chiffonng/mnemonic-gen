@@ -1,9 +1,6 @@
 {
-  "model": "ft:gpt-4o-mini-2024-07-18:personal:improve-sft:B62kPWoy",
-  "max_completion_tokens": 10000,
-  "temperature": 0.6,
-  "top_p": 1,
+  "model": "ft:gpt-4o-mini-2024-07-18:personal:improve-sft:BEMMXMHj",
+  "max_completion_tokens": 1000,
   "frequency_penalty": 0.5,
-  "presence_penalty": 1,
-  "stream": false
+  "presence_penalty": 1
 }

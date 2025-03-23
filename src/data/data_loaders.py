@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pandas as pd
-import structlog
 from datasets import Dataset, DatasetDict, load_dataset
+from structlog import getLogger
 
 from src.llms.huggingface import login_hf_hub
 from src.utils import check_file_path
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from src.utils.constants import HF_DATASET_NAME, HF_TESTSET_NAME
 
 # Set up logging to console
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:

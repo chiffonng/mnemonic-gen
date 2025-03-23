@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import structlog
 from litellm import (
     batch_completion,
     completion,
@@ -12,6 +11,7 @@ from litellm import (
     validate_environment,
 )
 from pydantic import BaseModel
+from structlog import getLogger
 from tqdm import tqdm
 
 from src.data.data_validators import validate_content_against_schema
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from src.utils.types import BatchResponseType, ModelT, PathLike, ResponseType
 
 # Set up logging
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 def build_input_params(

@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pandas as pd
-import structlog
 from sqlmodel import Session, select
+from structlog import getLogger
 from tqdm import tqdm
 
 from src._mnemonic_enhancer.init_db import engine
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from src.utils import PathLike
 
 # Set up logging
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 def improve_mnemonic(

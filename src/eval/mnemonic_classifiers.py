@@ -6,7 +6,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-import structlog
+from structlog import getLogger
 
 from src.llms.client import complete
 from src.utils import constants as const
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
     from src.utils.types import MnemonicType, PathLike
 
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 def classify_by_keywords(mnemonic: str) -> tuple[MnemonicType, Optional[MnemonicType]]:

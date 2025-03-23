@@ -6,8 +6,8 @@ import json
 from enum import Enum
 from typing import TYPE_CHECKING
 
-import structlog
 from pydantic import ValidationError
+from structlog import getLogger
 
 if TYPE_CHECKING:
     from typing import Any, Callable
@@ -16,8 +16,7 @@ if TYPE_CHECKING:
 
     from src.utils.types import ModelT, StrNoneType
 
-# Set up logging
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
 class ExplicitEnum(str, Enum):

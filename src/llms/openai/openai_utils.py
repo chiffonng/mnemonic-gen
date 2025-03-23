@@ -6,25 +6,26 @@ import json
 from collections import defaultdict
 from typing import TYPE_CHECKING
 
-import structlog
+from structlog import getLogger
 
 if TYPE_CHECKING:
-    from pathlib import Path
-    from typing import Optional
+    from typing import Literal, Optional
 
     from openai import OpenAI
     from structlog.stdlib import BoundLogger
 
+    from src.utils.types import PathLike
+
 from src.utils import check_file_path, read_config
 
-logger: BoundLogger = structlog.getLogger(__name__)
+logger: BoundLogger = getLogger(__name__)
 
 
-def validate_openai_config(input_path: Path):
+def validate_openai_config(input_path: PathLike):
     """Validate the configuration file to be used for fine-tuning or generating completions using OpenAI.
 
     Args:
-        input_path (Path): The path to the input configuration file. The configuration should be in JSON format.
+        input_path (PathLike): The path to the input configuration file. The configuration should be in JSON format.
 
     Raises:
         ValueError: If the input configuration is empty or not a dictionary.
@@ -85,11 +86,11 @@ def validate_openai_config(input_path: Path):
     return config
 
 
-def validate_openai_file(input_path: Path):
+def validate_openai_file(input_path: PathLike) -> None:
     """Validate the data to be uploaded to OpenAI's API. Source code from OpenAI Cookbook: https://cookbook.openai.com/examples/chat_finetuning_data_prep.
 
     Args:
-        input_path (Path): The path to the input data. The data should be in JSONL format.
+        input_path (PathLike): The path to the input data. The data should be in JSONL format.
 
     Raises:
         ValueError: If the input data is empty or not a list of dictionaries.
@@ -196,12 +197,19 @@ def validate_openai_file(input_path: Path):
         logger.info(f"Number of examples: {len(dataset)}")
 
 
-def upload_file_to_openai(client: OpenAI, input_path: Path) -> Optional[str]:
+def upload_file_to_openai(
+    client: OpenAI,
+    input_path: PathLike,
+    purpose: Literal[
+        "assistants", "batch", "fine-tune", "vision", "user_data", "evals"
+    ] = "fine-tune",
+) -> Optional[str]:
     """Upload the input file to OpenAI's Files API.
 
     Args:
         client (OpenAI): The OpenAI client object.
-        input_path (Path): The path to the input file.
+        input_path (PathLike): The path to the input file.
+        purpose (str): The purpose of the file. Default is "fine-tune".
 
     Returns:
         Optional[str]: The id of the uploaded file.
@@ -210,10 +218,14 @@ def upload_file_to_openai(client: OpenAI, input_path: Path) -> Optional[str]:
         e: Exception if there was an error uploading the file.
     """
     try:
+        # Validate the file path
+        input_path = check_file_path(input_path, extensions=["jsonl"])
+
         with input_path.open("rb") as file_bin:
-            logger.info(f"Uploading file: {input_path}")
-            logger.info(f"Type of file_bin: {type(file_bin)}")
-            file_obj = client.files.create(file=file_bin, purpose="fine-tune")
+            logger.info("Uploading file to OpenAI", source=input_path)
+            logger.debug("Type of file_bin object", type=type(file_bin))
+            file_obj = client.files.create(file=file_bin, purpose=purpose)
+
         if file_obj is None:
             logger.error("Error uploading file: received None as file object.")
             raise Exception("Error uploading file: received None as file object.")
@@ -221,6 +233,8 @@ def upload_file_to_openai(client: OpenAI, input_path: Path) -> Optional[str]:
             logger.error(f"Upload failed: {file_obj.error}")
             raise Exception(f"Upload failed: {file_obj.error}")
 
+        logger.info("File uploaded successfully", file_id=file_obj.id)
+        logger.debug("File object details", file_obj=file_obj)
         return file_obj.id
 
     except Exception as e:
