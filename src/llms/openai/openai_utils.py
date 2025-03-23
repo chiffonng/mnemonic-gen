@@ -211,10 +211,14 @@ def upload_file_to_openai(client: OpenAI, input_path: PathLike) -> Optional[str]
         e: Exception if there was an error uploading the file.
     """
     try:
+        # Validate the file path
+        input_path = check_file_path(input_path, extensions=["jsonl"])
+
         with input_path.open("rb") as file_bin:
             logger.info(f"Uploading file: {input_path}")
             logger.info(f"Type of file_bin: {type(file_bin)}")
             file_obj = client.files.create(file=file_bin, purpose="fine-tune")
+
         if file_obj is None:
             logger.error("Error uploading file: received None as file object.")
             raise Exception("Error uploading file: received None as file object.")
