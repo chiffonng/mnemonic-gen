@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from pydantic import ValidationError
 from structlog import getLogger
 
-
 if TYPE_CHECKING:
     from typing import Any, Callable
 
