@@ -139,7 +139,7 @@ def push_data_to_hf(
     Returns:
         URL of the uploaded dataset
     """
-    logger.info(f"Uploading dataset to HuggingFace: {repo_id}")
+    logger.info("Uploading dataset to HuggingFace", dataset=dataset_dict, repo=repo_id)
 
     # Login to HuggingFace with write permission
     login_hf_hub(write_permission=True)

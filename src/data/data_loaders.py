@@ -58,13 +58,17 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
             f"Invalid file extension: {file_path.suffix}. Must be one of: '.parquet', '.csv', '.json', '.jsonl', '.txt'."
         )
 
-    logger.info(f"Loaded dataset from {file_path}.")
+    logger.info("Loaded dataset", source=file_path)
     if isinstance(dataset, DatasetDict):
         dataset = dataset["train"]
 
-    logger.debug(f"Type of dataset: {type(dataset)}.")
-    logger.info(f"Data shape: {dataset.shape}.")
-    logger.info(f"Features: {dataset.features}.")
+    logger.info(
+        "Dataset information",
+        dataset=dataset,
+        features=dataset.features,
+        nrows=dataset.num_rows,
+        ncols=dataset.num_columns,
+    )
     return dataset
 
 
