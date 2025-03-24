@@ -22,6 +22,7 @@ FINAL_TEST_DATASET_TXT = FINAL_DATA_DIR + "/test.txt"
 SEED_IMPROVED_CSV = PROCESSED_DATA_DIR + "/seed_improved.csv"
 SEED_IMPROVED_JSON = PROCESSED_DATA_DIR + "/seed_improved_stratified.jsonl"
 IMPROVED_CSV = PROCESSED_DATA_DIR + "/improved.csv"
+MNEMONIC_DB_URI = "sqlite:///" + PROCESSED_DATA_DIR + "/mnemonics.db"
 
 # Data columns
 TERM_COL = "term"
@@ -31,6 +32,7 @@ MNEMONIC_COL = "mnemonic"
 HF_DATASET_NAME = "chiffonng/en-vocab-mnemonics"  # <user>/<dataset_name>
 HF_TESTSET_NAME = "chiffonng/en-vocab-mnemonics-test"  # <user>/<dataset_name>
 HF_MODEL_NAME = "chiffonng/gemma2-9b-it-mnemonics"  # <user>/<model_name>
+HF_MNEMONIC_DATASET = "chiffonng/en-vocab-mnemonics-full"
 
 # OpenAI Finetuning API
 SFT_IMPROVE_TRAIN = PROCESSED_DATA_DIR + "/sft_improve_train.jsonl"
