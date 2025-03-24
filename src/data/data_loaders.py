@@ -47,7 +47,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
             "csv",
             data_files=str(file_path),
             keep_default_na=False,
-            na_values=[None],
+            na_values=[""],  # nan becomes empty string
             **kwargs,
         )
     elif file_path.suffix == ".json" or file_path.suffix == ".jsonl":

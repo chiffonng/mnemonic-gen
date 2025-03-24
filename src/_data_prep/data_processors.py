@@ -16,8 +16,8 @@ import pandas as pd
 from datasets import Dataset, DatasetDict
 from structlog import getLogger
 
-from src.data import load_txt_file
-from src.llms.huggingface import login_hf_hub
+from src._data_prep.data_io import push_data_to_hf_hub
+from src.data.data_loaders import load_txt_file
 from src.utils import check_dir_path, check_file_path, find_files_with_extensions
 from src.utils import constants as c
 
@@ -220,35 +220,6 @@ def save_splits_locally(
         )
 
     return file_paths
-
-
-def push_data_to_hf_hub(
-    dataset_dict: DatasetDict,
-    repo_id: str,
-    private: bool = False,
-    **kwargs,
-):
-    """Push dataset splits to the Hugging Face hub.
-
-    Args:
-        dataset_dict (DatasetDict): Dictionary containing splits and their according datasets.
-        repo_id (str): The Hugging Face repository ID. Defaults to the value in 'utils/constants.py'.
-        private (bool): Whether to make the dataset private. Defaults to False.
-        **kwargs: Additional keyword arguments for the push_to_hub() function.
-    """
-    # Login to Hugging Face with a write token
-    login_hf_hub(write_permission=True)
-
-    # Push to HF Hub
-    dataset_dict.push_to_hub(
-        repo_id=repo_id,
-        private=private,
-        **kwargs,
-    )
-
-    logger.info(
-        f"Pushed dataset to Hugging Face hub. Go to https://huggingface.co/datasets/{repo_id} to view the dataset."
-    )
 
 
 # Get train and validation datasetdict
