@@ -24,7 +24,7 @@ logger: BoundLogger = getLogger(__name__)
 
 
 def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
-    """Load a dataset from a file (parquet or csv).
+    """Load a dataset from a file into a Hugging Face Dataset.
 
     Args:
         file_path (PathLike): Path to the file.
@@ -43,25 +43,32 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
     if file_path.suffix == ".parquet":
         dataset = load_dataset("parquet", data_files=str(file_path), **kwargs)
     elif file_path.suffix == ".csv":
-        dataset = load_dataset("csv", data_files=str(file_path), **kwargs)
-    elif file_path.suffix == ".json":
+        dataset = load_dataset(
+            "csv",
+            data_files=str(file_path),
+            keep_default_na=False,
+            na_values=[""],  # nan becomes empty string
+            **kwargs,
+        )
+    elif file_path.suffix == ".json" or file_path.suffix == ".jsonl":
         dataset = load_dataset("json", data_files=str(file_path), **kwargs)
-    elif file_path.suffix == ".txt":
-        df = load_txt_file(file_path=file_path)
-        dataset = Dataset.from_pandas(df)
 
     else:
         raise ValueError(
-            f"Invalid file extension: {file_path.suffix}. Must be one of: '.parquet', '.csv', '.json', '.txt'."
+            f"Invalid file extension: {file_path.suffix}. Must be one of: '.parquet', '.csv', '.json', '.jsonl', '.txt'."
         )
 
-    logger.info(f"Loaded dataset from {file_path}.")
+    logger.info("Loaded dataset", source=file_path)
     if isinstance(dataset, DatasetDict):
         dataset = dataset["train"]
 
-    logger.debug(f"Type of dataset: {type(dataset)}.")
-    logger.info(f"Data shape: {dataset.shape}.")
-    logger.info(f"Features: {dataset.features}.")
+    logger.info(
+        "Dataset information",
+        dataset=dataset,
+        features=dataset.features,
+        nrows=dataset.num_rows,
+        ncols=dataset.num_columns,
+    )
     return dataset
 
 
@@ -87,6 +94,28 @@ def load_txt_file(
     dataset = Dataset.from_pandas(df)
 
     return DatasetDict({split_name: dataset})
+
+
+def load_from_database(table_or_query: str, uri: str, **kwargs) -> Dataset:
+    """Load a dataset from a SQLite database.
+
+    Args:
+        table_or_query (str): The SQL query or table name.
+        uri (str): The database URI.
+        kwargs: Additional keyword arguments for the Hugging Face Dataset.from_sql() function.
+
+    Returns:
+        Dataset: The loaded dataset.
+
+    Raises:
+        ValueError: If the URI does not start with 'sqlite:///'.
+    """
+    if not uri.startswith("sqlite:///"):
+        raise ValueError("URI must start with 'sqlite:///'")
+
+    ds = Dataset.from_sql(table_or_query, con=uri, **kwargs)
+    logger.info(f"Loaded dataset from {uri}.")
+    return ds
 
 
 def load_hf_dataset(

@@ -6,14 +6,22 @@ import json
 from typing import TYPE_CHECKING
 
 import pandas as pd
+from structlog import getLogger
 
+from src.llms.huggingface import login_hf_hub
 from src.utils import constants as const
 from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
     from typing import Any
 
+    from datasets import DatasetDict
+    from structlog.stdlib import BoundLogger
+
     from src.utils.types import PathLike
+
+# Set up logging
+logger: BoundLogger = getLogger(__name__)
 
 
 def read_csv_file(file_path: PathLike, **kwargs) -> Any:
@@ -116,3 +124,32 @@ def write_jsonl_file(data: list[dict[str, Any]], file_path: PathLike) -> None:
     with file_path.open("w", encoding="utf-8") as f:
         for item in data:
             f.write(json.dumps(item, ensure_ascii=False) + "\n")
+
+
+def push_data_to_hf(
+    dataset_dict: DatasetDict, repo_id: str, private: bool = False
+) -> str:
+    """Upload dataset to HuggingFace Hub.
+
+    Args:
+        dataset_dict: DatasetDict to upload
+        repo_id: Repository ID on HuggingFace (username/dataset-name)
+        private: Whether the repository should be private
+
+    Returns:
+        URL of the uploaded dataset
+    """
+    logger.info("Uploading dataset to HuggingFace", dataset=dataset_dict, repo=repo_id)
+
+    # Login to HuggingFace with write permission
+    login_hf_hub()
+
+    # Push to HuggingFace Hub
+    dataset_dict.push_to_hub(repo_id=repo_id, private=private)
+
+    logger.info(
+        "Successfully uploaded dataset",
+        url=f"https://huggingface.co/datasets/{repo_id}",
+    )
+
+    return repo_id
