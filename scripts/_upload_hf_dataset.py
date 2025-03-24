@@ -23,7 +23,7 @@ logger: BoundLogger = getLogger(__name__)
 def create_hf_mnemonic_dataset(
     input_path: PathLike,
     select_col_names: str | list[str] = None,
-    train_ratio: float = 0.2,
+    val_ratio: float = 0.2,
     seed: int = 42,
 ) -> DatasetDict:
     """Create a HuggingFace dataset from mnemonic data.
@@ -31,7 +31,7 @@ def create_hf_mnemonic_dataset(
     Args:
         input_path (PathLike): Path to the input data (filepath or SQLite)
         select_col_names (str | list[str]): Column names to select from the dataset
-        train_ratio (float): Proportion of data to use for training
+        val_ratio (float): Proportion of data to use for validation
         seed (int): Random seed for reproducibility
 
     Returns:
@@ -51,8 +51,16 @@ def create_hf_mnemonic_dataset(
         "sub_type",
     ]
 
-    # TODO: Make use of this features, so main_type and sub_type are consistently encoded
-    Features(
+    # Read data
+    if input_path.endswith(("db", "sqlite", "sqlite3")):
+        dataset: Dataset = load_from_database("mnemonic", con=f"sqlite:///{input_path}")
+
+    else:
+        dataset: Dataset = load_local_dataset(input_path)
+
+    dataset = dataset.select_columns(select_col_names)
+
+    features = Features(
         {
             "term": Value("string"),
             "mnemonic": Value("string"),
@@ -65,22 +73,11 @@ def create_hf_mnemonic_dataset(
             ),
         }
     )
-
-    # Read data
-    if input_path.endswith(("db", "sqlite", "sqlite3")):
-        dataset: Dataset = load_from_database("mnemonic", con=f"sqlite:///{input_path}")
-
-    else:
-        dataset: Dataset = load_local_dataset(input_path)
-
-    dataset = dataset.select_columns(select_col_names)
-    dataset = dataset.class_encode_column("main_type", include_nulls=True)
-    dataset = dataset.class_encode_column("sub_type", include_nulls=True)
-    logger.info(f"Created HuggingFace.Dataset with {dataset.__len__} samples.")
+    dataset = dataset.cast(features)
 
     # Split into train and validation
     splits: DatasetDict = dataset.train_test_split(
-        train_size=train_ratio, stratify_by_column="main_type", seed=seed
+        test_size=val_ratio, stratify_by_column="main_type", seed=seed
     )
 
     return DatasetDict({"train": splits["train"], "validation": splits["test"]})
@@ -89,6 +86,6 @@ def create_hf_mnemonic_dataset(
 mnemonic_dataset = create_hf_mnemonic_dataset(
     # input_path=const.MNEMONIC_DB_URI,
     input_path=const.SEED_IMPROVED_CSV,
-    train_ratio=0.2,
+    val_ratio=0.2,
 )
 push_data_to_hf(dataset_dict=mnemonic_dataset, repo_id=const.HF_MNEMONIC_DATASET)
