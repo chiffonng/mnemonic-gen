@@ -195,3 +195,6 @@ def _attempt_fix_incomplete_json(content: str) -> str:
         fixed_content += "}" * open_braces
 
     return fixed_content
+
+
+# TODO: Validate content that it follows chat template, i.e. as list[dict[str, Any]], has keys "role" and "content", "role" must be one of "system", "user", "assistant", and "content" must be string OR a list of dicts with keys "type" and "content".
