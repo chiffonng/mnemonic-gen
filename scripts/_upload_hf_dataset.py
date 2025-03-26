@@ -66,8 +66,16 @@ def create_hf_mnemonic_dataset(
 
     else:
         dataset: Dataset = load_local_dataset(input_path)
+        # Change "mnemonic" column to the content of the "improved_mnemonic" column if it exists
+        if "improved_mnemonic" in dataset.column_names:
+            dataset = dataset.map(
+                lambda x: {"mnemonic": x["improved_mnemonic"]},
+                remove_columns=["improved_mnemonic"],
+            )
+            logger.debug("Replaced 'mnemonic' with 'improved_mnemonic'")
 
     dataset = dataset.select_columns(select_col_names)
+    logger.debug("Loaded dataset columns", columns=dataset.column_names)
 
     features = Features(
         {
@@ -255,10 +263,12 @@ def create_hf_chat_dataset(dataset_dict: DatasetDict) -> DatasetDict:
     return chat_dataset_dict
 
 
-mnemonic_dataset: DatasetDict = create_hf_mnemonic_dataset(
-    # input_path=const.MNEMONIC_DB_URI,
-    input_path=const.SEED_IMPROVED_CSV,
-    val_ratio=0.2,
-)
-chat_dataset: DatasetDict = create_hf_chat_dataset(mnemonic_dataset)
-push_data_to_hf(dataset_dict=chat_dataset, repo_id=const.HF_CHAT_DATASET)
+if __name__ == "__main__":
+    mnemonic_dataset: DatasetDict = create_hf_mnemonic_dataset(
+        # input_path=const.MNEMONIC_DB_URI,
+        input_path=const.SEED_IMPROVED_CSV,
+        val_ratio=0.2,
+    )
+    chat_dataset: DatasetDict = create_hf_chat_dataset(mnemonic_dataset)
+    push_data_to_hf(dataset_dict=mnemonic_dataset, repo_id=const.HF_MNEMONIC_DATASET)
+    push_data_to_hf(dataset_dict=chat_dataset, repo_id=const.HF_CHAT_DATASET)
