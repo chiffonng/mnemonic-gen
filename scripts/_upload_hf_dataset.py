@@ -148,12 +148,12 @@ def create_chat_format(
     """Convert dataset entries to OpenAI's chat template format.
 
     [
-        {"role": "system", "content": [{"type": "text", "content": system_prompt}]},
+        {"role": "system", "content": [{"type": "text", "text": system_prompt}]},
         {"role": "user", "content": [
-            {"type": "text", "content": user_prompt},
+            {"type": "text", "text": user_prompt},
             {"type": "image", "url": "https://example.com/image.png"}  # Optional image content
         ]},
-        {"role": "assistant", "content": [{"type": "text", "content": assistant_response}]}
+        {"role": "assistant", "content": [{"type": "text", "text": assistant_response}]}
     ]
 
     Args:
@@ -190,11 +190,11 @@ def create_chat_format(
 
         # Format in chat template
         messages = [
-            {"role": "system", "content": [{"type": "text", "content": system_prompt}]},
-            {"role": "user", "content": [{"type": "text", "content": user_prompt}]},
+            {"role": "system", "content": [{"type": "text", "text": system_prompt}]},
+            {"role": "user", "content": [{"type": "text", "text": user_prompt}]},
             {
                 "role": "assistant",
-                "content": [{"type": "text", "content": assistant_response}],
+                "content": [{"type": "text", "text": assistant_response}],
             },
         ]
 
