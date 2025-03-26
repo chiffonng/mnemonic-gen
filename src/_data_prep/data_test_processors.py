@@ -3,7 +3,7 @@
 import random
 from pathlib import Path
 
-from src.data.data_loaders import load_hf_dataset
+from src.data.data_hf import load_hf_dataset
 from src.utils import check_file_path
 from src.utils import constants as const
 

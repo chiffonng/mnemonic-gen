@@ -153,6 +153,35 @@ def load_hf_dataset(
     return dataset
 
 
+def push_data_to_hf(
+    dataset_dict: DatasetDict, repo_id: str, private: bool = False
+) -> str:
+    """Upload dataset to HuggingFace Hub.
+
+    Args:
+        dataset_dict: DatasetDict to upload
+        repo_id: Repository ID on HuggingFace (username/dataset-name)
+        private: Whether the repository should be private
+
+    Returns:
+        URL of the uploaded dataset
+    """
+    logger.info("Uploading dataset to HuggingFace", dataset=dataset_dict, repo=repo_id)
+
+    # Login to HuggingFace with write permission
+    login_hf_hub()
+
+    # Push to HuggingFace Hub
+    dataset_dict.push_to_hub(repo_id=repo_id, private=private)
+
+    logger.info(
+        "Successfully uploaded dataset",
+        url=f"https://huggingface.co/datasets/{repo_id}",
+    )
+
+    return repo_id
+
+
 # Example usage
 # smart_dataset: Dataset = load_hf_dataset(
 #     "nbalepur/Mnemonic_SFT",

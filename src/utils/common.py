@@ -6,6 +6,7 @@ import json
 from typing import TYPE_CHECKING
 from warnings import warn
 
+from src.utils.constants import FILE_PROMPT_PLACEHOLDER_DICT
 from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
@@ -43,8 +44,10 @@ def read_prompt(
         vars_json_path = None
 
     elif vars_json_path:
-        vars_json_path = check_file_path(vars_json_path, extensions=["json"])
         vars = read_config(vars_json_path)
+
+    elif vars_json_path is None and "system" in prompt_path.name:
+        vars = read_config(FILE_PROMPT_PLACEHOLDER_DICT)
 
     if vars:
         return prompt.format(**vars)
