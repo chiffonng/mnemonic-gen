@@ -173,9 +173,7 @@ def create_chat_format(
         system_prompt = read_prompt(system_prompt_path)
 
         # TODO: Create more diverse user instructions and sample them here.
-        user_prompt = read_prompt(
-            user_prompt_path, vars={"term": term, "mnemonic": mnemonic}
-        )
+        user_prompt = read_prompt(user_prompt_path, vars={"term": term})
 
         # Format assistant response
         use_json = re.search(r"json|dict|structured", user_prompt) is not None
