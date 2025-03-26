@@ -1,4 +1,4 @@
-"""Module for loading data using pandas and/or Hugging Face datasets / HuggingFace hub."""
+"""Module for loading data into Hugging Face datasets formats, and uploading data to HuggingFace Hub."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
         See src/utils/error_handling.py, check_file_path() for more details.
     """
     file_path = check_file_path(
-        file_path, extensions=[".parquet", ".csv", ".json", ".txt"]
+        file_path, extensions=[".parquet", ".csv", ".json", ".jsonl"]
     )
 
     if file_path.suffix == ".parquet":
@@ -52,11 +52,6 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
         )
     elif file_path.suffix == ".json" or file_path.suffix == ".jsonl":
         dataset = load_dataset("json", data_files=str(file_path), **kwargs)
-
-    else:
-        raise ValueError(
-            f"Invalid file extension: {file_path.suffix}. Must be one of: '.parquet', '.csv', '.json', '.jsonl', '.txt'."
-        )
 
     logger.info("Loaded dataset", source=file_path)
     if isinstance(dataset, DatasetDict):
@@ -175,7 +170,7 @@ def push_data_to_hf(
     dataset_dict.push_to_hub(repo_id=repo_id, private=private)
 
     logger.info(
-        "Successfully uploaded dataset",
+        "Successfully uploaded dataset to HuggingFace",
         url=f"https://huggingface.co/datasets/{repo_id}",
     )
 
