@@ -134,7 +134,7 @@ def create_assistant_response(
     else:
         response = f"{linguistic_reasoning}\n\nMnemonic: {mnemonic}"
         if main_type:
-            response = f"{linguistic_reasoning} (drawing from {main_type} of the term '{term})'.\n\nMnemonic: {mnemonic}"
+            response = f"{linguistic_reasoning}. It draws from {main_type} of the term '{term})'.\n\nMnemonic: {mnemonic}"
             if sub_type and sub_type != main_type:
                 if sub_type == "context":
                     response += f"\n\nThis mnemonic also provides a contextual clue to remember '{term}'."
@@ -152,6 +152,7 @@ def create_chat_format(
     linguistic_reasoning: str = "",
     main_type: str = None,
     sub_type: Optional[str] = None,
+    is_multimodal: bool = False,
 ) -> list[dict[str, Any]]:
     """Convert dataset entries to OpenAI's chat template format.
 
@@ -173,6 +174,8 @@ def create_chat_format(
         linguistic_reasoning (str): The linguistic reasoning bridging the term and mnemonic
         main_type (str): The main linguistic type if available
         sub_type (str, optional): The sub type if available
+        is_multimodal (bool): If True, format for multimodal input (e.g., images). If False, format for text-only input. Default is False.
+
     Returns:
         List of message dictionaries in OpenAI chat format
     """
@@ -195,14 +198,24 @@ def create_chat_format(
         )
 
         # Format in chat template
-        messages = [
-            {"role": "system", "content": [{"type": "text", "text": system_prompt}]},
-            {"role": "user", "content": [{"type": "text", "text": user_prompt}]},
-            {
-                "role": "assistant",
-                "content": [{"type": "text", "text": assistant_response}],
-            },
-        ]
+        if is_multimodal:
+            messages = [
+                {
+                    "role": "system",
+                    "content": [{"type": "text", "text": system_prompt}],
+                },
+                {"role": "user", "content": [{"type": "text", "text": user_prompt}]},
+                {
+                    "role": "assistant",
+                    "content": [{"type": "text", "text": assistant_response}],
+                },
+            ]
+        else:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+                {"role": "assistant", "content": assistant_response},
+            ]
 
         return messages
     except Exception as e:
@@ -243,10 +256,7 @@ def create_hf_chat_dataset(dataset_dict: DatasetDict) -> DatasetDict:
         # Apply the transformation to create a new dataset with only messages column
         transformed_dataset = split_dataset.map(
             add_messages_column,
-            remove_columns=[
-                "linguistic_reasoning",
-                "sub_type",
-            ],
+            remove_columns=["sub_type"],
             desc=f"Transforming {split_name} split",
         )
 

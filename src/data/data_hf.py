@@ -149,7 +149,7 @@ def load_hf_dataset(
 
 
 def push_data_to_hf(
-    dataset_dict: DatasetDict, repo_id: str, private: bool = False
+    dataset_dict: DatasetDict, repo_id: str, private: bool = False, **kwargs: dict
 ) -> str:
     """Upload dataset to HuggingFace Hub.
 
@@ -157,6 +157,7 @@ def push_data_to_hf(
         dataset_dict: DatasetDict to upload
         repo_id: Repository ID on HuggingFace (username/dataset-name)
         private: Whether the repository should be private
+        kwargs: Additional keyword arguments for the push_to_hub() method
 
     Returns:
         URL of the uploaded dataset
