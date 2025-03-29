@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING
-from warnings import warn
 
 from src.utils.constants import FILE_PROMPT_PLACEHOLDER_DICT
 from src.utils.error_handlers import check_file_path
@@ -25,7 +24,7 @@ def read_prompt(
     Args:
         prompt_path (Path): The path to the prompt file.
         vars (dict, optional): A dictionary of variables to replace in the prompt.
-        vars_json_path (PathLike, optional): The path to a JSON file containing variables. Ignored if vars is provided.
+        vars_json_path (PathLike, optional): The path to a JSON file containing variables.
 
     Returns:
         str: The prompt.
@@ -35,16 +34,15 @@ def read_prompt(
     with prompt_path.open("r") as file:
         prompt = file.read().strip()
 
-    if vars_json_path and vars:
-        warn(
-            "Both vars and vars_json_path provided. Using vars.",
-            category=UserWarning,
-            stacklevel=2,
-        )
-        vars_json_path = None
+    if vars_json_path:
+        vars_from_json = read_config(vars_json_path)
 
-    elif vars_json_path:
-        vars = read_config(vars_json_path)
+        # If vars is also provided, extend it with the values from the JSON file
+        # else use the values from the JSON file as the vars
+        if vars:
+            vars.update(vars_from_json)
+        else:
+            vars = vars_from_json
 
     elif vars_json_path is None and "system" in prompt_path.name:
         vars = read_config(FILE_PROMPT_PLACEHOLDER_DICT)
