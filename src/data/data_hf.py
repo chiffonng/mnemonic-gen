@@ -8,7 +8,7 @@ import pandas as pd
 from datasets import Dataset, DatasetDict, load_dataset
 from structlog import getLogger
 
-from src.llms.huggingface import login_hf_hub
+from src.train.huggingface import login_hf_hub
 from src.utils import check_file_path
 
 if TYPE_CHECKING:

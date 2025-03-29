@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from structlog import getLogger
 
-from src.llms.client import complete
+from src.train.client import complete
 from src.utils import constants as const
 from src.utils.common import read_prompt
 from src.utils.types import MnemonicClassification

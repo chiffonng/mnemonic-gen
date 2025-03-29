@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import BaseModel
-from src.llms.client import (
+from src.train.client import (
     batch_complete,
     build_input_params,
     complete,

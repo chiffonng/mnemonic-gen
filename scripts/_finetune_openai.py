@@ -24,7 +24,7 @@ from src._mnemonic_enhancer.mnemonic_ft import (
     split_export_finetune_data,
     upload_finetune_data,
 )
-from src.llms.openai.openai_ft import finetune_from_config
+from src.train.openai.openai_ft import finetune_from_config
 from src.utils import constants as const
 from structlog import getLogger
 

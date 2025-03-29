@@ -15,7 +15,7 @@ from src._mnemonic_enhancer.mnemonic_schemas import (
     MnemonicClassification,
 )
 from src.data.mnemonic_models import Mnemonic, MnemonicType
-from src.llms.client import batch_complete, complete
+from src.train.client import batch_complete, complete
 from src.utils import check_file_path, read_prompt
 from src.utils import constants as const
 
