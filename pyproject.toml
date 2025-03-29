@@ -5,19 +5,20 @@ description = "Generate mnemonic sentences for English words"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "datasets>=3.4.0", # Hugging Face datasets
+  "bespokelabs-curator>=0.1.6",
+  "datasets>=3.5.0", # Hugging Face datasets
   # "evaluate>=0.4.3",
   "huggingface-hub>=0.26.1",
-  "litellm>=1.63.12",
+  "litellm>=1.65.0",
   "matplotlib>=3.9.2",
   "peft>=0.13.2 ; sys_platform == 'linux'",
-  "pydantic>=2.10.6",
-  "python-dotenv>=1.0.1",
+  "pydantic>=2.11.1",
+  "python-dotenv>=1.1.0",
   "rich>=13.9.4", # format rich text
   "structlog>=25.2.0",
   "tenacity>=9.0.0",
   "torch==2.4.0 ; sys_platform == 'linux'",
-  "transformers>=4.47.0",
+  "transformers>=4.50.3",
   "trl>=0.11.4 ; sys_platform == 'linux'",
   "wandb>=0.19.0; sys_platform == 'linux'",
 ]
