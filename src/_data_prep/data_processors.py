@@ -187,42 +187,7 @@ def train_val_split(
     )
 
 
-def save_splits_locally(
-    splits: DatasetDict, output_dir_path: str, format: str = "csv"
-) -> dict[str, Path]:
-    """Save the dataset splits to local files.
-
-    Args:
-        splits (dict[str, Dataset]): Dictionary of dataset splits.
-        output_dir_path (str): Directory to save the splits.
-        format (str): Format to save the splits in ('csv' or 'parquet'). Defaults to 'csv'.
-
-    Returns:
-        dict[str, Path]: Dictionary mapping split names to file paths.
-    """
-    output_dir = Path(output_dir_path)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    file_paths = {}
-
-    for split_name, dataset in splits.items():
-        if format == "csv":
-            file_path = output_dir / f"{split_name}.csv"
-            dataset.to_csv(str(file_path), index=False)
-        else:
-            file_path = output_dir / f"{split_name}.parquet"
-            dataset.to_parquet(str(file_path), index=False)
-
-        file_paths[split_name] = file_path
-        logger.info(
-            f"Saved {split_name} split with {len(dataset)} examples to {file_path}"
-        )
-
-    return file_paths
-
-
 # Get train and validation datasetdict
-# And
 if __name__ == "__main__":
     # Load and clean the data
 
@@ -233,13 +198,6 @@ if __name__ == "__main__":
         seed=42,
     )
     test_split = load_txt_file(c.FINAL_TEST_DATASET_TXT)
-
-    # Save the splits locally
-    split_file_paths = save_splits_locally(
-        splits=splits,
-        output_dir_path=c.FINAL_DATA_DIR,
-        format="csv",
-    )
 
     # Push the splits to the Hugging Face hub
     push_data_to_hf_hub(dataset_dict=splits, repo_id=c.HF_DATASET_NAME)
