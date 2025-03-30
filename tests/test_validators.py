@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
-from src.data.data_validators import (
+from src.data_prep.data_validators import (
     _attempt_fix_incomplete_json,
     validate_content_against_schema,
 )
