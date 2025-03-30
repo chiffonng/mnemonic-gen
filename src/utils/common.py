@@ -3,15 +3,21 @@
 from __future__ import annotations
 
 import json
+import random
 from typing import TYPE_CHECKING
 
-from src.utils.constants import FILE_PROMPT_PLACEHOLDER_DICT
+import yaml
+from structlog import getLogger
+
+from src.utils.constants import PROMPT_FILES
 from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
     from typing import Any, Optional
 
     from src.utils import PathLike
+
+logger = getLogger(__name__)
 
 
 def read_prompt(
@@ -45,11 +51,53 @@ def read_prompt(
             vars = vars_from_json
 
     elif vars_json_path is None and "system" in prompt_path.name:
-        vars = read_config(FILE_PROMPT_PLACEHOLDER_DICT)
+        vars = read_config(PROMPT_FILES["PLACEHOLDER_DICT"])
 
     if vars:
         return prompt.format(**vars)
     return prompt
+
+
+def sample_prompt(prompt_path: PathLike, num_samples: int = 1) -> str | list[str]:
+    """Read a random instruction from a .txt file.
+
+    Args:
+        prompt_path (PathLike): The path to the file (.txt) with prompts
+        num_samples (int): The number of random prompts to return. Default is 1.
+
+    Returns:
+        str: A random instruction from the file.
+    """
+    prompt_path = check_file_path(prompt_path, extensions=[".txt"])
+
+    with prompt_path.open("r") as file:
+        prompts = file.readlines()
+
+    # Strip whitespace and remove empty lines
+    prompts = [line.strip() for line in prompts if line.strip()]
+
+    if not prompts:
+        raise ValueError(f"No valid prompts found in {prompt_path}")
+
+    if num_samples == 1:
+        chosen_prompt = random.choice(prompts)
+        logger.debug(
+            "Sampling a single prompt", source=prompt_path, prompt=chosen_prompt
+        )
+        return chosen_prompt
+    else:
+        if num_samples > len(prompts):
+            raise ValueError(
+                f"Requested {num_samples} samples, but only {len(prompts)} available."
+            )
+
+        chosen_prompts = random.sample(prompts, num_samples)
+        logger.debug(
+            "Sampling multiple prompts",
+            source=prompt_path,
+            prompts=chosen_prompts,
+        )
+        return chosen_prompts
 
 
 def read_config(conf_path: PathLike) -> dict:
@@ -62,10 +110,14 @@ def read_config(conf_path: PathLike) -> dict:
         dict: The configuration.
     """
     # Convert to Path object, ensure the file path exists and has the correct extension
-    conf_path_obj = check_file_path(conf_path, extensions=["json"])
+    conf_path_obj = check_file_path(conf_path, extensions=[".json", ".yaml", ".yml"])
 
-    with conf_path_obj.open("r") as file:
-        return json.load(file)
+    if conf_path_obj.suffix == ".json":
+        with conf_path_obj.open("r") as file:
+            return json.load(file)
+    elif conf_path_obj.suffix in [".yaml", ".yml"]:
+        with conf_path_obj.open("r") as file:
+            return yaml.safe_load(file) or {}
 
 
 def update_config(config_filepath: PathLike, key: str, new_value: str):

@@ -94,7 +94,10 @@ class PathMaker:
         return self.base.PROMPTS / category / f"{name}{ext}"
 
     def config_file(
-        self, category: Optional[str], name: str, ext: Literal["json", "yaml"] = "json"
+        self,
+        category: Literal["finetune", "api", ""],
+        name: str,
+        ext: Literal["json", "yaml", "yml"] = "json",
     ) -> Path:
         """Generate a path for a config file."""
         ext = Extensions.get(ext)
@@ -150,6 +153,7 @@ PROMPT_FILES = {
     "FINETUNE_SYSTEM": PATH.prompt_file("finetune", "system"),
     "FINETUNE_USER": PATH.prompt_file("finetune", "user"),
     "CLASSIFY_SYSTEM": PATH.prompt_file("classify", "system"),
+    "CLASSIFY_USER": PATH.prompt_file("classify", "user"),
 }
 
 # Config file paths
@@ -163,6 +167,7 @@ CONFIG_FILES = {
     "DEEPSEEK_REASONER": PATH.config_file("api", "deepseek_reasoner"),
     "OPENAI_SFT": PATH.config_file("finetune", "openai_sft"),
     "GRPO": PATH.config_file("finetune", "grpo", "yaml"),
+    "PEFT": PATH.config_file("finetune", "peft", "yaml"),
 }
 
 # Other constants
