@@ -5,7 +5,7 @@ from typing import Any, TypeAlias, TypeVar
 
 from pydantic import BaseModel
 
-from src.reason.mnemonic_models import Mnemonic, MnemonicType
+from src.data_gen.mnemonic_models import Mnemonic, MnemonicType
 from src.train.openai.mnemonic_schemas import (
     ImprovedMnemonic,
     MnemonicClassification,
