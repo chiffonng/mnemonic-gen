@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from src._mnemonic_enhancer.mnemonic_ft import (
+from src.train.openai.mnemonic_ft import (
     prepare_finetune_data,
     split_export_finetune_data,
     upload_finetune_data,

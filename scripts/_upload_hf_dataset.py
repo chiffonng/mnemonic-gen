@@ -13,8 +13,12 @@ import re
 from typing import TYPE_CHECKING
 
 from datasets import ClassLabel, Dataset, DatasetDict, Features, Value
-from src.data.data_hf import load_from_database, load_local_dataset, push_data_to_hf
-from src.data.mnemonic_models import MnemonicType
+from src.data_prep.data_hf import (
+    load_from_database,
+    load_local_dataset,
+    push_data_to_hf,
+)
+from src.reason.mnemonic_models import MnemonicType
 from src.utils import constants as const
 from src.utils.common import read_prompt
 from structlog import getLogger
