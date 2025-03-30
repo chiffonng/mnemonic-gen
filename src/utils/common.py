@@ -9,10 +9,11 @@ from typing import TYPE_CHECKING
 import yaml
 from structlog import getLogger
 
-from src.utils.constants import PROMPT_FILES
+from src.utils.constants import PROMPT_FILES, BasePaths
 from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
+    from pathlib import Path
     from typing import Any, Optional
 
     from src.utils import PathLike
@@ -20,22 +21,112 @@ if TYPE_CHECKING:
 logger = getLogger(__name__)
 
 
+def search_files(search_path: PathLike, regex_pattern: str) -> list[Path]:
+    """Search for files in a directory that match a regex pattern.
+
+    Args:
+        search_path (PathLike): The path to the directory to search.
+        regex_pattern (str): The regex pattern to match filenames.
+
+    Returns:
+        list[PathLike]: A list of file paths that match the regex pattern.
+    """
+    import re
+    from pathlib import Path
+
+    search_path = Path(search_path)
+    if not search_path.is_dir():
+        raise ValueError(f"The provided path is not a directory: {search_path}")
+
+    matching_files = []
+    for file in search_path.iterdir():
+        if file.is_file() and re.search(regex_pattern, file.name):
+            matching_files.append(file)
+
+    if not matching_files:
+        logger.debug(
+            "No files found matching the regex pattern",
+            search_path=search_path,
+            regex_pattern=regex_pattern,
+        )
+        raise ValueError(
+            f"No files found in {search_path} matching the regex pattern: {regex_pattern}"
+        )
+
+    return matching_files
+
+
+def get_first_prompt_file(regex_pattern: str) -> Path:
+    """Search for prompt files in the prompts directory that match a regex pattern.
+
+    Args:
+        regex_pattern (str): The regex pattern to match filenames.
+
+    Returns:
+        Path: The first file path that matches the regex pattern.
+    """
+    matching_files = search_files(BasePaths.PROMPTS, regex_pattern)
+
+    if not matching_files:
+        logger.debug(
+            "No prompt files found matching the regex pattern",
+            regex_pattern=regex_pattern,
+        )
+        raise ValueError(
+            f"No prompt files found in {BasePaths.PROMPTS} matching the regex pattern: {regex_pattern}"
+        )
+
+    return matching_files[0]
+
+
+def get_first_config_file(regex_pattern: str) -> Path:
+    """Search for configuration files in the config directory that match a regex pattern.
+
+    Args:
+        regex_pattern (str): The regex pattern to match filenames.
+
+    Returns:
+        Path: The first file path that matches the regex pattern.
+    """
+    matching_files = search_files(BasePaths.CONFIG, regex_pattern)
+
+    if not matching_files:
+        logger.debug(
+            "No config files found matching the regex pattern",
+            regex_pattern=regex_pattern,
+        )
+        raise ValueError(
+            f"No config files found in {BasePaths.CONFIG} matching the regex pattern: {regex_pattern}"
+        )
+
+    return matching_files[0]
+
+
 def read_prompt(
-    prompt_path: PathLike,
+    prompt_path: Optional[PathLike],
+    regex_pattern: Optional[str],
     vars: Optional[dict[str, Any]] = None,
     vars_json_path: Optional[PathLike] = None,
 ) -> str:
     """Read the system prompt from a .txt file.
 
     Args:
-        prompt_path (Path): The path to the prompt file.
+        prompt_path (PathLike, optional): The path to the prompt file.
+        regex_pattern (str, optional): The regex pattern to match the prompt file. Default is r'*.txt$'.
         vars (dict, optional): A dictionary of variables to replace in the prompt.
         vars_json_path (PathLike, optional): The path to a JSON file containing variables.
 
     Returns:
         str: The prompt.
     """
-    prompt_path = check_file_path(prompt_path, extensions=["txt"])
+    if prompt_path is None and regex_pattern is None:
+        raise ValueError(
+            "Either prompt_path or regex_pattern must be provided to read a prompt."
+        )
+    elif prompt_path:
+        prompt_path = check_file_path(prompt_path, extensions=["txt"])
+    elif regex_pattern:
+        prompt_path = get_first_prompt_file(regex_pattern)
 
     with prompt_path.open("r") as file:
         prompt = file.read().strip()
@@ -100,17 +191,27 @@ def sample_prompt(prompt_path: PathLike, num_samples: int = 1) -> str | list[str
         return chosen_prompts
 
 
-def read_config(conf_path: PathLike) -> dict:
+def read_config(conf_path: Optional[PathLike], regex_pattern: Optional[str]) -> dict:
     """Read a configuration file.
 
     Args:
         conf_path (PathLike): The path to the configuration file. Must be a JSON file.
+        regex_pattern (str): The regex pattern to search for config files in the directory.
 
     Returns:
         dict: The configuration.
     """
-    # Convert to Path object, ensure the file path exists and has the correct extension
-    conf_path_obj = check_file_path(conf_path, extensions=[".json", ".yaml", ".yml"])
+    if conf_path is None and regex_pattern is None:
+        raise ValueError(
+            "Either conf_path or regex_pattern must be provided to read a configuration file."
+        )
+    elif conf_path:
+        # Convert to Path object, ensure the file path exists and has the correct extension
+        conf_path_obj = check_file_path(
+            conf_path, extensions=[".json", ".yaml", ".yml"]
+        )
+    else:
+        conf_path_obj = get_first_config_file(regex_pattern)
 
     if conf_path_obj.suffix == ".json":
         with conf_path_obj.open("r") as file:
