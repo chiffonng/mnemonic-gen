@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
 from uuid import UUID, uuid4
 
 from instructor import OpenAISchema
@@ -36,7 +36,7 @@ class MnemonicType(ExplicitEnum):
 
 
 class Mnemonic(SQLModel, OpenAISchema, table=True):
-    """Ideal mnemonic model. Fields: term, mnemonic, main_type, sub_type, linguistic_reasoning."""
+    """Mnemonic model. Fields: id (auto), term, reasoning, mnemonic, main_type, sub_type."""
 
     # Don't send the id field to OpenAI for schema generation
     id: SkipJsonSchema[UUID] = Field(default_factory=lambda: uuid4(), primary_key=True)
@@ -52,7 +52,7 @@ class Mnemonic(SQLModel, OpenAISchema, table=True):
     )
     mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
         ...,
-        description="The mnemonic aid for the term.",
+        description="The mnemonic device for the term.",
     )
     main_type: Annotated[
         MnemonicType, BeforeValidator(validate_enum_field(MnemonicType))
@@ -65,4 +65,23 @@ class Mnemonic(SQLModel, OpenAISchema, table=True):
     ] = Field(
         default=None,
         description="The sub type of the mnemonic, if applicable.",
+    )
+
+
+class MnemonicChat(SQLModel, OpenAISchema, table=True):
+    """Model of structured outputs of generating mnemonics by chat models."""
+
+    id: SkipJsonSchema[UUID] = Field(default_factory=lambda: uuid4(), primary_key=True)
+    term: Annotated[str, BeforeValidator(validate_term)] = Field(
+        ...,
+        description="The vocabulary term.",
+        index=True,
+    )
+    messages: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="List of conversations about the mnemonic. Each conversation is a dictionary containing the messages exchanged. {'role': 'user' or 'assistant', 'content': 'message content'}",
+    )
+    mnemonic = Annotated[Optional[str], BeforeValidator(validate_mnemonic)] = Field(
+        default=None,
+        description="The generated mnemonic device for the term.",
     )
