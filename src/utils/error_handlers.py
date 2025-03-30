@@ -182,7 +182,7 @@ def find_files_with_extensions(
     extensions = validate_and_normalize_extensions(extensions)
 
     # Collect files with the specified extensions if provided
-    paths = [p for p in dir_path.rglob("*") if p.suffix in extensions]
+    paths = [p for p in dir_path.iterdir() if p.suffix in extensions]
     if not paths:
         raise FileNotFoundError(
             f"No files with one of the extensions {extensions} found in directory: {dir_path.resolve()}"

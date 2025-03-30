@@ -110,8 +110,7 @@ class Columns:
 
     TERM = "term"
     MNEMONIC = "mnemonic"
-    IMPROVED_MNEMONIC = "improved_mnemonic"
-    LINGUISTIC_REASONING = "linguistic_reasoning"
+    REASONING = "reasoning"
     MAIN_TYPE = "main_type"
     SUB_TYPE = "sub_type"
 
@@ -148,8 +147,9 @@ DATA_FILES = {
 PROMPT_FILES = {
     "PLACEHOLDER_DICT": PATH.prompt_file("", "placeholders", "json"),
     "USER_BASIC": PATH.prompt_file("", "user_basic"),
-    "REASON_SYSTEM": PATH.prompt_file("generate", "system"),
-    "REASON_USER": PATH.prompt_file("generate", "user"),
+    "REASON_SYSTEM": PATH.prompt_file("reason", "system"),
+    "REASON_USER": PATH.prompt_file("reason", "user"),
+    "JUDGE_SYSTEM": PATH.prompt_file("judge", "system"),
     "FINETUNE_SYSTEM": PATH.prompt_file("finetune", "system"),
     "FINETUNE_USER": PATH.prompt_file("finetune", "user"),
     "CLASSIFY_SYSTEM": PATH.prompt_file("classify", "system"),
