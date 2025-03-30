@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from structlog import getLogger
 from tqdm import tqdm
 
-from src.data.data_validators import validate_content_against_schema
+from src.data_prep.data_validators import validate_content_against_schema
 from src.utils import constants as const
 from src.utils import read_config
 

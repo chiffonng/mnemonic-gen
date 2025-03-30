@@ -42,15 +42,11 @@ SFT_OPENAI_MODEL_ID = "ft:gpt-4o-mini-2024-07-18:personal:improve-sft:B62kPWoy"
 
 # Prompts
 DIR_PROMPT = "prompts"
-DIR_PROMPT_IMPROVE = DIR_PROMPT + "/improve"
 DIR_PROMPT_CLASSIFY = DIR_PROMPT + "/classify"
 DIR_PROMPT_FINETUNE = DIR_PROMPT + "/finetune"
 DIR_PROMPT_GENERATE = DIR_PROMPT + "/generate"
 
 FILE_PROMPT_PLACEHOLDER_DICT = DIR_PROMPT + "/placeholders.json"
-
-FILE_PROMPT_IMPROVE_SYSTEM = DIR_PROMPT_IMPROVE + "/improve_gen_system.txt"
-FILE_PROMPT_IMPROVE_SFT_SYSTEM = DIR_PROMPT_IMPROVE + "/improve_sft_system.txt"
 FILE_PROMPT_CLASSIFY_SYSTEM = DIR_PROMPT_CLASSIFY + "/classify_system.txt"
 FILE_PROMPT_USER = DIR_PROMPT + "/user.txt"
 
