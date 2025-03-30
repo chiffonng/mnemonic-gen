@@ -19,7 +19,7 @@ dependencies = [
   "rich>=13.9.4", # format rich text
   "structlog>=25.2.0",
   "tenacity>=9.0.0", # retrying library for handling rate limits and transient errors
-  "torch==2.4.0 ; sys_platform == 'linux'",
+  "torch==2.6.0 ; sys_platform == 'linux'",
   "transformers>=4.50.3 ; sys_platform == 'linux'",
   "trl>=0.11.4 ; sys_platform == 'linux'",
   "wandb>=0.19.0; sys_platform == 'linux'",
@@ -51,7 +51,7 @@ dev = [
 
 [tool.ruff]
 src            = ["src"]
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.format]
 docstring-code-format      = true # format code in docstrings
@@ -90,7 +90,7 @@ ignore-fully-untyped = true # ignore fully untyped functions
 mypy-init-return = true  # omit return type in __init__ OK
 
 [tool.ruff.lint.per-file-ignores]
-"*__init__.py" = ["D104", "F401"]
+"*/__init__.py" = ["D", "F401"]
 
 [tool.uv]
 python-downloads = "manual"         # change to "automatic" to download Python specified in .python-version
