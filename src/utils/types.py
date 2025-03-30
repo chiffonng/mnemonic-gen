@@ -5,11 +5,11 @@ from typing import Any, TypeAlias, TypeVar
 
 from pydantic import BaseModel
 
-from src._mnemonic_enhancer.mnemonic_schemas import (
+from src.reason.mnemonic_models import Mnemonic, MnemonicType
+from src.train.openai.mnemonic_schemas import (
     ImprovedMnemonic,
     MnemonicClassification,
 )
-from src.data.mnemonic_models import Mnemonic, MnemonicType
 
 PathLike: TypeAlias = str | Path
 ExtensionsType: TypeAlias = list[str] | str | None

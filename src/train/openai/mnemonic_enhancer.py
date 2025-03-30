@@ -9,13 +9,13 @@ from sqlmodel import Session, select
 from structlog import getLogger
 from tqdm import tqdm
 
-from src._mnemonic_enhancer.init_db import engine
-from src._mnemonic_enhancer.mnemonic_schemas import (
+from src.reason.init_db import engine
+from src.reason.mnemonic_models import Mnemonic, MnemonicType
+from src.train.client import batch_complete, complete
+from src.train.openai.mnemonic_schemas import (
     ImprovedMnemonic,
     MnemonicClassification,
 )
-from src.data.mnemonic_models import Mnemonic, MnemonicType
-from src.train.client import batch_complete, complete
 from src.utils import check_file_path, read_prompt
 from src.utils import constants as const
 
