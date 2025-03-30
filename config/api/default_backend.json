@@ -1,0 +1,12 @@
+{
+  "max_retries": 3,
+  "require_all_responses": false,
+  "request_timeout": 300,
+  "max_requests_per_minute": 500,
+  "max_tokens_per_minute": 100000,
+  "seconds_to_pause_on_rate_limit": 60.0,
+  "batch_size": 100,
+  "batch_check_interval": 1.0,
+  "delete_successful_batch_files": true,
+  "delete_failed_batch_files": false
+}

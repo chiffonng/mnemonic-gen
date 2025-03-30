@@ -89,7 +89,7 @@ def parse_args():
     parser.add_argument(
         "--completion-config-path",
         type=str,
-        default=const.CONF_OPENAI_SFT_COMPLETION,
+        default=const.CONF_OPENAI_SFT_API,
         help="Path to OpenAI completion config file",
     )
     return parser.parse_args()

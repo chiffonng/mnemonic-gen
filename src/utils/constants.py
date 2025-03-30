@@ -31,10 +31,7 @@ MNEMONIC_COL = "mnemonic"
 # Hugging Face constants
 HF_DATASET_NAME = "chiffonng/en-vocab-mnemonics"  # <user>/<dataset_name>
 HF_TESTSET_NAME = "chiffonng/en-vocab-mnemonics-test"  # <user>/<dataset_name>
-HF_MODEL_NAME = "chiffonng/gemma2-9b-it-mnemonics"  # <user>/<model_name>
-HF_MNEMONIC_DATASET = (
-    "chiffonng/en-vocab-mnemonics-full"  # TODO: to remove after refactoring
-)
+HF_MODEL_NAME = "chiffonng/gemma3-4b-it-mnemonics"  # <user>/<model_name>
 HF_CHAT_DATASET = "chiffonng/en-vocab-mnemonics-chat"
 
 # OpenAI Finetuning API
@@ -65,9 +62,15 @@ FILE_PROMPT_CLASSIFY_SYSTEM = DIR_PROMPT_CLASSIFY + SYSTEM_PROMPT_NAME
 
 # Config files
 DIR_CONFIG = "config"
-CONF_DEFAULT = DIR_CONFIG + "/default_conf.json"
-CONF_HUGGINGFACE = DIR_CONFIG + "/huggingface_conf.json"
-CONF_CLAUDE = DIR_CONFIG + "/claude_conf.json"
-CONF_OPENAI = DIR_CONFIG + "/openai_conf.json"
-CONF_OPENAI_SFT = DIR_CONFIG + "/openai_sft_conf.json"
-CONF_OPENAI_SFT_COMPLETION = DIR_CONFIG + "/openai_sftcc_conf.json"
+DIR_CONFIG_API = DIR_CONFIG + "/api"
+CONF_DEFAULT_GEN = DIR_CONFIG_API + "/default_generation.json"
+CONF_DEFAULT_BACKEND = DIR_CONFIG_API + "/default_backend.json"
+
+CONF_HUGGINGFACE = DIR_CONFIG_API + "/hf.json"
+CONF_CLAUDE = DIR_CONFIG_API + "/claude.json"
+CONF_OPENAI = DIR_CONFIG_API + "/openai.json"
+CONF_OPENAI_SFT_API = DIR_CONFIG_API + "/openai_sft.json"
+CONF_DEEPSEEK_REASONER = DIR_CONFIG_API + "/deepseek_reasoner.json"
+
+DIR_CONFIG_FINETUNE = DIR_CONFIG + "/finetune"
+CONF_OPENAI_SFT = DIR_CONFIG_FINETUNE + "/openai_sft.json"
