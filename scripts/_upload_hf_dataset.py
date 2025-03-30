@@ -33,6 +33,7 @@ if TYPE_CHECKING:
 logger: BoundLogger = getLogger(__name__)
 
 
+# TODO: remove the function after refactoring
 def create_hf_mnemonic_dataset(
     input_path: PathLike,
     select_col_names: str | list[str] = None,
