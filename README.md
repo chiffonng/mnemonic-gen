@@ -2,7 +2,9 @@
 
 [Hugging Face Artifacts](https://huggingface.co/collections/chiffonng/mnemonic-generation-67563a0a1ab91e84e9827579)
 
-Can we use LLMs to generate **diverse** mnemonic devices for vocabulary acquisition with **linguistic reasoning**?
+Mnemonic devices (memory aids) are powerful tools to help individuals remember information more effectively, such as acquiring vocabulary. Manual methods of creating mnemonics can be time-consuming and may not always be effective for everyone. Previous automated methods rely on keyword method (i.e. associating a new word with a familiar word or image in the learner's native language) or simple rule-based methods, which are mostly based on sound/visual patterns, individualized, and work on case-by-case basis. I suggest tapping into linguistic features of the target words to generate more linguistically-rich mnemonic devices, and potentially allow learners to create more memorable associations within the target language themselves. This could lead to more effective learning outcomes and a deeper understanding of the language.
+
+This project aims to explore this question by 1. generating synthetic dataset simulating traces of reasoning through linguistic features and trials of creative writing to arrive at a mnemonic device, and 2. fine-tuning a language model to generate mnemonics for English vocabulary words. This project is a work-in-progress, and it is an experimental attempt to see if we can leverage the power of Large Language Models (LLMs) to generate high-quality mnemonics for English vocabulary words, and whether it's extensible to other languages, such as Mandarin Chinese.
 
 ![](assets/pipeline.svg)
 
