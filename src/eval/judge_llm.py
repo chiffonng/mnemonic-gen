@@ -8,9 +8,9 @@ from bespokelabs import curator
 from pydantic import BaseModel, Field
 from structlog import getLogger
 
-if TYPE_CHECKING:
-    from typing import List, Optional
+from src.utils.common import read_prompt
 
+if TYPE_CHECKING:
     from datasets import Dataset
     from structlog.stdlib import BoundLogger
 
@@ -51,15 +51,14 @@ class MnemonicJudge(curator.LLM):
 
     def prompt(self, input):
         """Create a prompt for the judge to evaluate mnemonic quality."""
-        return f"""
-        You are a judge that evaluates the quality of mnemonics for vocabulary learning.
-        You will be given a vocabulary term, a mnemonic, and the reasoning behind the mnemonic.
-        Evaluate whether the mnemonic is linguistically sound, effective, and memorable.
-
-        TERM: {input["term"]}
-        MNEMONIC: {input["mnemonic"]}
-        REASONING: {input["reasoning"]}
-        """
+        return read_prompt(
+            regex_pattern=r"*judge*system\.txt",
+            vars={
+                "term": input["term"],
+                "mnemonic": input["mnemonic"],
+                "reasoning": input["reasoning"],
+            },
+        )
 
     def parse(self, input, response):
         """Parse the judge's response to extract evaluation metrics."""
@@ -71,3 +70,20 @@ class MnemonicJudge(curator.LLM):
             "linguistic_score": response.linguistic_score,
             "memorability_score": response.memorability_score,
         }
+
+
+def judge(ds: Dataset):
+    """Evaluate a dataset of mnemonics using the Judge model.
+
+    Args:
+        ds (Dataset): The dataset containing mnemonics to be evaluated.
+
+    Returns:
+        Dataset: The original dataset with added evaluation metrics.
+    """
+    # Initialize the judge model
+    judge_model = MnemonicJudge()
+
+    evaluations = judge_model(ds)
+
+    return evaluations.to_pandas()
