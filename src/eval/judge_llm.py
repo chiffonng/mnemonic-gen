@@ -26,20 +26,14 @@ class JudgeResult(BaseModel):
     relevance_score: int = Field(
         ...,
         description="Score from 1-10 rating how relevant the mnemonic is to the vocabulary",
-        ge=1,
-        le=10,
     )
     linguistic_score: int = Field(
         ...,
         description="Score from 1-10 rating the linguistic richness",
-        ge=1,
-        le=10,
     )
     memorability_score: int = Field(
         ...,
         description="Score from 1-10 rating how memorable the mnemonic is.",
-        ge=1,
-        le=10,
     )
     reasoning: str = Field(..., description="Explanation of the evaluation.")
 
@@ -63,7 +57,9 @@ class MnemonicJudge(curator.LLM):
     def parse(self, input, response):
         """Parse the judge's response to extract evaluation metrics."""
         return {
-            **input,
+            "term": input["term"],
+            "mnemonic": input["mnemonic"],
+            # Extract the evaluation metrics from the response
             "correct": response.correct,
             "judge_reasoning": response.reasoning,
             "relevance_score": response.relevance_score,
@@ -82,7 +78,7 @@ def judge(ds: Dataset):
         Dataset: The original dataset with added evaluation metrics.
     """
     # Initialize the judge model
-    judge_model = MnemonicJudge()
+    judge_model = MnemonicJudge(model_name="o3-mini", backend="openai")
 
     evaluations = judge_model(ds)
 
