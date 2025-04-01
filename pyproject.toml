@@ -6,12 +6,12 @@ authors = ["My Chiffon Nguyen <chiffonng136@gmail.com>"]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "bespokelabs-curator>=0.1.6",
+  "bespokelabs-curator>=0.1.21",
   "datasets>=3.5.0", # Hugging Face datasets
   # "evaluate>=0.4.3",
   "huggingface-hub>=0.26.1",
   "instructor>=1.7.7", # handling structure outputs from LLMs
-  "litellm>=1.65.0",
+  "litellm>=1.61.0",
   "matplotlib>=3.9.2",
   "peft>=0.13.2 ; sys_platform == 'linux'",
   "pydantic>=2.11.1",
