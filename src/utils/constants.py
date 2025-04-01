@@ -133,10 +133,8 @@ PATH = PathMaker(PATHS)
 # Create common file path constants
 DATA_FILES = {
     # Data files
-    "COMBINED_CSV": PATH.data_file("combined", ext="csv"),
     "RAW_TEST": PATH.data_file("test", data_type="raw", ext="txt"),
     "FINAL_TEST": PATH.data_file("test", data_type="final", ext="txt"),
-    "SEED_IMPROVED_CSV": PATH.data_file("seed_improved", ext="csv"),
     "MNEMONIC_DB_URI": f"sqlite:///{PATHS.DATA_PROCESSED}/mnemonics.db",
     # OpenAI finetuning files
     "SFT_IMPROVE_TRAIN": PATH.data_file("sft_improve_train", ext="jsonl"),
@@ -169,9 +167,6 @@ CONFIG_FILES = {
     "GRPO": PATH.config_file("finetune", "grpo", "yaml"),
     "PEFT": PATH.config_file("finetune", "peft", "yaml"),
 }
-
-# Other constants
-SFT_OPENAI_MODEL_ID = "ft:gpt-4o-mini-2024-07-18:personal:improve-sft:B62kPWoy"
 
 # Export all the constants for easy access
 # These allow direct imports like `from src.utils.constants import PATHS, COLUMNS`

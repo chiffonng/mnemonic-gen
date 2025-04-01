@@ -1,6 +1,6 @@
 [project]
 name = "mnemonic-gen"
-version = "0.2.0"
+version = "0.2.5"
 description = "Generate mnemonic sentences for English words"
 authors = [{ name = "My Chiffon Nguyen", email = "chiffonng136@gmail.com" }]
 readme = "README.md"
