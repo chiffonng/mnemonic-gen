@@ -129,6 +129,8 @@ def read_prompt(
     elif regex_pattern:
         prompt_path = get_first_prompt_file(regex_pattern)
 
+    logger.debug("Reading prompt from file", source=prompt_path)
+
     with prompt_path.open("r") as file:
         prompt = file.read().strip()
 
@@ -146,7 +148,11 @@ def read_prompt(
         vars = read_config(PROMPT_FILES["PLACEHOLDER_DICT"])
 
     if vars:
+        logger.debug(
+            "Substitute these variables in config file", source=prompt_path, vars=vars
+        )
         return prompt.format(**vars)
+
     return prompt
 
 

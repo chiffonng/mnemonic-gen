@@ -27,7 +27,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
     """Load a dataset from a file into a Hugging Face Dataset.
 
     Args:
-        file_path (PathLike): Path to the file.
+        file_path (PathLike): Path to the file, which can be in `.parquet`, `.csv`, `.json`, or `.jsonl` format.
         kwargs: Additional keyword arguments for the Hugging Face load_dataset() function, such as 'data_files' or 'data_dir' or 'split'. See documentation: https://huggingface.co/docs/datasets/en/loading for more details.
 
     Returns:
@@ -89,6 +89,43 @@ def load_txt_file(
     dataset = Dataset.from_pandas(df)
 
     return DatasetDict({split_name: dataset})
+
+
+def load_txt_by_lines(
+    source_path: PathLike,
+    sample_size: Optional[int] = None,
+    seed: int = 42,
+    split_name: str = "train",
+) -> Dataset:
+    """Load vocabulary from .txt into HuggingFace datasets.Dataset.
+
+    Args:
+        source_path (PathLike): Path to the source file containing vocabulary terms.
+        sample_size (int, optional): Number of samples to take from the dataset. If None, use the full dataset.
+        seed (int, optional): Random seed for shuffling the dataset when sampling. Defaults to 42.
+        split_name (str, optional): The name of the dataset split to create. Defaults to 'train'.
+
+    Returns:
+        Dataset containing vocabulary terms
+    """
+    source_path = check_file_path(source_path)
+    ds = Dataset.from_dict(
+        {"term": source_path.open("r").read().splitlines()}, split=split_name
+    )
+    logger.info("Loaded full .txt dataset", source=source_path, size=ds.num_rows)
+
+    # Sample if requested
+    if sample_size and sample_size < len(ds):
+        ds = ds.shuffle(seed=seed).select(range(sample_size))
+
+    if ds.num_rows == 0:
+        logger.warning("Empty dataset. check the source file.", source=source_path)
+        raise ValueError("The loaded dataset is empty.")
+    else:
+        logger.info(
+            "View one example of .txt dataset", source=source_path, example=ds[0]
+        )
+    return ds
 
 
 def load_from_database(table_or_query: str, uri: str, **kwargs) -> Dataset:
