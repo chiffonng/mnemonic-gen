@@ -5,25 +5,27 @@ from __future__ import annotations
 import json
 import random
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import yaml
 from structlog import getLogger
 
 from src.utils.constants import PROMPT_FILES, BasePaths
-from src.utils.error_handlers import check_file_path
+from src.utils.error_handlers import check_dir_path, check_file_path
 
 if TYPE_CHECKING:
-    from pathlib import Path
     from re import Pattern
-    from typing import Any, Optional
+    from typing import Any, Optional, Union
 
     from src.utils import PathLike
 
 logger = getLogger(__name__)
 
 
-def search_files(search_path: PathLike, regex_pattern: Pattern[str]) -> list[Path]:
+def search_files(
+    search_path: PathLike, regex_pattern: str | Pattern[str]
+) -> list[Path]:
     """Search for files in a directory that match a regex pattern.
 
     Args:
@@ -33,14 +35,11 @@ def search_files(search_path: PathLike, regex_pattern: Pattern[str]) -> list[Pat
     Returns:
         list[PathLike]: A list of file paths that match the regex pattern.
     """
-    from pathlib import Path
-
-    search_path = Path(search_path)
-    if not search_path.is_dir():
-        raise ValueError(f"The provided path is not a directory: {search_path}")
+    search_path = check_dir_path(search_path, new_ok=False)
 
     matching_files = []
-    for file in search_path.iterdir():
+    # Loop recursively through all files in the directory
+    for file in search_path.rglob("*"):
         if file.is_file() and re.search(regex_pattern, file.name):
             matching_files.append(file)
 
@@ -51,13 +50,13 @@ def search_files(search_path: PathLike, regex_pattern: Pattern[str]) -> list[Pat
             regex_pattern=regex_pattern,
         )
         raise ValueError(
-            f"No files found in {search_path} matching the regex pattern: {regex_pattern}"
+            f"No files found in '{search_path}' matching the regex pattern: '{regex_pattern}'"
         )
 
     return matching_files
 
 
-def get_first_prompt_file(regex_pattern: Pattern[str]) -> Path:
+def get_first_prompt_file(regex_pattern: str | Pattern[str]) -> Path:
     """Search for prompt files in the prompts directory that match a regex pattern.
 
     Args:
@@ -80,7 +79,7 @@ def get_first_prompt_file(regex_pattern: Pattern[str]) -> Path:
     return matching_files[0]
 
 
-def get_first_config_file(regex_pattern: Pattern[str]) -> Path:
+def get_first_config_file(regex_pattern: str | Pattern[str]) -> Path:
     """Search for configuration files in the config directory that match a regex pattern.
 
     Args:
@@ -105,7 +104,7 @@ def get_first_config_file(regex_pattern: Pattern[str]) -> Path:
 
 def read_prompt(
     prompt_path: Optional[PathLike] = None,
-    regex_pattern: Optional[Pattern[str]] = None,
+    regex_pattern: Optional[Union[str, Pattern[str]]] = None,
     vars: Optional[dict[str, Any]] = None,
     vars_json_path: Optional[PathLike] = None,
 ) -> str:
@@ -149,7 +148,7 @@ def read_prompt(
 
     if vars:
         logger.debug(
-            "Substitute these variables in config file", source=prompt_path, vars=vars
+            "Substituting these variables in config file", source=prompt_path, vars=vars
         )
         return prompt.format(**vars)
 
@@ -180,7 +179,7 @@ def sample_prompts(prompt_path: PathLike, num_samples: int = 1) -> str | list[st
     if num_samples == 1:
         chosen_prompt = random.choice(prompts)
         logger.debug(
-            "Sampling a single prompt", source=prompt_path, prompt=chosen_prompt
+            "Sampled a single prompt", source=prompt_path, prompt=chosen_prompt
         )
         return chosen_prompt
     else:
@@ -199,7 +198,8 @@ def sample_prompts(prompt_path: PathLike, num_samples: int = 1) -> str | list[st
 
 
 def read_config(
-    conf_path: Optional[PathLike] = None, regex_pattern: Optional[Pattern[str]] = None
+    conf_path: Optional[PathLike] = None,
+    regex_pattern: Optional[Union[str | Pattern[str]]] = None,
 ) -> dict:
     """Read a configuration file.
 
@@ -230,13 +230,13 @@ def read_config(
             return yaml.safe_load(file) or {}
 
 
-def update_config(config_filepath: PathLike, key: str, new_value: str):
+def update_config(config_filepath: PathLike, key: str, new_value: Any):
     """Update the config file with the new_value for the key.
 
     Args:
         config_filepath (PathLike): The path to the config file. The file should be in JSON format.
         key (str): The key to update.
-        new_value (str): The new value to set for the key.
+        new_value (Any): The new value to set for the key.
     """
     config_path = check_file_path(config_filepath, extensions=["json"])
     try:
