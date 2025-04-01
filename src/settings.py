@@ -5,8 +5,17 @@ structlog reference: https://www.structlog.org/en/stable/standard-library.html#r
 
 import logging
 import logging.config
+from pathlib import Path
 
 import structlog
+
+# Set up logging directory and file
+log_file = "logs/app.log"  # Default log file path
+log_filepath = Path(log_file)  # Convert to Path object
+# Ensure the log directory exists
+log_dir = log_filepath.parent
+log_dir.mkdir(parents=True, exist_ok=True)
+log_filepath.touch()
 
 
 # Create a custom filter to ignore litellm errors about __annotations__
@@ -56,7 +65,7 @@ LOGGING_CONF = {
         },
         "json_file": {
             "class": "logging.handlers.WatchedFileHandler",
-            "filename": "logs/json.log",
+            "filename": log_file,
             "formatter": "json_formatter",
             "filters": ["ignore_litellm_annotations"],
         },

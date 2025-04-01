@@ -24,6 +24,8 @@ logger: BoundLogger = getLogger(__name__)
 class DeepSeekReasoner(curator.LLM):
     """Reasoner class for generating reasoning traces for mnemonics."""
 
+    return_completion_objects = True
+
     def __init__(
         self,
         model_name: str = "deepseek-reasoner",

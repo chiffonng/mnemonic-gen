@@ -8,8 +8,8 @@ import pandas as pd
 from datasets import Dataset, DatasetDict, load_dataset
 from structlog import getLogger
 
-from src.train.huggingface import login_hf_hub
 from src.utils import check_file_path
+from src.utils.hf_utils import login_hf_hub
 
 if TYPE_CHECKING:
     from typing import Optional
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from structlog.stdlib import BoundLogger
 
     from src.utils import PathLike
-    from src.utils.constants import HF_DATASET_NAME, HF_TESTSET_NAME
+    from src.utils.constants import HFCONST
 
 # Set up logging to console
 logger: BoundLogger = getLogger(__name__)
@@ -133,7 +133,7 @@ def load_hf_dataset(
     login_hf_hub()
 
     if repo_id is None:
-        repo_id = HF_DATASET_NAME
+        repo_id = HFCONST.TESTSET_NAME
 
     logger.info(f"Loading dataset from {repo_id}.")
     dataset = load_dataset(repo_id, **kwargs)
