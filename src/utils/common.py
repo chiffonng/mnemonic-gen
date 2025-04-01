@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import random
+import re
 from typing import TYPE_CHECKING
 
 import yaml
@@ -14,6 +15,7 @@ from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
     from pathlib import Path
+    from re import Pattern
     from typing import Any, Optional
 
     from src.utils import PathLike
@@ -21,7 +23,7 @@ if TYPE_CHECKING:
 logger = getLogger(__name__)
 
 
-def search_files(search_path: PathLike, regex_pattern: str) -> list[Path]:
+def search_files(search_path: PathLike, regex_pattern: Pattern[str]) -> list[Path]:
     """Search for files in a directory that match a regex pattern.
 
     Args:
@@ -31,7 +33,6 @@ def search_files(search_path: PathLike, regex_pattern: str) -> list[Path]:
     Returns:
         list[PathLike]: A list of file paths that match the regex pattern.
     """
-    import re
     from pathlib import Path
 
     search_path = Path(search_path)
@@ -56,7 +57,7 @@ def search_files(search_path: PathLike, regex_pattern: str) -> list[Path]:
     return matching_files
 
 
-def get_first_prompt_file(regex_pattern: str) -> Path:
+def get_first_prompt_file(regex_pattern: Pattern[str]) -> Path:
     """Search for prompt files in the prompts directory that match a regex pattern.
 
     Args:
@@ -79,7 +80,7 @@ def get_first_prompt_file(regex_pattern: str) -> Path:
     return matching_files[0]
 
 
-def get_first_config_file(regex_pattern: str) -> Path:
+def get_first_config_file(regex_pattern: Pattern[str]) -> Path:
     """Search for configuration files in the config directory that match a regex pattern.
 
     Args:
@@ -103,8 +104,8 @@ def get_first_config_file(regex_pattern: str) -> Path:
 
 
 def read_prompt(
-    prompt_path: Optional[PathLike],
-    regex_pattern: Optional[str],
+    prompt_path: Optional[PathLike] = None,
+    regex_pattern: Optional[Pattern[str]] = None,
     vars: Optional[dict[str, Any]] = None,
     vars_json_path: Optional[PathLike] = None,
 ) -> str:
@@ -149,8 +150,8 @@ def read_prompt(
     return prompt
 
 
-def sample_prompt(prompt_path: PathLike, num_samples: int = 1) -> str | list[str]:
-    """Read a random instruction from a .txt file.
+def sample_prompts(prompt_path: PathLike, num_samples: int = 1) -> str | list[str]:
+    """Sample random instruction(s) from a .txt file.
 
     Args:
         prompt_path (PathLike): The path to the file (.txt) with prompts
@@ -191,7 +192,9 @@ def sample_prompt(prompt_path: PathLike, num_samples: int = 1) -> str | list[str
         return chosen_prompts
 
 
-def read_config(conf_path: Optional[PathLike], regex_pattern: Optional[str]) -> dict:
+def read_config(
+    conf_path: Optional[PathLike] = None, regex_pattern: Optional[Pattern[str]] = None
+) -> dict:
     """Read a configuration file.
 
     Args:

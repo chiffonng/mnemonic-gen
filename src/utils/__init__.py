@@ -1,4 +1,4 @@
-from .common import read_config, read_prompt, sample_prompt, update_config
+from .common import read_config, read_prompt, sample_prompts, update_config
 from .error_handlers import (
     check_dir_path,
     check_extension,
