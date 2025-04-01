@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import TYPE_CHECKING
 
 from datasets import Dataset, DatasetDict, load_dataset
@@ -87,11 +86,16 @@ def decontaminate(
     return filtered_dataset
 
 
-def prepare_user_instructions(dataset: Dataset) -> Dataset:
-    """Prepare instructions for the reasoner.
+def prepare_user_instructions(
+    dataset: Dataset,
+    instruction_prompt_path: PathLike,
+) -> Dataset:
+    """Add "instruction" column to the dataset based on a prompt file.
 
     Args:
-        dataset: Input dataset with vocabulary terms
+        dataset (Dataset): Input dataset to prepare instructions for
+        instruction_prompt_path (PathLike): Path to the instruction prompt file
+        instruction_vars (Optional[dict[str, Any]]): Variables to substitute in the prompt
 
     Returns:
         Dataset with added instruction column
@@ -100,14 +104,14 @@ def prepare_user_instructions(dataset: Dataset) -> Dataset:
     def map_row(row):
         """Map function to prepare user instructions for each row in the dataset."""
         try:
-            return {
-                "instruction": read_prompt(
-                    regex_pattern=r"*reason/user*", vars={"term": row["term"]}
-                )
-            }
+            # TODO: Sample prompts from a pool of prompts later.
+            user_instruction_template = read_prompt(prompt_path=instruction_prompt_path)
+            user_instruction = user_instruction_template.format(term=row["term"])
+            return {"instruction": user_instruction}
         except Exception as e:
             logger.error(
                 "Failed to prepare instruction for term",
+                prompt_source=instruction_prompt_path,
                 term=row["term"],
                 error=str(e),
             )
@@ -148,17 +152,18 @@ def generate_mnemonics(
     ds = decontaminate(ds)
 
     # 4. Prepare instructions
-    ds = prepare_user_instructions(ds)
+    ds = prepare_user_instructions(
+        ds, instruction_prompt_path=const.PROMPT_FILES["REASON_USER"]
+    )
 
     # 5. Generate reasoning and mnemonics
     ds = reason(ds)
 
     # 7. Push to Hugging Face if not a dry run
     if output_repo_id and not dry_run:
-        repo_id = f"{os.environ.get('HF_ORG', 'chiffonng')}/{output_repo_id}"
+        repo_id = f"{const.HFCONST.USER}/{output_repo_id}"
         ds_dict = DatasetDict({"train": ds})
         push_data_to_hf(ds_dict, repo_id, private=True)  # TODO: CHANGE TO False
-        logger.info(f"Pushed dataset to {repo_id}")
 
     if dry_run:
         logger.info("==== MNEMONIC DATASET (DRY RUN) ====")
