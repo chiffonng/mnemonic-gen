@@ -6,6 +6,7 @@ from typing import Annotated, Any, Optional
 from uuid import UUID, uuid4
 
 from instructor import OpenAISchema
+from instructor.utils import disable_pydantic_error_url
 from pydantic import BeforeValidator
 from pydantic.json_schema import SkipJsonSchema
 from sqlmodel import Field, SQLModel
@@ -16,6 +17,8 @@ from src.data_prep.data_validators import (
     validate_mnemonic,
     validate_term,
 )
+
+disable_pydantic_error_url()
 
 
 class MnemonicType(ExplicitEnum):
@@ -65,23 +68,4 @@ class Mnemonic(SQLModel, OpenAISchema, table=True):
     ] = Field(
         default=None,
         description="The sub type of the mnemonic, if applicable.",
-    )
-
-
-class MnemonicChat(SQLModel, OpenAISchema, table=True):
-    """Model of structured outputs of generating mnemonics by chat models."""
-
-    id: SkipJsonSchema[UUID] = Field(default_factory=lambda: uuid4(), primary_key=True)
-    term: Annotated[str, BeforeValidator(validate_term)] = Field(
-        ...,
-        description="The vocabulary term.",
-        index=True,
-    )
-    messages: list[dict[str, Any]] = Field(
-        default_factory=list,
-        description="List of conversations about the mnemonic. Each conversation is a dictionary containing the messages exchanged. {'role': 'user' or 'assistant', 'content': 'message content'}",
-    )
-    mnemonic = Annotated[Optional[str], BeforeValidator(validate_mnemonic)] = Field(
-        default=None,
-        description="The generated mnemonic device for the term.",
     )
