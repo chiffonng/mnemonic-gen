@@ -2,7 +2,7 @@
 name = "mnemonic-gen"
 version = "0.2.0"
 description = "Generate mnemonic sentences for English words"
-authors = ["My Chiffon Nguyen <chiffonng136@gmail.com>"]
+authors = [{ name = "My Chiffon Nguyen", email = "chiffonng136@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
