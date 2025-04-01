@@ -210,6 +210,7 @@ def push_data_to_hf(
     logger.info(
         "Successfully uploaded dataset to HuggingFace",
         url=f"https://huggingface.co/datasets/{repo_id}",
+        private=private,
     )
 
     return repo_id

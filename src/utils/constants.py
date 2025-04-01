@@ -156,7 +156,7 @@ PROMPT_FILES = {
 
 # Config file paths
 CONFIG_FILES = {
-    "DEFAULT_GEN": PATH.config_file("api", "default_generation"),
+    "DEFAULT_GENERATION": PATH.config_file("api", "default_generation"),
     "DEFAULT_BACKEND": PATH.config_file("api", "default_backend"),
     "HUGGINGFACE": PATH.config_file("api", "hf"),
     "CLAUDE": PATH.config_file("api", "claude"),

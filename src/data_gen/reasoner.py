@@ -49,7 +49,8 @@ class DeepSeekReasoner(curator.LLM):
         default_backend_params = read_config(const.CONFIG_FILES["DEFAULT_BACKEND"])
 
         if generation_params is None:
-            generation_params = read_config(regex_pattern=r"*deepseek*\.json")
+            # Search for config "something-deepseek-something.json" in the config directory
+            generation_params = read_config(regex_pattern=r".*deepseek.*\.json")
             default_generation_params.update(generation_params)
             generation_params = default_generation_params
 
@@ -122,7 +123,8 @@ class ClaudeReasoner(curator.LLM):
         default_backend_params = read_config(const.CONFIG_FILES["DEFAULT_BACKEND"])
 
         if generation_params is None:
-            generation_params = read_config(regex_pattern=r"*claude*\.json")
+            # Search for config "anything-claude_anything.json" in the config directory
+            generation_params = read_config(regex_pattern=r"claude.*\.json")
             default_generation_params.update(generation_params)
             generation_params = default_generation_params
 
