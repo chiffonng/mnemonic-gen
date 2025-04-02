@@ -2,8 +2,6 @@
 """Test API connections to external providers like DeepSeek."""
 
 import os
-import sys
-from pathlib import Path
 
 import pytest
 from dotenv import load_dotenv

@@ -46,7 +46,7 @@ def test_validate_content_against_schema_invalid_json():
 
     # Mock _attempt_fix_incomplete_json to return still-broken JSON
     with patch(
-        "src.data.data_validators._attempt_fix_incomplete_json",
+        "src.data_prep.data_validators._attempt_fix_incomplete_json",
         return_value='{"message" "Test }: message"}',
     ):
         # Execute
@@ -68,7 +68,7 @@ def test_validate_content_against_schema_fix_json():
 
     # Execute with patched _attempt_fix_incomplete_json
     with patch(
-        "src.data.data_validators._attempt_fix_incomplete_json",
+        "src.data_prep.data_validators._attempt_fix_incomplete_json",
         return_value='{"message": "Test message"}',
     ):
         result = validate_content_against_schema(content, SimpleOutputSchema)
