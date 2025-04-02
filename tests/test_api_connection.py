@@ -6,14 +6,12 @@ import os
 import pytest
 from dotenv import load_dotenv
 from openai import OpenAI
-from src.utils.ssl_utils import setup_ssl_environment
 
 
 @pytest.fixture(scope="module")
 def deepseek_client():
     """Create a DeepSeek client using the OpenAI client with custom base URL."""
     load_dotenv()
-    setup_ssl_environment()
 
     api_key = os.getenv("DEEPSEEK_API_KEY")
     if not api_key:
