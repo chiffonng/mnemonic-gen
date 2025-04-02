@@ -13,77 +13,62 @@ aiosignal==1.3.2
     # via aiohttp
 annotated-types==0.7.0
     # via pydantic
+anthropic==0.47.2
+    # via bespokelabs-curator
 anyio==4.9.0
     # via
+    #   anthropic
     #   httpx
     #   openai
-appnope==0.1.4
-    # via ipykernel
-asttokens==3.0.0
-    # via stack-data
-async-timeout==5.0.1
-    # via aiohttp
 attrs==25.3.0
     # via
     #   aiohttp
     #   jsonschema
     #   referencing
-bespokelabs-curator==0.1.6
-    # via mnemonic-gen
+backoff==2.2.1
+    # via posthog
+bespokelabs-curator==0.1.22
+    # via mnemonic-gen (pyproject.toml)
+cachetools==5.5.2
+    # via google-auth
 certifi==2025.1.31
     # via
     #   httpcore
     #   httpx
     #   requests
-cffi==1.17.1
-    # via sounddevice
-cfgv==3.4.0
-    # via pre-commit
 charset-normalizer==3.4.1
     # via requests
 click==8.1.8
     # via
-    #   deptry
     #   litellm
     #   typer
-comm==0.2.2
-    # via ipykernel
 contourpy==1.3.1
     # via matplotlib
 cycler==0.12.1
     # via matplotlib
 datasets==3.5.0
     # via
+    #   mnemonic-gen (pyproject.toml)
     #   bespokelabs-curator
-    #   mnemonic-gen
-debugpy==1.8.13
-    # via ipykernel
-decorator==5.2.1
-    # via ipython
-deptry==0.23.0
 dill==0.3.8
     # via
     #   datasets
     #   multiprocess
-distlib==0.3.9
-    # via virtualenv
 distro==1.9.0
-    # via openai
-docstring-parser==0.16
-    # via instructor
-exceptiongroup==1.2.2
     # via
-    #   anyio
-    #   ipython
-    #   pytest
-executing==2.2.0
-    # via stack-data
+    #   anthropic
+    #   openai
+    #   posthog
+docstring-parser==0.16
+    # via
+    #   google-cloud-aiplatform
+    #   instructor
+eval-type-backport==0.2.2
+    # via mistralai
 filelock==3.18.0
     # via
     #   datasets
     #   huggingface-hub
-    #   transformers
-    #   virtualenv
 fonttools==4.56.0
     # via matplotlib
 frozenlist==1.5.0
@@ -94,22 +79,71 @@ fsspec==2024.12.0
     # via
     #   datasets
     #   huggingface-hub
+google-api-core==2.24.2
+    # via
+    #   google-cloud-aiplatform
+    #   google-cloud-bigquery
+    #   google-cloud-core
+    #   google-cloud-resource-manager
+    #   google-cloud-storage
+google-auth==2.38.0
+    # via
+    #   google-api-core
+    #   google-cloud-aiplatform
+    #   google-cloud-bigquery
+    #   google-cloud-core
+    #   google-cloud-resource-manager
+    #   google-cloud-storage
+google-cloud-aiplatform==1.71.1
+    # via vertexai
+google-cloud-bigquery==3.31.0
+    # via google-cloud-aiplatform
+google-cloud-core==2.4.3
+    # via
+    #   google-cloud-bigquery
+    #   google-cloud-storage
+google-cloud-resource-manager==1.14.2
+    # via google-cloud-aiplatform
+google-cloud-storage==2.19.0
+    # via google-cloud-aiplatform
+google-crc32c==1.7.1
+    # via
+    #   google-cloud-storage
+    #   google-resumable-media
+google-resumable-media==2.7.2
+    # via
+    #   google-cloud-bigquery
+    #   google-cloud-storage
+googleapis-common-protos==1.69.2
+    # via
+    #   google-api-core
+    #   grpc-google-iam-v1
+    #   grpcio-status
+grpc-google-iam-v1==0.14.2
+    # via google-cloud-resource-manager
+grpcio==1.71.0
+    # via
+    #   google-api-core
+    #   googleapis-common-protos
+    #   grpc-google-iam-v1
+    #   grpcio-status
+grpcio-status==1.71.0
+    # via google-api-core
 h11==0.14.0
     # via httpcore
 httpcore==1.0.7
     # via httpx
 httpx==0.28.1
     # via
+    #   anthropic
     #   litellm
+    #   mistralai
     #   openai
 huggingface-hub==0.29.3
     # via
+    #   mnemonic-gen (pyproject.toml)
     #   datasets
-    #   mnemonic-gen
     #   tokenizers
-    #   transformers
-identify==2.6.9
-    # via pre-commit
 idna==3.10
     # via
     #   anyio
@@ -118,53 +152,43 @@ idna==3.10
     #   yarl
 importlib-metadata==8.6.1
     # via litellm
-iniconfig==2.1.0
-    # via pytest
 instructor==1.7.7
-    # via bespokelabs-curator
-ipykernel==6.29.5
-ipython==8.34.0
     # via
+    #   mnemonic-gen (pyproject.toml)
     #   bespokelabs-curator
-    #   ipykernel
-jedi==0.19.2
-    # via ipython
 jinja2==3.1.6
     # via
     #   instructor
     #   litellm
 jiter==0.8.2
     # via
+    #   anthropic
     #   instructor
     #   openai
 jsonschema==4.23.0
     # via litellm
 jsonschema-specifications==2024.10.1
     # via jsonschema
-jupyter-client==8.6.3
-    # via ipykernel
-jupyter-core==5.7.2
-    # via
-    #   ipykernel
-    #   jupyter-client
 kiwisolver==1.4.8
     # via matplotlib
-litellm==1.65.0
+litellm==1.61.3
     # via
+    #   mnemonic-gen (pyproject.toml)
     #   bespokelabs-curator
-    #   mnemonic-gen
 markdown-it-py==3.0.0
     # via rich
 markupsafe==3.0.2
     # via jinja2
 matplotlib==3.10.1
-    # via mnemonic-gen
-matplotlib-inline==0.1.7
     # via
-    #   ipykernel
-    #   ipython
+    #   mnemonic-gen (pyproject.toml)
+    #   bespokelabs-curator
 mdurl==0.1.2
     # via markdown-it-py
+mistralai==1.6.0
+    # via bespokelabs-curator
+monotonic==1.6
+    # via posthog
 multidict==6.2.0
     # via
     #   aiohttp
@@ -172,16 +196,14 @@ multidict==6.2.0
 multiprocess==0.70.16
     # via datasets
 nest-asyncio==1.6.0
-    # via ipykernel
-nodeenv==1.9.1
-    # via pre-commit
+    # via bespokelabs-curator
 numpy==2.2.4
     # via
     #   contourpy
     #   datasets
     #   matplotlib
     #   pandas
-    #   transformers
+    #   shapely
 openai==1.69.0
     # via
     #   instructor
@@ -189,202 +211,162 @@ openai==1.69.0
 packaging==24.2
     # via
     #   datasets
-    #   deptry
+    #   google-cloud-aiplatform
+    #   google-cloud-bigquery
     #   huggingface-hub
-    #   ipykernel
     #   matplotlib
-    #   pytest
-    #   requirements-parser
-    #   transformers
-pandas==2.2.3
+pandas==2.2.2
     # via
+    #   mnemonic-gen (pyproject.toml)
     #   bespokelabs-curator
     #   datasets
-parso==0.8.4
-    # via jedi
-pexpect==4.9.0
-    # via ipython
 pillow==11.1.0
     # via matplotlib
-platformdirs==4.3.6
-    # via
-    #   jupyter-core
-    #   virtualenv
-pluggy==1.5.0
-    # via pytest
-pre-commit==4.1.0
-prompt-toolkit==3.0.50
-    # via ipython
+posthog==3.23.0
+    # via bespokelabs-curator
 propcache==0.3.1
     # via
     #   aiohttp
     #   yarl
-psutil==7.0.0
-    # via ipykernel
-ptyprocess==0.7.0
-    # via pexpect
-pure-eval==0.2.3
-    # via stack-data
+proto-plus==1.26.1
+    # via
+    #   google-api-core
+    #   google-cloud-aiplatform
+    #   google-cloud-resource-manager
+protobuf==5.29.4
+    # via
+    #   google-api-core
+    #   google-cloud-aiplatform
+    #   google-cloud-resource-manager
+    #   googleapis-common-protos
+    #   grpc-google-iam-v1
+    #   grpcio-status
+    #   proto-plus
 pyarrow==19.0.1
     # via datasets
-pycparser==2.22
-    # via cffi
+pyasn1==0.6.1
+    # via
+    #   pyasn1-modules
+    #   rsa
+pyasn1-modules==0.4.2
+    # via google-auth
 pydantic==2.11.1
     # via
+    #   mnemonic-gen (pyproject.toml)
+    #   anthropic
     #   bespokelabs-curator
+    #   google-cloud-aiplatform
     #   instructor
     #   litellm
-    #   mnemonic-gen
+    #   mistralai
     #   openai
-    #   sqlmodel
 pydantic-core==2.33.0
     # via
     #   instructor
     #   pydantic
 pygments==2.19.1
-    # via
-    #   ipython
-    #   rich
+    # via rich
 pyparsing==3.2.3
     # via matplotlib
-pytest==8.3.5
-    # via
-    #   bespokelabs-curator
-    #   pytest-asyncio
-pytest-asyncio==0.24.0
-    # via bespokelabs-curator
 python-dateutil==2.9.0.post0
     # via
-    #   jupyter-client
+    #   google-cloud-bigquery
     #   matplotlib
+    #   mistralai
     #   pandas
+    #   posthog
 python-dotenv==1.1.0
     # via
+    #   mnemonic-gen (pyproject.toml)
     #   litellm
-    #   mnemonic-gen
 pytz==2025.2
     # via pandas
 pyyaml==6.0.2
     # via
     #   datasets
     #   huggingface-hub
-    #   pre-commit
-    #   transformers
-pyzmq==26.3.0
-    # via
-    #   ipykernel
-    #   jupyter-client
 referencing==0.36.2
     # via
     #   jsonschema
     #   jsonschema-specifications
 regex==2024.11.6
-    # via
-    #   tiktoken
-    #   transformers
+    # via tiktoken
 requests==2.32.3
     # via
     #   datasets
+    #   google-api-core
+    #   google-cloud-bigquery
+    #   google-cloud-storage
     #   huggingface-hub
     #   instructor
+    #   posthog
     #   tiktoken
-    #   transformers
-requirements-parser==0.11.0
-    # via deptry
 rich==13.9.4
     # via
+    #   mnemonic-gen (pyproject.toml)
+    #   bespokelabs-curator
     #   instructor
-    #   mnemonic-gen
     #   typer
 rpds-py==0.24.0
     # via
     #   jsonschema
     #   referencing
-ruff==0.11.0
-safetensors==0.5.3
-    # via transformers
-setuptools==76.0.0
-    # via types-setuptools
+rsa==4.9
+    # via google-auth
+shapely==2.0.7
+    # via google-cloud-aiplatform
 shellingham==1.5.4
     # via typer
 six==1.17.0
-    # via python-dateutil
+    # via
+    #   posthog
+    #   python-dateutil
 sniffio==1.3.1
     # via
+    #   anthropic
     #   anyio
     #   openai
-sounddevice==0.5.1
-sqlalchemy==2.0.39
-    # via sqlmodel
-sqlmodel==0.0.24
-stack-data==0.6.3
-    # via ipython
 structlog==25.2.0
-    # via mnemonic-gen
+    # via mnemonic-gen (pyproject.toml)
 tenacity==9.0.0
     # via
+    #   mnemonic-gen (pyproject.toml)
     #   instructor
-    #   mnemonic-gen
 tiktoken==0.9.0
-    # via litellm
-tokenizers==0.21.1
     # via
+    #   bespokelabs-curator
     #   litellm
-    #   transformers
-tomli==2.2.1
-    # via
-    #   deptry
-    #   pytest
-tornado==6.4.2
-    # via
-    #   ipykernel
-    #   jupyter-client
+tokenizers==0.21.1
+    # via litellm
 tqdm==4.67.1
     # via
+    #   bespokelabs-curator
     #   datasets
     #   huggingface-hub
     #   openai
-    #   transformers
-traitlets==5.14.3
-    # via
-    #   comm
-    #   ipykernel
-    #   ipython
-    #   jupyter-client
-    #   jupyter-core
-    #   matplotlib-inline
-transformers==4.50.3
-    # via mnemonic-gen
 typer==0.15.2
     # via instructor
-types-setuptools==76.0.0.20250313
-    # via requirements-parser
 typing-extensions==4.13.0
     # via
+    #   anthropic
     #   anyio
     #   huggingface-hub
-    #   ipython
-    #   multidict
     #   openai
     #   pydantic
     #   pydantic-core
     #   referencing
-    #   rich
-    #   sqlalchemy
-    #   structlog
     #   typer
     #   typing-inspection
 typing-inspection==0.4.0
-    # via pydantic
+    # via
+    #   mistralai
+    #   pydantic
 tzdata==2025.2
     # via pandas
 urllib3==2.3.0
     # via requests
-uv==0.6.6
-virtualenv==20.29.3
-    # via pre-commit
-wcwidth==0.2.13
-    # via prompt-toolkit
+vertexai==1.71.1
+    # via bespokelabs-curator
 xxhash==3.5.0
     # via
     #   bespokelabs-curator
