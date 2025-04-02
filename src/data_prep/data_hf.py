@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from structlog.stdlib import BoundLogger
 
     from src.utils import PathLike
-    from src.utils.constants import HFCONST
+    from src.utils.constants import HF_CONST
 
 # Set up logging to console
 logger: BoundLogger = getLogger(__name__)
@@ -170,7 +170,7 @@ def load_hf_dataset(
     login_hf_hub()
 
     if repo_id is None:
-        repo_id = HFCONST.TESTSET_NAME
+        repo_id = HF_CONST.TESTSET_NAME
 
     logger.info(f"Loading dataset from {repo_id}.")
     dataset = load_dataset(repo_id, **kwargs)

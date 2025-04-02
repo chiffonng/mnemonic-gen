@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import yaml
 from structlog import getLogger
 
-from src.utils.constants import PROMPT_FILES, BasePaths
+from src.utils.constants import PROMPT_PATH, BasePath
 from src.utils.error_handlers import check_dir_path, check_file_path
 
 if TYPE_CHECKING:
@@ -65,7 +65,7 @@ def get_first_prompt_file(regex_pattern: str | Pattern[str]) -> Path:
     Returns:
         Path: The first file path that matches the regex pattern.
     """
-    matching_files = search_files(BasePaths.PROMPTS, regex_pattern)
+    matching_files = search_files(BasePath.PROMPTS, regex_pattern)
 
     if not matching_files:
         logger.debug(
@@ -73,7 +73,7 @@ def get_first_prompt_file(regex_pattern: str | Pattern[str]) -> Path:
             regex_pattern=regex_pattern,
         )
         raise ValueError(
-            f"No prompt files found in {BasePaths.PROMPTS} matching the regex pattern: {regex_pattern}"
+            f"No prompt files found in {BasePath.PROMPTS} matching the regex pattern: {regex_pattern}"
         )
 
     return matching_files[0]
@@ -88,7 +88,7 @@ def get_first_config_file(regex_pattern: str | Pattern[str]) -> Path:
     Returns:
         Path: The first file path that matches the regex pattern.
     """
-    matching_files = search_files(BasePaths.CONFIG, regex_pattern)
+    matching_files = search_files(BasePath.CONFIG, regex_pattern)
 
     if not matching_files:
         logger.debug(
@@ -96,7 +96,7 @@ def get_first_config_file(regex_pattern: str | Pattern[str]) -> Path:
             regex_pattern=regex_pattern,
         )
         raise ValueError(
-            f"No config files found in {BasePaths.CONFIG} matching the regex pattern: {regex_pattern}"
+            f"No config files found in {BasePath.CONFIG} matching the regex pattern: {regex_pattern}"
         )
 
     return matching_files[0]
@@ -144,7 +144,7 @@ def read_prompt(
             vars = vars_from_json
 
     elif vars_json_path is None and "system" in prompt_path.name:
-        vars = read_config(PROMPT_FILES["PLACEHOLDER_DICT"])
+        vars = read_config(PROMPT_PATH.PLACEHOLDER_DICT)
 
     if vars:
         logger.debug(
