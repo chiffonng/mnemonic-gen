@@ -5,14 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bespokelabs import curator
+from pydantic import BaseModel
 from structlog import getLogger
 
 from src.utils import constants as const
 from src.utils.common import read_config, read_prompt
-from src.utils.ssl_utils import setup_ssl_environment
 
 if TYPE_CHECKING:
-    from typing import Any, Optional
+    from typing import Any
 
     from datasets import Dataset
     from structlog.stdlib import BoundLogger
@@ -22,63 +22,9 @@ logger: BoundLogger = getLogger(__name__)
 
 
 class DeepSeekReasoner(curator.LLM):
-    """Reasoner class for generating reasoning traces for mnemonics."""
+    """class for generating reasoning traces for mnemonics."""
 
     return_completions_object = True
-
-    def __init__(
-        self,
-        model_name: str = "deepseek-reasoner",
-        backend: str = "openai",
-        batch: bool = False,
-        generation_params: Optional[dict[str, Any]] = None,
-        backend_params: Optional[dict[str, Any]] = None,
-    ):
-        """Initialize the DeepSeekReasoner class. See https://docs.bespokelabs.ai/bespoke-curator/api-reference/llm-api-documentation for more details.
-
-        Args:
-            model_name: Name of the LLM model to use
-            backend: Backend to use for the LLM (default is "openai")
-            batch: Whether to process instructions in batches (default is True)
-            generation_params: Parameters for text generation
-            backend_params: Parameters for backend configuration
-        """
-        default_generation_params = read_config(const.CONFIG_PATH.DEFAULT_GENERATION)
-
-        if batch:
-            default_backend_params = read_config(
-                const.CONFIG_PATH.DEFAULT_BACKEND_BATCH
-            )
-        else:
-            default_backend_params = read_config(const.CONFIG_PATH.DEFAULT_BACKEND)
-
-        if generation_params is None:
-            # Search for config "something-deepseek-something.json" in the config directory
-            model_generation_params = read_config(regex_pattern=r".*deepseek.*\.json")
-            default_generation_params.update(model_generation_params)
-        else:
-            # Update default generation params with the provided ones
-            default_generation_params.update(generation_params)
-
-        if backend_params:
-            default_backend_params.update(backend_params)
-
-        logger.debug(
-            "DeepSeekReasoner initialized",
-            model_name=model_name,
-            backend=backend,
-            batch=batch,
-            generation_params=default_generation_params,
-            backend_params=default_backend_params,
-        )
-
-        super().__init__(
-            model_name=model_name,
-            backend=backend,
-            batch=batch,
-            generation_params=default_generation_params,
-            backend_params=default_backend_params,
-        )
 
     def prompt(self, input: dict[str, str]) -> list[dict[str, Any]]:
         """Create a prompt for the LLM to reason about the vocab and user input.
@@ -102,19 +48,59 @@ class DeepSeekReasoner(curator.LLM):
         return {
             "term": input["term"],  # The term being reasoned about
             "instruction": input["instruction"],
-            "reasoning": response["choices"][0]["message"].reasoning_content,
-            "completion": response["choices"][0]["message"].content,
+            "reasoning": response["choices"][0]["message"]["reasoning_content"],
+            "solution": response["choices"][0]["message"]["content"],
         }
 
 
-def reason(ds: Dataset) -> Dataset:
+class MnemonicResult(BaseModel):
+    """Class representing the result of a mnemonic generation process."""
+
+    thinnking: str
+    solution: str
+
+    class Config:
+        """Pydantic model configuration."""
+
+        arbitrary_types_allowed = True
+        allow_population_by_field_name = True
+
+
+# TODO
+class O3MiniReasoner(curator.LLM):
+    """Class for generating reasoning traces for mnemonics using O3 Mini."""
+
+    response_format = MnemonicResult
+
+
+def reason(ds: Dataset, model_name: str = "deepseek-reasoner") -> Dataset:
     """Generate reasoning traces using the DeepSeekReasoner.
 
     Args:
         ds: Dataset containing the input data for reasoning
+        model_name: Name of the reasoning model to use (default is "deepseek-reasoner")
+
     Returns:
         Dataset: Dataset with added reasoning traces and other fields
     """
-    setup_ssl_environment()
-    reasoner = DeepSeekReasoner()
+    default_generation_params = read_config(const.CONFIG_PATH.DEFAULT_GENERATION)
+    if model_name == "deepseek-reasoner":
+        reasoner = DeepSeekReasoner(
+            model_name="deepseek/deepseek-reasoner",
+            generation_params=default_generation_params.update(
+                read_config(const.CONFIG_PATH.DEEPSEEK_REASONER)
+            ),
+            backend_params=read_config(const.CONFIG_PATH.DEFAULT_BACKEND),
+        )
+    elif model_name == "o3-mini":
+        reasoner = O3MiniReasoner(
+            model_name="openai/o3-mini",
+            batch=True,
+            generation_params=default_generation_params.update(
+                read_config(const.CONFIG_PATH.OPENAI)
+            ),
+            backend_params=read_config(const.CONFIG_PATH.DEFAULT_BACKEND_BATCH),
+        )
+    else:
+        raise ValueError(f"Unknown model name: {model_name}")
     return reasoner(ds)
