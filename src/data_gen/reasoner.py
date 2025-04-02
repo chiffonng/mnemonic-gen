@@ -8,6 +8,7 @@ from bespokelabs import curator
 from pydantic import BaseModel
 from structlog import getLogger
 
+from src.data_gen.prompt import get_system_prompt
 from src.utils import constants as const
 from src.utils.common import read_config, read_prompt
 
@@ -26,6 +27,7 @@ class DeepSeekReasoner(curator.LLM):
 
     return_completions_object = True
 
+    # TODO: add learning setting to the model
     def prompt(self, input: dict[str, str]) -> list[dict[str, Any]]:
         """Create a prompt for the LLM to reason about the vocab and user input.
 
@@ -56,7 +58,7 @@ class DeepSeekReasoner(curator.LLM):
 class MnemonicResult(BaseModel):
     """Class representing the result of a mnemonic generation process."""
 
-    thinnking: str
+    reasoning: str
     solution: str
 
     class Config:
@@ -66,11 +68,36 @@ class MnemonicResult(BaseModel):
         allow_population_by_field_name = True
 
 
-# TODO
 class O3MiniReasoner(curator.LLM):
     """Class for generating reasoning traces for mnemonics using O3 Mini."""
 
     response_format = MnemonicResult
+
+    def prompt(self, input: dict[str, str]) -> list[dict[str, Any]]:
+        """Create a prompt for the LLM to reason about the vocab and user input.
+
+        Args:
+            input: Dictionary containing the input data for reasoning
+
+        Returns:
+            List of dictionaries containing the prompt for the LLM
+        """
+        return [
+            {
+                "role": "system",
+                "content": read_prompt(const.PROMPT_PATH.REASON_SYSTEM),
+            },
+            {"role": "user", "content": input["instruction"]},
+        ]
+
+    def parse(self, input: dict, response: dict[str, str]) -> dict[str, Any]:
+        """Parse the LLM response to extract reasoning and solution."""
+        return {
+            "term": input["term"],  # The term being reasoned about
+            "instruction": input["instruction"],
+            "reasoning": response.reasoning,
+            "solution": response.solution,
+        }
 
 
 def reason(ds: Dataset, model_name: str = "deepseek-reasoner") -> Dataset:
@@ -84,6 +111,7 @@ def reason(ds: Dataset, model_name: str = "deepseek-reasoner") -> Dataset:
         Dataset: Dataset with added reasoning traces and other fields
     """
     default_generation_params = read_config(const.CONFIG_PATH.DEFAULT_GENERATION)
+
     if model_name == "deepseek-reasoner":
         reasoner = DeepSeekReasoner(
             model_name="deepseek/deepseek-reasoner",
@@ -92,6 +120,7 @@ def reason(ds: Dataset, model_name: str = "deepseek-reasoner") -> Dataset:
             ),
             backend_params=read_config(const.CONFIG_PATH.DEFAULT_BACKEND),
         )
+
     elif model_name == "o3-mini":
         reasoner = O3MiniReasoner(
             model_name="openai/o3-mini",
