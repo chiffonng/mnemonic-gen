@@ -69,7 +69,7 @@ def decontaminate(
         Decontaminated dataset
     """
     if test_set is None:
-        test_set = load_dataset(const.HFCONST.TESTSET_NAME, split="test")
+        test_set = load_dataset(const.HF_CONST.TESTSET_NAME, split="test")
 
     # Create a mask for terms not in the test set
     mask = []
@@ -153,7 +153,7 @@ def generate_mnemonics(
 
     # 4. Prepare instructions
     ds = prepare_user_instructions(
-        ds, instruction_prompt_path=const.PROMPT_FILES["REASON_USER"]
+        ds, instruction_prompt_path=const.PROMPT_PATH.REASON_USER
     )
 
     # 5. Generate reasoning and mnemonics
@@ -161,7 +161,7 @@ def generate_mnemonics(
 
     # 7. Push to Hugging Face if not a dry run
     if output_repo_id and not dry_run:
-        repo_id = f"{const.HFCONST.USER}/{output_repo_id}"
+        repo_id = f"{const.HF_CONST.USER}/{output_repo_id}"
         ds_dict = DatasetDict({"train": ds})
         push_data_to_hf(ds_dict, repo_id, private=True)  # TODO: CHANGE TO False
 
