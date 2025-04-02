@@ -23,7 +23,7 @@ logger: BoundLogger = getLogger(__name__)
 class DeepSeekReasoner(curator.LLM):
     """Reasoner class for generating reasoning traces for mnemonics."""
 
-    return_completion_objects = True
+    return_completions_object = True
 
     def __init__(
         self,
@@ -42,10 +42,14 @@ class DeepSeekReasoner(curator.LLM):
             generation_params: Parameters for text generation
             backend_params: Parameters for backend configuration
         """
-        default_generation_params = read_config(
-            const.CONFIG_FILES["DEFAULT_GENERATION"]
-        )
-        default_backend_params = read_config(const.CONFIG_FILES["DEFAULT_BACKEND"])
+        default_generation_params = read_config(const.CONFIG_PATH.DEFAULT_GENERATION)
+
+        if batch:
+            default_backend_params = read_config(
+                const.CONFIG_PATH.DEFAULT_BACKEND_BATCH
+            )
+        else:
+            default_backend_params = read_config(const.CONFIG_PATH.DEFAULT_BACKEND)
 
         if generation_params is None:
             # Search for config "something-deepseek-something.json" in the config directory
@@ -87,7 +91,7 @@ class DeepSeekReasoner(curator.LLM):
         return [
             {
                 "role": "system",
-                "content": read_prompt(const.PROMPT_FILES["REASON_SYSTEM"]),
+                "content": read_prompt(const.PROMPT_PATH.REASON_SYSTEM),
             },
             {"role": "user", "content": input["instruction"]},
         ]
@@ -110,5 +114,5 @@ def reason(ds: Dataset) -> Dataset:
     Returns:
         Dataset: Dataset with added reasoning traces and other fields
     """
-    reasoner = DeepSeekReasoner()
+    reasoner = DeepSeekReasoner(batch=True)
     return reasoner(ds)
