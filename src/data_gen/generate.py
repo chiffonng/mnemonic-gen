@@ -138,9 +138,9 @@ def generate_mnemonics(
     Returns:
         Dataset with generated mnemonics and reasoning traces
     """
-    # Set up parameters based on dry run
+    # Force sample size to 3 for dry run
     if dry_run:
-        sample_size = sample_size or 3
+        sample_size = 3
 
     # 1. Load vocabulary dataset
     ds = load_txt_by_lines(input_path, sample_size=sample_size)
@@ -181,6 +181,5 @@ if __name__ == "__main__":
     generate_mnemonics(
         input_path="data/raw/gre.txt",
         output_repo_id="mnemonic_dataset_dry_run",  # Change this for actual runs
-        sample_size=5,  # For dry run, keep it small
         dry_run=True,
     )
