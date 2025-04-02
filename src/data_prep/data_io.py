@@ -92,18 +92,36 @@ def read_jsonl_file(file_path: PathLike) -> list[dict[str, Any]]:
     return data
 
 
-def read_txt_file(file_path: PathLike) -> list[str]:
+def read_txt_file(
+    file_path: PathLike,
+    remove_empty_lines: bool = True,
+    by_lines: bool = False,
+) -> list[str]:
     """Read a text file and return its contents as a list of strings.
 
     Args:
         file_path: Path to the text file
+        remove_empty_lines: Whether to remove empty lines
+        by_lines: Whether to read the file line by line
+
+    Raises:
+        See `src.utils.error_handlers.check_file_path` for possible exceptions
+
     Returns:
         List of strings representing lines in the text file
     """
     validated_path = check_file_path(file_path, extensions=[const.TXT_EXT])
 
     with validated_path.open("r", encoding="utf-8") as txtfile:
-        data = [line.strip() for line in txtfile if line.strip()]
+        if by_lines and remove_empty_lines:
+            return [line.strip() for line in txtfile]
+        elif by_lines and not remove_empty_lines:
+            return [line for line in txtfile]
+
+        elif remove_empty_lines:
+            data = [line.strip() for line in txtfile if line.strip()]
+        else:
+            data = [line.strip() for line in txtfile]
 
     return data
 

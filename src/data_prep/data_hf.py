@@ -201,11 +201,10 @@ def push_data_to_hf(
     """
     logger.info("Uploading dataset to HuggingFace", dataset=dataset_dict, repo=repo_id)
 
-    # Login to HuggingFace with write permission
     login_hf_hub()
 
     # Push to HuggingFace Hub
-    dataset_dict.push_to_hub(repo_id=repo_id, private=private)
+    dataset_dict.push_to_hub(repo_id=repo_id, private=private, **kwargs)
 
     logger.info(
         "Successfully uploaded dataset to HuggingFace",
