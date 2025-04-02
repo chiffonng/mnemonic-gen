@@ -1,3 +1,4 @@
 {
-  "model": "deepseek-reasoner"
+  "model": "deepseek-reasoner",
+  "temperature": 1.0
 }

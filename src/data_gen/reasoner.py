@@ -29,7 +29,7 @@ class DeepSeekReasoner(curator.LLM):
         self,
         model_name: str = "deepseek-reasoner",
         backend: str = "openai",
-        batch: bool = True,
+        batch: bool = False,
         generation_params: Optional[dict[str, Any]] = None,
         backend_params: Optional[dict[str, Any]] = None,
     ):
@@ -79,7 +79,7 @@ class DeepSeekReasoner(curator.LLM):
             backend_params=default_backend_params,
         )
 
-    def prompt(self, input: dict) -> list[dict[str, Any]]:
+    def prompt(self, input: dict[str, str]) -> list[dict[str, Any]]:
         """Create a prompt for the LLM to reason about the vocab and user input.
 
         Args:
@@ -96,13 +96,13 @@ class DeepSeekReasoner(curator.LLM):
             {"role": "user", "content": input["instruction"]},
         ]
 
-    def parse(self, input: dict, response: dict) -> dict[str, Any]:
+    def parse(self, input: dict, response: dict[str, str]) -> dict[str, Any]:
         """Parse the LLM response to extract reasoning and solution."""
         return {
             "term": input["term"],  # The term being reasoned about
             "instruction": input["instruction"],
-            "reasoning": response["choices"][0]["message"]["reasoning_content"],
-            "completion": response["choices"][0]["message"]["content"],
+            "reasoning": response["choices"][0]["message"].reasoning_content,
+            "completion": response["choices"][0]["message"].content,
         }
 
 
@@ -114,5 +114,7 @@ def reason(ds: Dataset) -> Dataset:
     Returns:
         Dataset: Dataset with added reasoning traces and other fields
     """
-    reasoner = DeepSeekReasoner(batch=True)
+    reasoner = DeepSeekReasoner(
+        backend_params={"base_url": "https://api.deepseek.com/v1"}
+    )
     return reasoner(ds)
