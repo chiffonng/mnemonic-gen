@@ -9,6 +9,7 @@ from structlog import getLogger
 
 from src.utils import constants as const
 from src.utils.common import read_config, read_prompt
+from src.utils.ssl_utils import setup_ssl_environment
 
 if TYPE_CHECKING:
     from typing import Any, Optional
@@ -114,7 +115,6 @@ def reason(ds: Dataset) -> Dataset:
     Returns:
         Dataset: Dataset with added reasoning traces and other fields
     """
-    reasoner = DeepSeekReasoner(
-        backend_params={"base_url": "https://api.deepseek.com/v1"}
-    )
+    setup_ssl_environment()
+    reasoner = DeepSeekReasoner()
     return reasoner(ds)
