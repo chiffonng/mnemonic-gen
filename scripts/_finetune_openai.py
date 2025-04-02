@@ -19,12 +19,12 @@ from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from src._mnemonic_enhancer.mnemonic_ft import (
+from src.train.openai.mnemonic_ft import (
     prepare_finetune_data,
     split_export_finetune_data,
     upload_finetune_data,
 )
-from src.llms.openai.openai_ft import finetune_from_config
+from src.train.openai.openai_ft import finetune_from_config
 from src.utils import constants as const
 from structlog import getLogger
 
@@ -89,7 +89,7 @@ def parse_args():
     parser.add_argument(
         "--completion-config-path",
         type=str,
-        default=const.CONF_OPENAI_SFT_COMPLETION,
+        default=const.CONF_OPENAI_SFT_API,
         help="Path to OpenAI completion config file",
     )
     return parser.parse_args()

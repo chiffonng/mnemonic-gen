@@ -155,8 +155,14 @@ def check_dir_path(
         FileNotFoundError: If the directory does not exist
     """
     dir_path = validate_path(dir_path)
-    if not new_ok and (not dir_path.exists() or not dir_path.is_dir()):
-        raise FileNotFoundError(f"Directory not found: {dir_path.resolve()}")
+    if not new_ok and not dir_path.is_dir():
+        raise FileNotFoundError(
+            "Path is not an existing directory", path=dir_path.resolve()
+        )
+
+    if new_ok and not dir_path.exists():
+        # Create the directory if it does not exist
+        dir_path.mkdir(parents=True, exist_ok=True)
 
     return dir_path
 
@@ -182,7 +188,7 @@ def find_files_with_extensions(
     extensions = validate_and_normalize_extensions(extensions)
 
     # Collect files with the specified extensions if provided
-    paths = [p for p in dir_path.rglob("*") if p.suffix in extensions]
+    paths = [p for p in dir_path.iterdir() if p.suffix in extensions]
     if not paths:
         raise FileNotFoundError(
             f"No files with one of the extensions {extensions} found in directory: {dir_path.resolve()}"

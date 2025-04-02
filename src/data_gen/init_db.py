@@ -15,7 +15,7 @@ engine = create_engine(db_uri, echo=True)
 def init_db():
     """Initialize the database by creating all tables."""
     # Import Mnemonic model to ensure it's registered with SQLModel
-    from src.data.mnemonic_models import Mnemonic
+    from src.data_gen.mnemonic_models import Mnemonic
 
     SQLModel.metadata.create_all(engine)
 

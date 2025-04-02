@@ -13,12 +13,12 @@ from pydantic import (
 )
 from pydantic.alias_generators import to_camel, to_snake
 
-from src.data.data_validators import (
+from src.data_gen.mnemonic_models import MnemonicType
+from src.data_prep.data_validators import (
     validate_enum_field,
     validate_mnemonic,
     validate_term,
 )
-from src.data.mnemonic_models import MnemonicType
 
 default_config_dict = ConfigDict(
     populate_by_name=True,

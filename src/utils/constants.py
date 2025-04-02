@@ -1,67 +1,206 @@
-"""Module for constant variables across this data_prep module."""
+"""Module for structured project constants with automatic path generation."""
 
-# File extensions
-JSON_EXT = ".json"
-JSONL_EXT = ".jsonl"
-PARQUET_EXT = ".parquet"
-CSV_EXT = ".csv"
-TXT_EXT = ".txt"
-PROMPT_EXT = ".txt"
+from __future__ import annotations
 
-# Data paths
-DATA_MODULE = "data"
-RAW_DATA_DIR = DATA_MODULE + "/raw"
-PROCESSED_DATA_DIR = DATA_MODULE + "/processed"
-FINAL_DATA_DIR = DATA_MODULE + "/final"
+import os
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+from typing import Literal, Optional
 
-COMBINED_DATASET_CSV = PROCESSED_DATA_DIR + "/combined.csv"
-COMBINED_DATASET_PARQUET = PROCESSED_DATA_DIR + "/combined.parquet"
-RAW_TEST_DATASET_TXT = RAW_DATA_DIR + "/test.txt"
-FINAL_TEST_DATASET_TXT = FINAL_DATA_DIR + "/test.txt"
 
-SEED_IMPROVED_CSV = PROCESSED_DATA_DIR + "/seed_improved.csv"
-SEED_IMPROVED_JSON = PROCESSED_DATA_DIR + "/seed_improved_stratified.jsonl"
-IMPROVED_CSV = PROCESSED_DATA_DIR + "/improved.csv"
-MNEMONIC_DB_URI = "sqlite:///" + PROCESSED_DATA_DIR + "/mnemonics.db"
+# File extensions as an Enum for type safety
+class Extension(str, Enum):
+    """File extensions used throughout the project."""
 
-# Data columns
-TERM_COL = "term"
-MNEMONIC_COL = "mnemonic"
+    JSON = ".json"
+    JSONL = ".jsonl"
+    PARQUET = ".parquet"
+    CSV = ".csv"
+    TXT = ".txt"
+    PROMPT = ".txt"
+
+    @classmethod
+    def get(cls, ext: str) -> str:
+        """Get extension by name, with fallback to raw string."""
+        try:
+            return cls[ext.upper()].value
+        except (KeyError, AttributeError):
+            return f".{ext.lower().lstrip('.')}"
+
+
+# Base paths as a dataclass with automatic Path generation
+@dataclass(frozen=True)
+class BasePath:
+    """Base directory paths for the project."""
+
+    ROOT: Path = Path(os.getenv("PROJECT_ROOT", "."))
+    DATA: Path = ROOT / "data"
+    DATA_RAW: Path = DATA / "raw"
+    DATA_PROCESSED: Path = DATA / "processed"
+    DATA_FINAL: Path = DATA / "final"
+    PROMPTS: Path = ROOT / "prompts"
+    CONFIG: Path = ROOT / "config"
+
+    def __post_init__(self):
+        """Ensure all directories exist."""
+        for field_name in self.__dataclass_fields__:
+            if field_name != "ROOT":
+                path = getattr(self, field_name)
+                path.mkdir(parents=True, exist_ok=True)
+
+
+class PathMaker:
+    """Utility for generating paths with consistent structure."""
+
+    def __init__(self, base_paths: BasePath):
+        """Initialize the PathMaker with base paths."""
+        self.base = base_paths
+
+    def data_file(
+        self, filename: str, data_type: str = "processed", ext: Optional[str] = None
+    ) -> Path:
+        """Generate a path for a data file.
+
+        Args:
+            filename: Base name of the file without extension
+            data_type: Type of data (raw, processed, final)
+            ext: File extension (defaults to inferring from filename)
+
+        Returns:
+            Full path to the file
+        """
+        if ext is None:
+            # Try to extract extension from filename
+            parts = filename.split(".")
+            if len(parts) > 1:
+                ext = f".{parts[-1]}"
+                filename = ".".join(parts[:-1])
+            else:
+                ext = Extension.CSV  # Default to CSV
+        else:
+            ext = Extension.get(ext)
+
+        # Determine the base directory based on the data type
+        base_dir = getattr(self.base, data_type.upper(), self.base.DATA_PROCESSED)
+        return base_dir / f"{filename}{ext}"
+
+    def prompt_file(
+        self,
+        category: Literal["reason", "judge", "finetune", "prompt"] = "",
+        name: str = "system",
+        ext: Literal["txt"] = "txt",
+    ) -> Path:
+        """Generate a path for a prompt file."""
+        ext = Extension.get(ext)
+
+        # Handle special case for placeholder prompts
+        if not category:
+            prompt_path = self.base.PROMPTS / f"{name}{ext}"
+        else:
+            prompt_path = self.base.PROMPTS / category / f"{name}{ext}"
+
+        # Create the directory and file if it doesn't exist
+        prompt_path.parent.mkdir(parents=True, exist_ok=True)
+        if not prompt_path.exists():
+            prompt_path.touch()
+        return prompt_path
+
+    def config_file(
+        self,
+        category: Literal["finetune", "api", ""],
+        name: str,
+        ext: Literal["json", "yaml", "yml"] = "json",
+    ) -> Path:
+        """Generate a path for a config file."""
+        ext = Extension.get(ext)
+
+        if not category:
+            config_path = self.base.CONFIG / f"{name}{ext}"
+        else:
+            config_path = self.base.CONFIG / category / f"{name}{ext}"
+
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        if not config_path.exists():
+            config_path.touch()
+        return config_path
+
+
+# Initialize base paths
+BASE_PATHS = BasePath()
+PATH = PathMaker(BASE_PATHS)
+
+
+@dataclass
+class DataPath:
+    """Data paths for different stages of processing."""
+
+    RAW_TEST = PATH.data_file("test", data_type="raw", ext="txt")
+    FINAL_TEST = PATH.data_file("test", data_type="final", ext="txt")
+    MNEMONIC_DB_URI = f"sqlite:///{BASE_PATHS.DATA_PROCESSED}/mnemonics.db"
+
+    OPENAI_SFT_IMPROVE_TRAIN = PATH.data_file("sft_improve_train", ext="jsonl")
+    OPENAI_SFT_IMPROVE_VAL = PATH.data_file("sft_improve_val", ext="jsonl")
+
+
+@dataclass
+class PromptPath:
+    """Prompt paths for different stages of processing."""
+
+    # Synthetic data generation
+    REASON_SYSTEM: Path = PATH.prompt_file("reason", "system")
+    REASON_USER: Path = PATH.prompt_file("reason", "user")
+    JUDGE_SYSTEM: Path = PATH.prompt_file("judge", "system")
+
+    # Fine-tuning
+    FINETUNE_SYSTEM: Path = PATH.prompt_file("finetune", "system")
+    FINETUNE_USER: Path = PATH.prompt_file("finetune", "user")
+
+    # Placeholder variables in prompts
+    PLACEHOLDER_DICT: Path = PATH.prompt_file("", "placeholders", ext="json")
+
+
+@dataclass
+class ConfigPath:
+    """Config file paths for various configurations."""
+
+    # API related config files
+    DEFAULT_GENERATION: Path = PATH.config_file("api", "default_generation")
+    DEFAULT_BACKEND: Path = PATH.config_file("api", "default_backend")
+    DEFAULT_BACKEND_BATCH: Path = PATH.config_file("api", "default_backend_batch")
+    HUGGINGFACE: Path = PATH.config_file("api", "hf")
+    OPENAI: Path = PATH.config_file("api", "openai")
+    OPENAI_SFT_API: Path = PATH.config_file("api", "openai_sft")
+    DEEPSEEK_REASONER: Path = PATH.config_file("api", "deepseek_reasoner")
+
+    # Fine-tuning related config files
+    OPENAI_SFT: Path = PATH.config_file("finetune", "openai_sft")
+    GRPO: Path = PATH.config_file("finetune", "grpo", "yaml")
+    PEFT: Path = PATH.config_file("finetune", "peft", "yaml")
+
+
+class Column:
+    """Column names used in datasets."""
+
+    TERM = "term"
+    MNEMONIC = "mnemonic"
+    REASONING = "reasoning"
+    MAIN_TYPE = "main_type"
+    SUB_TYPE = "sub_type"
+
 
 # Hugging Face constants
-HF_DATASET_NAME = "chiffonng/en-vocab-mnemonics"  # <user>/<dataset_name>
-HF_TESTSET_NAME = "chiffonng/en-vocab-mnemonics-test"  # <user>/<dataset_name>
-HF_MODEL_NAME = "chiffonng/gemma2-9b-it-mnemonics"  # <user>/<model_name>
-HF_MNEMONIC_DATASET = "chiffonng/en-vocab-mnemonics-full"
-HF_CHAT_DATASET = "chiffonng/en-vocab-mnemonics-chat"
+class HfConst:
+    """Hugging Face related constants."""
 
-# OpenAI Finetuning API
-SFT_IMPROVE_TRAIN = PROCESSED_DATA_DIR + "/sft_improve_train.jsonl"
-SFT_IMPROVE_VAL = PROCESSED_DATA_DIR + "/sft_improve_val.jsonl"
-SFT_OPENAI_MODEL_ID = "ft:gpt-4o-mini-2024-07-18:personal:improve-sft:B62kPWoy"
+    USER: str = "chiffonng"
+    DATASET_NAME: str = f"{USER}/en-vocab-mnemonics"
+    TESTSET_NAME: str = f"{USER}/en-vocab-mnemonics-test"
+    MODEL_NAME: str = f"{USER}/gemma3-4b-it-mnemonics"
+    CHAT_DATASET: str = f"{USER}/en-vocab-mnemonics-chat"
 
-# Prompts
-DIR_PROMPT = "prompts"
-DIR_PROMPT_IMPROVE = DIR_PROMPT + "/improve"
-DIR_PROMPT_CLASSIFY = DIR_PROMPT + "/classify"
-DIR_PROMPT_FINETUNE = DIR_PROMPT + "/finetune"
-DIR_PROMPT_GENERATE = DIR_PROMPT + "/generate"
 
-FILE_PROMPT_PLACEHOLDER_DICT = DIR_PROMPT + "/placeholders.json"
-
-FILE_PROMPT_IMPROVE_SYSTEM = DIR_PROMPT_IMPROVE + "/improve_gen_system.txt"
-FILE_PROMPT_IMPROVE_SFT_SYSTEM = DIR_PROMPT_IMPROVE + "/improve_sft_system.txt"
-FILE_PROMPT_CLASSIFY_SYSTEM = DIR_PROMPT_CLASSIFY + "/classify_system.txt"
-FILE_PROMPT_USER = DIR_PROMPT + "/user.txt"
-
-FILE_PROMPT_FINETUNE_SYSTEM = DIR_PROMPT_FINETUNE + "/system.txt"
-FILE_PROMPT_FINETUNE_USER = DIR_PROMPT_FINETUNE + "/user.txt"
-
-# Config files
-DIR_CONFIG = "config"
-CONF_DEFAULT = DIR_CONFIG + "/default_conf.json"
-CONF_HUGGINGFACE = DIR_CONFIG + "/huggingface_conf.json"
-CONF_CLAUDE = DIR_CONFIG + "/claude_conf.json"
-CONF_OPENAI = DIR_CONFIG + "/openai_conf.json"
-CONF_OPENAI_SFT = DIR_CONFIG + "/openai_sft_conf.json"
-CONF_OPENAI_SFT_COMPLETION = DIR_CONFIG + "/openai_sftcc_conf.json"
+HF_CONST = HfConst()
+DATA_PATH = DataPath()
+CONFIG_PATH = ConfigPath()
+PROMPT_PATH = PromptPath()

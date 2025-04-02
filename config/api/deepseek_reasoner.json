@@ -1,0 +1,5 @@
+{
+  "model": "deepseek/deepseek-reasoner",
+  "base_url": "https://api.deepseek.com/v1",
+  "temperature": 1.0
+}

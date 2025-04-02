@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING
 from pydantic import ValidationError
 from structlog import getLogger
 
-from src.data.data_io import read_csv_file, write_jsonl_file
-from src.llms.openai import (
+from src.data_prep.data_io import read_csv_file, write_jsonl_file
+from src.train.openai import (
     upload_file_to_openai,
     validate_openai_file,
 )

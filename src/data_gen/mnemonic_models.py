@@ -2,17 +2,23 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Optional
+from typing import Annotated, Any, Optional
+from uuid import UUID, uuid4
 
+from instructor import OpenAISchema
+from instructor.utils import disable_pydantic_error_url
 from pydantic import BeforeValidator
+from pydantic.json_schema import SkipJsonSchema
 from sqlmodel import Field, SQLModel
 
-from src.data.data_validators import (
+from src.data_prep.data_validators import (
     ExplicitEnum,
     validate_enum_field,
     validate_mnemonic,
     validate_term,
 )
+
+disable_pydantic_error_url()
 
 
 class MnemonicType(ExplicitEnum):
@@ -32,26 +38,24 @@ class MnemonicType(ExplicitEnum):
         return [member.value for member in cls]
 
 
-class Mnemonic(SQLModel, table=True):
-    """Ideal mnemonic model. Fields: term, mnemonic, main_type, sub_type, linguistic_reasoning."""
+class Mnemonic(SQLModel, OpenAISchema, table=True):
+    """Mnemonic model. Fields: id (auto), term, reasoning, mnemonic, main_type, sub_type."""
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    # Don't send the id field to OpenAI for schema generation
+    id: SkipJsonSchema[UUID] = Field(default_factory=lambda: uuid4(), primary_key=True)
     term: Annotated[str, BeforeValidator(validate_term)] = Field(
         ...,
         description="The vocabulary term.",
-        max_length=100,
-        min_length=1,
         unique=True,
         index=True,
     )
-    mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
-        ..., description="The mnemonic aid for the term.", max_length=400, min_length=5
-    )
-    linguistic_reasoning: str = Field(
+    reasoning: str = Field(
         ...,
         description="The linguistic reasoning for the mnemonic.",
-        max_length=100,
-        min_length=5,
+    )
+    mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
+        ...,
+        description="The mnemonic device for the term.",
     )
     main_type: Annotated[
         MnemonicType, BeforeValidator(validate_enum_field(MnemonicType))

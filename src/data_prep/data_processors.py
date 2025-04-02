@@ -16,7 +16,7 @@ import pandas as pd
 from datasets import Dataset, DatasetDict
 from structlog import getLogger
 
-from src.data.data_hf import load_txt_file, push_data_to_hf_hub
+from src.data_prep.data_hf import load_txt_file, push_data_to_hf_hub
 from src.utils import check_dir_path, check_file_path, find_files_with_extensions
 from src.utils import constants as c
 

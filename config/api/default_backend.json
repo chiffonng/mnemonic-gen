@@ -1,0 +1,7 @@
+{
+  "max_retries": 50,
+  "request_timeout": 300,
+  "max_requests_per_minute": 500,
+  "max_tokens_per_minute": 100000000,
+  "seconds_to_pause_on_rate_limit": 60.0
+}
