@@ -86,7 +86,7 @@ class O3MiniReasoner(curator.LLM):
             "term": input["term"],  # The term being reasoned about
             "instruction": input["instruction"],
             "reasoning": response.reasoning,
-            "solution": response.solution,
+            "mnemonic": response.solution,
         }
 
 

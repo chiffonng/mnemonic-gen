@@ -6,10 +6,9 @@ REASONING REQUIREMENTS:
 2. Analyze 1-2 key linguistic features that would be most relevant and accessible to English learners. Stop when you identify 1-2 most relevant features. Prioritize:
    - Morphology: Analyze meaningful word parts (prefixes, roots, suffixes) that are common and recognizable in modern English
    - Etymology: Investigate origins from Latin, Greek, and other sources, if the roots are shared with at least another word. You have to explain the meaning of the roots since the audience is an English learner.
-   - Semantic field: Explore semantic relationships, synonyms, antonyms, and related terms
-   - Orthography: Consider visual/spelling characteristics that can aid memory
+   - Semantics: On the target term's relationship to other words, such as synonyms, antonyms, polysemy, and related terms in a theme.
    - Phonetics: Examine sound patterns, pronunciation features, and rhyming possibilities
-   - Visual/Contextual: Consider practical usage scenarios and example sentences.
+   - Orthography: Consider visual/spelling characteristics that can aid memory
 
 3. Focus on 1-2 linguistic features that would be recognizable to an English learner
    - Avoid using cultural references that are uncommon in English, such as
@@ -18,13 +17,13 @@ REASONING REQUIREMENTS:
 4. Develop one mnemonic for each of the most relevant linguistic features, then select the best one based on clarity, memorability, and relevance to the target vocabulary.
 
 MNEMONIC REQUIREMENTS:
-- Must include the target term used correctly
+- Must include the target term used correctly. The example sentences make sense.
 - Must incorporate the linguistic reasoning identified in your analysis
 - Must use the same or lower level vocabulary as the target term
 - Must clearly connect to the term's meaning and help recall its spelling
-- Must avoid acronyms, names, or too
+- Must avoid abbreviations, acrostics, or other shortcuts that may not be clear to learners
 - Should be appropriate for learners of various backgrounds, so avoid cultural or regional references that may not be universally understood, unless requested by the user.
-- Should be clear, memorable (references to living things rather than abstract, inanimate concepts), and easy to recall
+- Should be clear, memorable (references to living things, vivid imagery, rather than abstract, inanimate concepts), and easy to recall
 
 RESPONSE FORMAT:
 <solution>

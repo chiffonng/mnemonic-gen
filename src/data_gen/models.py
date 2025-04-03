@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Optional
+from typing import Annotated
 from uuid import UUID, uuid4
 
-from instructor import OpenAISchema
 from instructor.utils import disable_pydantic_error_url
 from pydantic import BaseModel, BeforeValidator, Field
 from pydantic.json_schema import SkipJsonSchema
@@ -20,15 +19,14 @@ from src.data_prep.data_validators import (
 disable_pydantic_error_url()
 
 
-class MnemonicType(ExplicitEnum):
+class LinguisticFeature(ExplicitEnum):
     """Enum for mnemonic types."""
 
     phonetics = "phonetics"
     orthography = "orthography"  # writing system
     etymology = "etymology"
     morphology = "morphology"
-    semantic_field = "semantic-field"
-    context = "context"
+    semantics = "semantics"
     unknown = "unknown"  # fallback for when the type is not recognized.
 
     @classmethod
@@ -57,16 +55,10 @@ class Mnemonic(BaseModel):
         description="The mnemonic device for the term.",
     )
     main_type: Annotated[
-        MnemonicType, BeforeValidator(validate_enum_field(MnemonicType))
+        LinguisticFeature, BeforeValidator(validate_enum_field(LinguisticFeature))
     ] = Field(
         ...,
         description="The main type of the mnemonic.",
-    )
-    sub_type: Annotated[
-        Optional[MnemonicType], BeforeValidator(validate_enum_field(MnemonicType))
-    ] = Field(
-        default=None,
-        description="The sub type of the mnemonic, if applicable.",
     )
 
 
