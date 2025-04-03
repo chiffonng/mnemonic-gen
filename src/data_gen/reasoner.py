@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bespokelabs import curator
-from pydantic import BaseModel
 from structlog import getLogger
 
+from src.data_gen.models import MnemonicResult
 from src.data_gen.prompt import get_system_prompt
 from src.utils import constants as const
 from src.utils.common import read_config, read_prompt
@@ -53,19 +53,6 @@ class DeepSeekReasoner(curator.LLM):
             "reasoning": response["choices"][0]["message"]["reasoning_content"],
             "solution": response["choices"][0]["message"]["content"],
         }
-
-
-class MnemonicResult(BaseModel):
-    """Class representing the result of a mnemonic generation process."""
-
-    reasoning: str
-    solution: str
-
-    class Config:
-        """Pydantic model configuration."""
-
-        arbitrary_types_allowed = True
-        allow_population_by_field_name = True
 
 
 class O3MiniReasoner(curator.LLM):
