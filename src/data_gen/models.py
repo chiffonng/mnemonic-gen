@@ -7,9 +7,8 @@ from uuid import UUID, uuid4
 
 from instructor import OpenAISchema
 from instructor.utils import disable_pydantic_error_url
-from pydantic import BeforeValidator
+from pydantic import BaseModel, BeforeValidator, Field
 from pydantic.json_schema import SkipJsonSchema
-from sqlmodel import Field, SQLModel
 
 from src.data_prep.data_validators import (
     ExplicitEnum,
@@ -38,7 +37,7 @@ class MnemonicType(ExplicitEnum):
         return [member.value for member in cls]
 
 
-class Mnemonic(SQLModel, OpenAISchema, table=True):
+class Mnemonic(BaseModel):
     """Mnemonic model. Fields: id (auto), term, reasoning, mnemonic, main_type, sub_type."""
 
     # Don't send the id field to OpenAI for schema generation
@@ -69,3 +68,16 @@ class Mnemonic(SQLModel, OpenAISchema, table=True):
         default=None,
         description="The sub type of the mnemonic, if applicable.",
     )
+
+
+class MnemonicResult(BaseModel):
+    """Class representing the result of a mnemonic generation process."""
+
+    reasoning: str
+    solution: str
+
+    class Config:
+        """Pydantic model configuration."""
+
+        arbitrary_types_allowed = True
+        allow_population_by_field_name = True

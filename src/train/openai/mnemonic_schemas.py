@@ -13,7 +13,7 @@ from pydantic import (
 )
 from pydantic.alias_generators import to_camel, to_snake
 
-from src.data_gen.mnemonic_models import MnemonicType
+from src.data_gen.models import MnemonicType
 from src.data_prep.data_validators import (
     validate_enum_field,
     validate_mnemonic,
