@@ -24,7 +24,7 @@ logger: BoundLogger = getLogger(__name__)
 
 def read_csv_file(
     file_path: PathLike, **kwargs
-) -> Union[pd.DataFrame, str, dict[dict[str, Any]], list[dict[str, Any]]]:
+) -> Union[pd.DataFrame, dict[dict[str, Any]], list[dict[str, Any]]]:
     """Read a CSV file and return its contents as a list of dictionaries.
 
     Args:
@@ -32,7 +32,7 @@ def read_csv_file(
         **kwargs: Additional arguments to process dataframe further
 
     Returns:
-        List of dictionaries representing CSV rows
+        DataFrame or list of dictionaries representing CSV rows or
     """
     validated_path = check_file_path(file_path, extensions=[const.Extension.CSV])
 
@@ -49,9 +49,11 @@ def read_csv_file(
     elif to_lst_dict:
         content: list[dict[str, Any]] = df.to_dict(orient="records")
     elif to_json:
-        content: str = df.to_json(orient="records")
+        json_str: str = df.to_json(orient="records", indent=2)
+        content: str[list[dict[str, Any]]] = json.dumps(json.loads(json_str), indent=2)
     elif to_jsonl:
-        content: str = df.to_json(orient="records", lines=True)
+        json_str: str = df.to_json(orient="records", lines=True)
+        content: str[list[dict[str, Any]]] = json.dumps(json.loads(json_str), indent=2)
     else:
         return df
 
@@ -68,7 +70,7 @@ def read_json_file(file_path: PathLike) -> list[dict[str, Any]]:
     """
     # Validate path using existing utility
     validated_path = check_file_path(
-        file_path, extensions=[const.Extension.JSON, const.JSONL_EXT]
+        file_path, extensions=[const.Extension.JSON, const.Extension.JSONL]
     )
 
     with validated_path.open("r", encoding="utf-8") as jsonfile:
