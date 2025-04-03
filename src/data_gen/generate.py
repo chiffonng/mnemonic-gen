@@ -188,7 +188,7 @@ def generate_mnemonics(
 
 if __name__ == "__main__":
     generate_mnemonics(
-        input_path="data/raw/gre.txt",
+        input_path="data/raw/sat.txt",
         output_repo_id="mnemonic_dataset_dry_run",
         dry_run=True,
     )

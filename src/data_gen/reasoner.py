@@ -10,7 +10,7 @@ from structlog import getLogger
 from src.data_gen.models import MnemonicResult
 from src.data_gen.prompt import get_system_prompt
 from src.utils import constants as const
-from src.utils.common import read_config, read_prompt
+from src.utils.common import read_config
 
 if TYPE_CHECKING:
     from typing import Any
@@ -27,7 +27,6 @@ class DeepSeekReasoner(curator.LLM):
 
     return_completions_object = True
 
-    # TODO: add learning setting to the model
     def prompt(self, input: dict[str, str]) -> list[dict[str, Any]]:
         """Create a prompt for the LLM to reason about the vocab and user input.
 
@@ -40,7 +39,9 @@ class DeepSeekReasoner(curator.LLM):
         return [
             {
                 "role": "system",
-                "content": read_prompt(const.PROMPT_PATH.REASON_SYSTEM),
+                "content": get_system_prompt(
+                    const.PROMPT_PATH.REASON_SYSTEM, learning_setting="few_shot"
+                ),
             },
             {"role": "user", "content": input["instruction"]},
         ]
@@ -72,7 +73,9 @@ class O3MiniReasoner(curator.LLM):
         return [
             {
                 "role": "system",
-                "content": read_prompt(const.PROMPT_PATH.REASON_SYSTEM),
+                "content": get_system_prompt(
+                    const.PROMPT_PATH.REASON_SYSTEM, learning_setting="few_shot"
+                ),
             },
             {"role": "user", "content": input["instruction"]},
         ]
