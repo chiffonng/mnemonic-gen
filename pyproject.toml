@@ -32,13 +32,6 @@ keywords = ["mnemonic", "mnemonic generation", "LLM", "language model", "chain o
 repository = "https://github.com/chiffonng/mnemonic-gen"
 dataset    = "https://doi.org/10.57967/hf/3750"
 
-# Publish to PyPI
-[project.optional-dependencies]
-data = [
-    "openai>=1.66.0",
-    "sqlmodel>=0.0.24",
-]
-
 # Development dependencies
 [dependency-groups]
 dev = [
