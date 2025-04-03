@@ -1,19 +1,4 @@
-"""Build prompts for the LLM as data generator, including prompts for few-shot and many-shot learning.
-
-Usage:
-    ```python
-    from src.data_gen.prompt_makers import get_system_prompt
-
-    prompt = get_system_prompt(prompt_path, learning_setting="few_shot")
-    ```
-
-    Set custom number of examples:
-    ```python
-    from src.data_gen.prompt_makers import get_system_prompt
-
-    prompt = get_system_prompt(prompt_path, learning_setting="many_shot", num_examples=200)
-    ```
-"""
+"""Build prompts for the LLM as data generator, including prompts for few-shot and many-shot learning."""
 
 from __future__ import annotations
 
@@ -40,6 +25,7 @@ logger: BoundLogger = getLogger(__name__)
 def get_system_prompt(
     prompt_path: PathLike,
     learning_setting: Literal["zero_shot", "few_shot", "many_shot"],
+    to_export: bool = True,
     **kwargs,
 ) -> str:
     """Read prompt from file.
@@ -50,12 +36,13 @@ def get_system_prompt(
             - "zero_shot": No examples (0-shot learning)
             - "few_shot": Few examples (10-shot learning)
             - "many_shot": Many examples (100-shot learning)
+        to_export: Whether to export the prompt to a file. Default is True.
         kwargs: Additional keyword arguments for get_system_prompt_examples. Accepts:
             - examples_path (PathLike): Path to the examples file.
             - num_examples (int): Number of examples to include in the prompt.
 
     Returns:
-        str: Prompt string.
+        str: Prompt string, or the path to the exported prompt file if to_export is True.
 
     Raises:
         ValueError: If the learning setting is not recognized.
@@ -83,6 +70,23 @@ def get_system_prompt(
         num_examples=num_examples,
     )
 
+    # Get the system prompt with examples
+    prompt_with_examples, num_examples = get_system_prompt_examples(
+        prompt_path, **kwargs
+    )
+
+    if to_export and num_examples == 0:
+        logger.info("No examples requested, not exporting prompt")
+        return prompt_path
+
+    elif to_export and num_examples > 0:
+        export_path = prompt_path.parent / f"{prompt_path.stem}_{num_examples}_shot.txt"
+
+        with export_path.open("w", encoding="utf-8") as f:
+            f.write(prompt_with_examples)
+        logger.info("Prompt exported", path=export_path.resolve())
+        return export_path
+
     return get_system_prompt_examples(prompt_path, **kwargs)
 
 
@@ -90,7 +94,7 @@ def get_system_prompt_examples(
     prompt_path: PathLike,
     examples_path: Optional[PathLike] = None,
     num_examples: Optional[int] = 0,
-) -> str:
+) -> tuple[str, int]:
     """Read prompt and add k examples to it, used for 0-shot, few-shot, and many-shot learning.
 
     Args:
@@ -102,7 +106,7 @@ def get_system_prompt_examples(
             num_examples > 100: many-shot
 
     Returns:
-        str: Prompt with examples.
+        tuple[str, int]: Tuple containing the prompt string with examples AND the number of examples included.
     """
     system_prompt = read_prompt(prompt_path)
 
@@ -166,7 +170,10 @@ def get_system_prompt_examples(
     formatted_examples_str = "\n".join(formatted_examples)
 
     # Add the examples to the system prompt
-    return system_prompt + "\n\nEXAMPLE SOLUTIONS:\n\n" + formatted_examples_str
+    return (
+        system_prompt + "\n\nEXAMPLE SOLUTIONS:\n\n" + formatted_examples_str,
+        num_examples,
+    )
 
 
 def load_examples(
@@ -195,8 +202,39 @@ def load_examples(
         )
 
 
+def combine_prompt_examples(prompt_path: PathLike, examples_path: PathLike) -> str:
+    """Combine the prompt with examples for a specific learning setting.
+
+    Args:
+        prompt_path: Path to the prompt file (.txt file)
+        examples_path: Path to the examples file (.txt file)
+
+    Returns:
+        str: Combined prompt with examples.
+    """
+    # Load the system prompt
+    system_prompt = read_prompt(prompt_path)
+
+    # Load the examples
+    examples = read_prompt(examples_path)
+
+    # Combine the system prompt with the examples
+    combined_prompt = system_prompt + "\n\nEXAMPLE SOLUTIONS:\n\n"
+    for i, example in enumerate(examples):
+        combined_prompt += f"{i + 1}. {example}\n"
+
+    return combined_prompt
+
+
 if __name__ == "__main__":
     prompt_path = const.PROMPT_PATH.REASON_SYSTEM
 
-    prompt = get_system_prompt(prompt_path, learning_setting="few_shot")
-    print(prompt[-1000:])
+    few_shot_prompt_path = get_system_prompt(
+        prompt_path, learning_setting="few_shot", to_export=True
+    )
+    many_shot_prompt_path = get_system_prompt(
+        prompt_path, learning_setting="many_shot", to_export=True
+    )
+    full_shot_prompt_path = get_system_prompt(
+        prompt_path, learning_setting="many_shot", to_export=True, num_examples=200
+    )
