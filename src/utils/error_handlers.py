@@ -29,6 +29,8 @@ def validate_path(path: PathLike) -> Path:
     Raises:
         TypeError: If 'path' is not a string or a Path object.
     """
+    if path is None:
+        raise ValueError("Path cannot be None.")
     if not isinstance(path, (Path, str)):
         raise TypeError(
             f"{path} must be a pathlib.Path object or a string. Got {type(path)} instead."
