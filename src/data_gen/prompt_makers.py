@@ -1,4 +1,19 @@
-"""Build prompts for the LLM as data generator, including prompts for few-shot and many-shot learning."""
+"""Build prompts for the LLM as data generator, including prompts for few-shot and many-shot learning.
+
+Usage:
+    ```python
+    from src.data_gen.prompt_makers import get_system_prompt
+
+    prompt = get_system_prompt(prompt_path, learning_setting="few_shot")
+    ```
+
+    Set custom number of examples:
+    ```python
+    from src.data_gen.prompt_makers import get_system_prompt
+
+    prompt = get_system_prompt(prompt_path, learning_setting="many_shot", num_examples=200)
+    ```
+"""
 
 from __future__ import annotations
 
@@ -60,7 +75,7 @@ def get_system_prompt(
         num_examples = kwargs["num_examples"]
     else:
         num_examples = num_example_dict[learning_setting]
-
+        kwargs["num_examples"] = num_examples
     logger.debug(
         "Getting system prompt",
         prompt_path=prompt_path,
@@ -180,7 +195,8 @@ def load_examples(
         )
 
 
-prompt_path = const.PROMPT_PATH.REASON_SYSTEM
+if __name__ == "__main__":
+    prompt_path = const.PROMPT_PATH.REASON_SYSTEM
 
-prompt = get_system_prompt(prompt_path, learning_setting="few_shot")
-print(prompt)
+    prompt = get_system_prompt(prompt_path, learning_setting="few_shot")
+    print(prompt[-1000:])
