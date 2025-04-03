@@ -138,6 +138,7 @@ class DataPath:
     RAW_TEST = PATH.data_file("test", data_type="raw", ext="txt")
     FINAL_TEST = PATH.data_file("test", data_type="final", ext="txt")
     EXAMPLES = PATH.data_file("examples", data_type="processed", ext="csv")
+    EXAMPLES_JSONL = PATH.data_file("examples", data_type="processed", ext="jsonl")
 
     OPENAI_SFT_IMPROVE_TRAIN = PATH.data_file("sft_improve_train", ext="jsonl")
     OPENAI_SFT_IMPROVE_VAL = PATH.data_file("sft_improve_val", ext="jsonl")

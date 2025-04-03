@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+from json import JSONDecodeError
 from typing import TYPE_CHECKING
 
 from structlog import getLogger
 
-from src.data_prep.data_io import read_csv_file, read_json_file, read_txt_file
+from src.data_prep.data_io import read_csv_file, read_json_file
 from src.utils import constants as const
 from src.utils.common import read_prompt
 
@@ -57,7 +58,7 @@ def get_system_prompt(
 
 def get_system_prompt_examples(
     prompt_path: PathLike,
-    examples_path: PathLike = const.DATA_PATH.EXAMPLES,
+    examples_path: Optional[PathLike] = None,
     num_examples: Optional[int] = 0,
 ) -> str:
     """Read prompt and add k examples to it, used for 0-shot, few-shot, and many-shot learning.
@@ -67,10 +68,82 @@ def get_system_prompt_examples(
         examples_path: Path to the examples file.
         num_examples: Number of examples to include in the prompt. Default is 0, which means no examples (zero-shot). If num_examples is greater than the number of examples in the file, all examples will be included.
             num_examples = 0: zero-shot
-            num_examples 0-100: few-shot
+            num_examples 0-50: few-shot
             num_examples > 100: many-shot
 
     Returns:
         str: Prompt with examples.
     """
-    pass
+    system_prompt = read_prompt(prompt_path)
+
+    if num_examples < 0:
+        logger.warning(
+            f"Requested number of examples is negative ({num_examples}). Using 0 examples instead."
+        )
+        num_examples = 0
+    elif num_examples == 0:
+        return system_prompt
+
+    # TODO: Optimize this code block
+    if examples_path is None:
+        logger.debug("examples_path is None")
+        try:
+            examples_path = const.DATA_PATH.EXAMPLES_JSONL
+            logger.debug("Attempt to read examples from path", path=examples_path)
+            examples = load_examples(examples_path)
+        except (FileNotFoundError, JSONDecodeError):
+            logger.warning("Reading examples from path failed", path=examples_path)
+            try:
+                examples_path = const.DATA_PATH.EXAMPLES
+                logger.debug("Attempt to read examples from path", path=examples_path)
+                examples = load_examples(examples_path)
+            except (FileNotFoundError, JSONDecodeError):
+                logger.warning(
+                    "No examples found. Using system prompt without examples."
+                )
+                return system_prompt
+        else:
+            actual_num_examples = len(examples)
+            logger.info(
+                "Examples loaded successfully",
+                path=examples_path,
+                size=actual_num_examples,
+            )
+
+    # Limit the number of examples to num_examples
+    if num_examples > actual_num_examples:
+        logger.warning(
+            f"Requested number of examples exceeds available ({num_examples} > {actual_num_examples}). Usiing all available examples instead."
+        )
+        num_examples = actual_num_examples
+
+    # Prepare the examples for inclusion in the prompt
+    formatted_examples = [
+        f"{i + 1}. \n{example}\n" for i, example in enumerate(examples[:num_examples])
+    ]
+    formatted_examples_str = "\nEXAMPLE SOLUTIONS\n".join(formatted_examples)
+
+    # Add the examples to the system prompt
+    return system_prompt + formatted_examples_str
+
+
+def load_examples(
+    examples_path: PathLike,
+) -> list[dict[str, str]]:
+    """Load examples from a CSV or JSONL file.
+
+    Args:
+        examples_path: Path to the examples file.
+
+    Returns:
+        List of dictionaries containing the examples.
+    """
+    if examples_path.suffix == const.Extension.CSV:
+        return read_csv_file(examples_path, to_jsonl=True)
+    elif examples_path.suffix == const.Extension.JSONL:
+        return read_json_file(examples_path)
+    else:
+        raise ValueError(
+            "Examples file must be in CSV or JSONL format. "
+            f"Got {examples_path.resolve()} instead."
+        )
