@@ -13,7 +13,7 @@ from pydantic import (
 )
 from pydantic.alias_generators import to_camel, to_snake
 
-from src.data_gen.models import MnemonicType
+from src.data_gen.models import LinguisticFeature
 from src.data_prep.data_validators import (
     validate_enum_field,
     validate_mnemonic,
@@ -67,13 +67,14 @@ class MnemonicClassification(BaseModel):
     model_config = default_config_dict
 
     main_type: Annotated[
-        MnemonicType, BeforeValidator(validate_enum_field(MnemonicType))
+        LinguisticFeature, BeforeValidator(validate_enum_field(LinguisticFeature))
     ] = Field(
         ...,
         description="The main type of the mnemonic.",
     )
     sub_type: Annotated[
-        Optional[MnemonicType], BeforeValidator(validate_enum_field(MnemonicType))
+        Optional[LinguisticFeature],
+        BeforeValidator(validate_enum_field(LinguisticFeature)),
     ] = Field(
         default=None,
         description="The sub type of the mnemonic, if applicable.",

@@ -13,7 +13,7 @@ import re
 from typing import TYPE_CHECKING
 
 from datasets import ClassLabel, Dataset, DatasetDict, Features, Value
-from src.data_gen.models import MnemonicType
+from src.data_gen.models import LinguisticFeature
 from src.data_prep.data_hf import (
     load_from_database,
     load_local_dataset,
@@ -52,7 +52,7 @@ def create_hf_mnemonic_dataset(
         DatasetDict containing train and validation splits
     """
     # Create features specification
-    mnemonic_type_labels: list[str] = MnemonicType.get_types()
+    mnemonic_type_labels: list[str] = LinguisticFeature.get_types()
     mnemonic_type_labels.append(None)  # Add None for missing values
     num_mnemonic_types = len(mnemonic_type_labels)
 
