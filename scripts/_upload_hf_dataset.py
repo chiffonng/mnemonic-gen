@@ -13,7 +13,7 @@ import re
 from typing import TYPE_CHECKING
 
 from datasets import ClassLabel, Dataset, DatasetDict, Features, Value
-from src.data_gen.mnemonic_models import MnemonicType
+from src.data_gen.models import MnemonicType
 from src.data_prep.data_hf import (
     load_from_database,
     load_local_dataset,

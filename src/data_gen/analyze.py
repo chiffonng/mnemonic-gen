@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from structlog import getLogger
 
-from src.data_gen.mnemonic_models import MnemonicType
+from src.data_gen.models import MnemonicType
 
 if TYPE_CHECKING:
     from typing import Optional
