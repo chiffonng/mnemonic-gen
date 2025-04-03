@@ -8,7 +8,7 @@ from bespokelabs import curator
 from structlog import getLogger
 
 from src.data_gen.models import MnemonicResult
-from src.data_gen.prompt import get_system_prompt
+from src.data_gen.prompt_makers import get_system_prompt
 from src.utils import constants as const
 from src.utils.common import read_config
 
