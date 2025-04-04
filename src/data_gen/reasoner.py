@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 from bespokelabs import curator
 from structlog import getLogger
 
+from src import constants as const
 from src.data_gen.models import MnemonicResult
-from src.utils import constants as const
 from src.utils.common import read_config, read_prompt
 
 if TYPE_CHECKING:

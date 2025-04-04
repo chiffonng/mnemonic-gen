@@ -5,8 +5,8 @@ from pathlib import Path
 
 from datasets import load_dataset
 
+from src import constants as const
 from src.utils import check_file_path
-from src.utils import constants as const
 
 sample_size: int | None = 200
 

@@ -14,12 +14,12 @@ from typing import TYPE_CHECKING
 from datasets import ClassLabel, Dataset, DatasetDict, Features, Value, load_dataset
 from structlog import getLogger
 
+from src import constants as const
 from src.data_gen.models import LinguisticFeature, Mnemonic
 from src.data_prep.data_hf import (
     load_local_dataset,
     push_data_to_hf,
 )
-from src.utils import constants as const
 from src.utils.common import read_prompt
 
 if TYPE_CHECKING:

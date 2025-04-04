@@ -19,13 +19,13 @@ from typing import TYPE_CHECKING
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from src import constants as const
 from src.train.openai.mnemonic_ft import (
     prepare_finetune_data,
     split_export_finetune_data,
     upload_finetune_data,
 )
 from src.train.openai.openai_ft import finetune_from_config
-from src.utils import constants as const
 from structlog import getLogger
 
 if TYPE_CHECKING:

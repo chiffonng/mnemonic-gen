@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 from structlog import getLogger
 
+from src import constants as const
 from src.data_prep.data_io import read_csv_file, read_json_file
-from src.utils import constants as const
 from src.utils.common import read_prompt
 from src.utils.error_handlers import check_file_path
 

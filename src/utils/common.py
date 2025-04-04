@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import yaml
 from structlog import getLogger
 
-from src.utils.constants import PROMPT_PATH, BasePath
+from src.constants import PROMPT_PATH, BasePath
 from src.utils.error_handlers import check_dir_path, check_file_path
 
 if TYPE_CHECKING:

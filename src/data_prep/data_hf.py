@@ -8,8 +8,8 @@ import pandas as pd
 from datasets import Dataset, DatasetDict, load_dataset
 from structlog import getLogger
 
+from src.constants import HF_CONST, Column, Extension
 from src.utils import check_file_path
-from src.utils.constants import HF_CONST, Column, Extension
 from src.utils.hf_utils import login_hf_hub
 
 if TYPE_CHECKING:

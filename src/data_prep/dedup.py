@@ -13,7 +13,7 @@ from rapidfuzz import fuzz, process
 from structlog import getLogger
 from tqdm import tqdm
 
-from src.utils import constants as const
+from src import constants as const
 
 if TYPE_CHECKING:
     from typing import Optional

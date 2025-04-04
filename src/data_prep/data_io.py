@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import pandas as pd
 from structlog import getLogger
 
-from src.utils import constants as const
+from src import constants as const
 from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
