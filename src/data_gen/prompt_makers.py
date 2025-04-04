@@ -85,6 +85,10 @@ def get_system_prompt(
         with export_path.open("w", encoding="utf-8") as f:
             f.write(prompt_with_examples)
         logger.info("Prompt exported", path=export_path.resolve())
+
+        # Add export_path to constants.py
+        setattr(const.PROMPT_PATH, f"REASON_SYSTEM_{num_examples}SHOT", export_path)
+
         return export_path
 
     return get_system_prompt_examples(prompt_path, **kwargs)
