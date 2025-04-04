@@ -134,16 +134,12 @@ def generate_mnemonics(
         reasoner_name: Name of the reasoning model to use
         input_path: Path to input vocabulary dataset
         output_repo_id: Hugging Face repo ID to push results
-        sample_size: Number of samples to process
+        sample_size: Number of samples to process. If None, process all samples.
         dry_run: If True, run with minimal samples for testing
 
     Returns:
         Dataset with generated mnemonics and reasoning traces
     """
-    # Force sample size to 3 for dry run
-    if dry_run:
-        sample_size = 3
-
     # 1. Load vocabulary dataset
     ds = load_txt_by_lines(input_path, sample_size=sample_size)
 
@@ -188,7 +184,9 @@ def generate_mnemonics(
 
 if __name__ == "__main__":
     generate_mnemonics(
-        input_path="data/raw/sat.txt",
-        output_repo_id="mnemonic_dataset_dry_run",
-        dry_run=True,
+        input_path="data/raw/train.txt",
+        output_repo_id="en-vocab-thoughts-mnemonics",
+        reasoner_name="deepseek-reasoner",
+        dry_run=False,
+        sample_size=None,
     )
