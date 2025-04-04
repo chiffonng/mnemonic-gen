@@ -129,41 +129,6 @@ def load_txt_by_lines(
     return ds
 
 
-def load_hf_dataset(
-    repo_id: Optional[str] = None,
-    to_csv: bool = False,
-    file_path: Optional[PathLike] = None,
-    **kwargs,
-) -> DatasetDict:
-    """Load a dataset from the Hugging Face hub.
-
-    Args:
-        repo_id (str): The Hugging Face repository ID. Defaults to None.
-        to_csv (bool): Whether to save the dataset to a csv file. Defaults to False.
-        file_path (Path or str): The path to save the dataset to. Defaults to None.
-        kwargs: Additional keyword arguments for the Hugging Face load_dataset() function, such as 'split'. See documentation: https://huggingface.co/docs/datasets/en/loading for more details.
-
-    Returns:
-        DatasetDict: The loaded dataset.
-    """
-    login_hf_hub()
-
-    if repo_id is None:
-        repo_id = HF_CONST.TESTSET_NAME
-
-    logger.info(f"Loading dataset from {repo_id}.")
-    dataset = load_dataset(repo_id, **kwargs)
-
-    if to_csv and file_path is not None:
-        file_path = check_file_path(file_path, new_ok=True, extensions=[".csv"])
-        dataset.to_csv(file_path)
-        logger.info(f"Saved dataset to {file_path}.")
-    else:
-        logger.info(f"Cached file(s): {dataset.cache_files}")
-
-    return dataset
-
-
 def push_data_to_hf(
     dataset_dict: DatasetDict, repo_id: str, private: bool = False, **kwargs: dict
 ) -> str:
@@ -196,5 +161,5 @@ def push_data_to_hf(
 
 if __name__ == "__main__":
     # Load a dataset from the Hugging Face hub
-    mnemonic_dataset: Dataset = load_hf_dataset()
+    mnemonic_dataset: Dataset = load_dataset()
     logger.info(f"\n\n{mnemonic_dataset}")

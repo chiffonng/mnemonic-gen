@@ -39,12 +39,10 @@ class Mnemonic(BaseModel):
     """Mnemonic model. Fields: id (auto), term, reasoning, mnemonic, main_type, sub_type."""
 
     # Don't send the id field to OpenAI for schema generation
-    id: SkipJsonSchema[UUID] = Field(default_factory=lambda: uuid4(), primary_key=True)
+    id: SkipJsonSchema[UUID] = Field(default_factory=lambda: uuid4())
     term: Annotated[str, BeforeValidator(validate_term)] = Field(
         ...,
         description="The vocabulary term.",
-        unique=True,
-        index=True,
     )
     reasoning: str = Field(
         ...,
@@ -54,7 +52,7 @@ class Mnemonic(BaseModel):
         ...,
         description="The mnemonic device for the term.",
     )
-    main_type: Annotated[
+    linguistic_feature: Annotated[
         LinguisticFeature, BeforeValidator(validate_enum_field(LinguisticFeature))
     ] = Field(
         ...,

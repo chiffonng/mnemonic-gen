@@ -24,6 +24,7 @@ dependencies = [
   "wandb>=0.19.0; sys_platform == 'linux'",
   "unsloth==2025.3.18 ; sys_platform == 'linux'",
   "unsloth_zoo==2025.3.16 ; sys_platform == 'linux'",
+  "rapidfuzz>=3.13.0",
 ]
 license = "Apache-2.0"
 keywords = ["mnemonic", "mnemonic generation", "LLM", "language model", "chain of thought", "CoT", "synthetic data generation", "vocabulary learning", "vocabulary acquisition", "language learning", "natural language processing", "NLP", "machine learning", "ML", "deep learning", "DL", "AI", "artificial intelligence", "fine-tuning"]
