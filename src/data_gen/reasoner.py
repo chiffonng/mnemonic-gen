@@ -8,9 +8,8 @@ from bespokelabs import curator
 from structlog import getLogger
 
 from src.data_gen.models import MnemonicResult
-from src.data_gen.prompt_makers import get_system_prompt
 from src.utils import constants as const
-from src.utils.common import read_config
+from src.utils.common import read_config, read_prompt
 
 if TYPE_CHECKING:
     from typing import Any
@@ -20,6 +19,9 @@ if TYPE_CHECKING:
 
 # Set up logging
 logger: BoundLogger = getLogger(__name__)
+
+SYSTEM_10SHOT_PROMPT = read_prompt("prompts/reason/system_10_shot.txt")
+SYSTEM_100SHOT_PROMPT = read_prompt("prompts/reason/system_100_shot.txt")
 
 
 class DeepSeekReasoner(curator.LLM):
@@ -37,12 +39,7 @@ class DeepSeekReasoner(curator.LLM):
             List of dictionaries containing the prompt for the LLM
         """
         return [
-            {
-                "role": "system",
-                "content": get_system_prompt(
-                    const.PROMPT_PATH.REASON_SYSTEM, learning_setting="few_shot"
-                ),
-            },
+            {"role": "system", "content": SYSTEM_10SHOT_PROMPT},
             {"role": "user", "content": input["instruction"]},
         ]
 
@@ -71,12 +68,7 @@ class O3MiniReasoner(curator.LLM):
             List of dictionaries containing the prompt for the LLM
         """
         return [
-            {
-                "role": "system",
-                "content": get_system_prompt(
-                    const.PROMPT_PATH.REASON_SYSTEM, learning_setting="few_shot"
-                ),
-            },
+            {"role": "system", "content": SYSTEM_100SHOT_PROMPT},
             {"role": "user", "content": input["instruction"]},
         ]
 
@@ -86,7 +78,7 @@ class O3MiniReasoner(curator.LLM):
             "term": input["term"],  # The term being reasoned about
             "instruction": input["instruction"],
             "reasoning": response.reasoning,
-            "mnemonic": response.solution,
+            "solution": response.solution,
         }
 
 
@@ -101,24 +93,25 @@ def reason(ds: Dataset, model_name: str = "deepseek-reasoner") -> Dataset:
         Dataset: Dataset with added reasoning traces and other fields
     """
     default_generation_params = read_config(const.CONFIG_PATH.DEFAULT_GENERATION)
+    default_backend_params = read_config(const.CONFIG_PATH.DEFAULT_BACKEND)
 
     if model_name == "deepseek-reasoner":
+        default_generation_params.update(
+            read_config(const.CONFIG_PATH.DEEPSEEK_REASONER)
+        )
         reasoner = DeepSeekReasoner(
             model_name="deepseek/deepseek-reasoner",
-            generation_params=default_generation_params.update(
-                read_config(const.CONFIG_PATH.DEEPSEEK_REASONER)
-            ),
-            backend_params=read_config(const.CONFIG_PATH.DEFAULT_BACKEND),
+            generation_params=default_generation_params,
+            backend_params=default_backend_params,
         )
 
     elif model_name == "o3-mini":
+        default_generation_params.update(read_config(const.CONFIG_PATH.O3_MINI))
         reasoner = O3MiniReasoner(
             model_name="openai/o3-mini",
             batch=True,
-            generation_params=default_generation_params.update(
-                read_config(const.CONFIG_PATH.OPENAI)
-            ),
-            backend_params=read_config(const.CONFIG_PATH.DEFAULT_BACKEND_BATCH),
+            generation_params=default_generation_params,
+            backend_params=default_backend_params,
         )
     else:
         raise ValueError(f"Unknown model name: {model_name}")
