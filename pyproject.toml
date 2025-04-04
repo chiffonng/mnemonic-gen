@@ -8,8 +8,7 @@ requires-python = ">=3.10"
 dependencies = [
   "bespokelabs-curator>=0.1.22",
   "datasets>=3.5.0", # Hugging Face datasets
-  "huggingface-hub>=0.26.1",
-  "instructor>=1.7.9", # handling structure outputs from LLMs
+  "huggingface-hub>=0.29.3",
   "litellm>=1.61.3",
   "matplotlib>=3.9.2",
   "peft>=0.13.2 ; sys_platform == 'linux'",
