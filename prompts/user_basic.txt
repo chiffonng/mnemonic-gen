@@ -1,0 +1,2 @@
+Term: {term}
+Current mnemonic: {mnemonic}

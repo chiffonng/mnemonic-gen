@@ -1,0 +1,1 @@
+"""Generate mnemonics with CLI."""

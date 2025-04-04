@@ -1,50 +1,57 @@
 [project]
 name = "mnemonic-gen"
-version = "0.2.0"
+version = "0.2.5"
 description = "Generate mnemonic sentences for English words"
+authors = [{ name = "My Chiffon Nguyen", email = "chiffonng136@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "datasets>=2.19.1", # Hugging Face datasets
-  "evaluate>=0.4.3",
-  "hf-transfer>=0.1.8",
-  "huggingface-hub>=0.26.1",
-  "litellm>=1.63.3",
+  "bespokelabs-curator>=0.1.22",
+  "datasets>=3.5.0", # Hugging Face datasets
+  "huggingface-hub>=0.29.3",
+  "litellm>=1.61.3",
   "matplotlib>=3.9.2",
-  "numpy<2.0.0",
-  "peft>=0.13.2 ; sys_platform == 'linux'", # HF parameter-efficient training
-  "pre-commit>=4.1.0", # Pre-commit hooks
-  "python-dotenv>=1.0.1", # Load environment variables
-  "pyyaml>=6.0.2", # YAML config
-  "ruff>=0.9.10",
-  "seaborn>=0.13.2",
-  "torch==2.4.0 ; sys_platform == 'linux'",
-  "transformers>=4.47.0",
+  "peft>=0.13.2 ; sys_platform == 'linux'",
+  "pandas>=2.2.2",
+  "pydantic>=2.11.2",
+  "python-dotenv>=1.1.0",
+  "rich>=13.9.4", # format rich text
+  "structlog>=25.2.0",
+  "tenacity>=9.1.2", # retrying library for handling rate limits and transient errors
+  "torch==2.6.0 ; sys_platform == 'linux'",
+  "transformers>=4.50.3 ; sys_platform == 'linux'",
   "trl>=0.11.4 ; sys_platform == 'linux'",
-  "wandb>=0.19.0", # Weights and Biases for logging
+  "wandb>=0.19.0; sys_platform == 'linux'",
+  "unsloth==2025.3.18 ; sys_platform == 'linux'",
+  "unsloth_zoo==2025.3.16 ; sys_platform == 'linux'",
 ]
+license = "Apache-2.0"
+keywords = ["mnemonic", "mnemonic generation", "LLM", "language model", "chain of thought", "CoT", "synthetic data generation", "vocabulary learning", "vocabulary acquisition", "language learning", "natural language processing", "NLP", "machine learning", "ML", "deep learning", "DL", "AI", "artificial intelligence", "fine-tuning"]
 
 [project.urls]
-repository = "https://github.com/chiffonng/capstone"
+repository = "https://github.com/chiffonng/mnemonic-gen"
 dataset    = "https://doi.org/10.57967/hf/3750"
 
-[project.optional-dependencies]
-data = [
-    "openai==1.65.0",
-    "pandas>=2.2.3",
-    "pyarrow>=18.1.0",
+# Development dependencies
+[dependency-groups]
+dev = [
+    "deptry>=0.23.0",
+    "ipykernel>=6.29.5",
+    "pre-commit>=4.1.0",
+    "pytest>=8.3.5",
+    "ruff>=0.11.3",
 ]
 
 [tool.ruff]
 src            = ["src"]
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.format]
 docstring-code-format      = true # format code in docstrings
 docstring-code-line-length = 88
 
 [tool.ruff.lint]
-exclude = ["*.ipynb", "data/*", "logs/*", "test**", "tests/*", "tmp/*", "venv/*"]
+exclude = ["*.ipynb", "data/*", "logs/*", "tmp/*", "venv/*"]
 extend-select = [
   "B",   # flake8-bugbear, bugbear checks
   "D",   # pydocstyle, all functions and classes must have docstrings
@@ -76,7 +83,7 @@ ignore-fully-untyped = true # ignore fully untyped functions
 mypy-init-return = true  # omit return type in __init__ OK
 
 [tool.ruff.lint.per-file-ignores]
-"*__init__.py" = ["D104", "F401"]
+"*/__init__.py" = ["D", "F401"]
 
 [tool.uv]
 python-downloads = "manual"         # change to "automatic" to download Python specified in .python-version

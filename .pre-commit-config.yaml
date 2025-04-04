@@ -1,6 +1,13 @@
 repos:
+  - repo: local
+    hooks:
+      - id: update-dependencies
+        name: update dependencies
+        entry: bash scripts/update-deps.sh
+        stages: [pre-merge-commit]
+        language: system
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.9
+    rev: v0.11.0
     hooks:
       - id: ruff
         name: lint python code with ruff
@@ -12,6 +19,7 @@ repos:
     hooks:
       - id: check-added-large-files
       - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
       - id: check-json
       - id: check-merge-conflict
       - id: check-toml
@@ -25,7 +33,6 @@ repos:
     rev: v1.15.0
     hooks:
       - id: mypy
-        args: ["--ignore-missing-imports"]
         additional_dependencies:
           [
             "types-python-slugify",
@@ -33,3 +40,4 @@ repos:
             "types-PyYAML",
             "types-pytz",
           ]
+        stages: [pre-merge-commit]
