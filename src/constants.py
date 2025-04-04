@@ -152,8 +152,8 @@ class PromptPath:
     JUDGE_SYSTEM: Path = PATH.prompt_file("judge", "system")
 
     # Fine-tuning
-    FINETUNE_SYSTEM: Path = PATH.prompt_file("finetune", "system")
-    FINETUNE_USER: Path = PATH.prompt_file("finetune", "user")
+    TRAIN_SYSTEM: Path = PATH.prompt_file("train", "system")
+    TRAIN_USER: Path = PATH.prompt_file("train", "user")
 
     # Placeholder variables in prompts
     PLACEHOLDER_DICT: Path = PATH.prompt_file("", "placeholders", ext="json")
