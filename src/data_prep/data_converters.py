@@ -107,7 +107,12 @@ def create_hf_grpo_dataset(
         private: Whether to make the repository private
 
     Returns:
-        DatasetDict containing the converted dataset
+        DatasetDict containing the converted dataset. Columns:
+        - term: The term to be explained
+        - reasoning: The reasoning behind the solution
+        - answer: The mnemonic to the term
+        - prompt: List of messages with role and content
+        - completion: List of messages with role and content
     """
     logger.info("Loading dataset", input_repo_id=input_repo_id)
     dataset = load_dataset(input_repo_id)
@@ -130,9 +135,10 @@ def create_hf_grpo_dataset(
         completions = [{"role": "assistant", "content": assistant_response}]
         return {
             "term": example["term"],
-            "prompts": prompts,
-            "completions": completions,
             "reasoning": example["reasoning"],  # Keep reasoning for reference
+            "answer": example["solution"] or example["answer"],
+            "prompt": prompts,
+            "completion": completions,
         }
 
     # Convert each split in the dataset
@@ -182,13 +188,16 @@ def create_class_dataset(
 
     dataset: Dataset = load_local_dataset(input_path)
 
+    if "mnemonic" in dataset.column_names:
+        dataset = dataset.rename_column("mnemonic", "answer")
+
     dataset = dataset.select_columns(select_col_names)
     logger.debug("Loaded dataset columns", columns=dataset.column_names)
 
     features = Features(
         {
             "term": Value("string"),
-            "mnemonic": Value("string"),
+            "answer": Value("string"),
             "reasoning": Value("string"),
             "linguistic_feature": ClassLabel(
                 names=mnemonic_type_labels, num_classes=num_mnemonic_types
