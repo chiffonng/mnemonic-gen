@@ -63,6 +63,11 @@ def get_system_prompt(
     else:
         num_examples = num_example_dict[learning_setting]
         kwargs["num_examples"] = num_examples
+
+    prompt_path = check_file_path(
+        prompt_path,
+        extensions=[const.Extension.TXT],
+    )
     logger.debug(
         "Getting system prompt",
         prompt_path=prompt_path,

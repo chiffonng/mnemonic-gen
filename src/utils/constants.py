@@ -87,9 +87,9 @@ class PathMaker:
 
     def prompt_file(
         self,
-        category: Literal["reason", "judge", "finetune", "prompt"] = "",
+        category: Optional[Literal["reason", "judge", "finetune", "prompt"]] = None,
         name: str = "system",
-        ext: Literal["txt"] = "txt",
+        ext: str = "txt",
     ) -> Path:
         """Generate a path for a prompt file."""
         ext = Extension.get(ext)
@@ -107,10 +107,7 @@ class PathMaker:
         return prompt_path
 
     def config_file(
-        self,
-        category: Literal["finetune", "api", ""],
-        name: str,
-        ext: Literal["json", "yaml", "yml"] = "json",
+        self, category: Literal["finetune", "api", ""], name: str, ext: str = "json"
     ) -> Path:
         """Generate a path for a config file."""
         ext = Extension.get(ext)

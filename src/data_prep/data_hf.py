@@ -84,7 +84,7 @@ def load_txt_file(
     file_path = check_file_path(file_path, extensions=[Extension.TXT])
 
     with file_path.open("r") as f:
-        data = f.readlines().strip()
+        data = f.readlines()
 
     df = pd.DataFrame(data, columns=[col_name])
     dataset = Dataset.from_pandas(df)
