@@ -6,24 +6,24 @@ authors = [{ name = "My Chiffon Nguyen", email = "chiffonng136@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "bespokelabs-curator>=0.1.21",
+  "bespokelabs-curator>=0.1.22",
   "datasets>=3.5.0", # Hugging Face datasets
-  # "evaluate>=0.4.3",
-  "huggingface-hub>=0.26.1",
-  "instructor>=1.7.7", # handling structure outputs from LLMs
-  "litellm>=1.61.0",
+  "huggingface-hub>=0.29.3",
+  "litellm>=1.61.3",
   "matplotlib>=3.9.2",
   "peft>=0.13.2 ; sys_platform == 'linux'",
   "pandas>=2.2.2",
-  "pydantic>=2.11.1",
+  "pydantic>=2.11.2",
   "python-dotenv>=1.1.0",
   "rich>=13.9.4", # format rich text
   "structlog>=25.2.0",
-  "tenacity>=9.0.0", # retrying library for handling rate limits and transient errors
+  "tenacity>=9.1.2", # retrying library for handling rate limits and transient errors
   "torch==2.6.0 ; sys_platform == 'linux'",
   "transformers>=4.50.3 ; sys_platform == 'linux'",
   "trl>=0.11.4 ; sys_platform == 'linux'",
   "wandb>=0.19.0; sys_platform == 'linux'",
+  "unsloth==2025.3.18 ; sys_platform == 'linux'",
+  "unsloth_zoo==2025.3.16 ; sys_platform == 'linux'",
 ]
 license = "Apache-2.0"
 keywords = ["mnemonic", "mnemonic generation", "LLM", "language model", "chain of thought", "CoT", "synthetic data generation", "vocabulary learning", "vocabulary acquisition", "language learning", "natural language processing", "NLP", "machine learning", "ML", "deep learning", "DL", "AI", "artificial intelligence", "fine-tuning"]
@@ -32,13 +32,6 @@ keywords = ["mnemonic", "mnemonic generation", "LLM", "language model", "chain o
 repository = "https://github.com/chiffonng/mnemonic-gen"
 dataset    = "https://doi.org/10.57967/hf/3750"
 
-# Publish to PyPI
-[project.optional-dependencies]
-data = [
-    "openai>=1.66.0",
-    "sqlmodel>=0.0.24",
-]
-
 # Development dependencies
 [dependency-groups]
 dev = [
@@ -46,7 +39,7 @@ dev = [
     "ipykernel>=6.29.5",
     "pre-commit>=4.1.0",
     "pytest>=8.3.5",
-    "ruff>=0.11.0",
+    "ruff>=0.11.3",
 ]
 
 [tool.ruff]

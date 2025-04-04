@@ -143,7 +143,9 @@ def read_prompt(
         else:
             vars = vars_from_json
 
-    elif vars_json_path is None and "system" in prompt_path.name:
+    elif vars_json_path is None and (
+        "system" in prompt_path.name and "_" not in prompt_path.name
+    ):
         vars = read_config(PROMPT_PATH.PLACEHOLDER_DICT)
 
     if vars:

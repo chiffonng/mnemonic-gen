@@ -2,11 +2,14 @@
 
 [Hugging Face Artifacts](https://huggingface.co/collections/chiffonng/mnemonic-generation-67563a0a1ab91e84e9827579)
 
-Mnemonic devices (memory aids) are powerful tools to help individuals remember information more effectively, such as acquiring vocabulary. Manual methods of creating mnemonics can be time-consuming and may not always be effective for everyone. Previous automated methods rely on keyword method (i.e. associating a new word with a familiar word or image in the learner's native language) or simple rule-based methods, which are mostly based on sound/visual patterns, individualized, and work on case-by-case basis. I suggest tapping into linguistic features of the target words to generate more linguistically-rich mnemonic devices, and potentially allow learners to create more memorable associations within the target language themselves. This could lead to more effective learning outcomes and a deeper understanding of the language.
+Mnemonic devices (memory aids) are powerful tools to help individuals remember information more effectively, such as acquiring new, abstract vocabulary fast. This project proposes to explore the potential of using large language models (LLMs) to generate linguisticaly-grounded mnemonics, with the goal of aiding vocabulary acquisition and retention. The system currently works for English-English mnemonics.
 
-This project aims to explore this question by 1. generating synthetic dataset simulating traces of reasoning through linguistic features and trials of creative writing to arrive at a mnemonic device, and 2. fine-tuning a language model to generate mnemonics for English vocabulary words. This project is a work-in-progress, and it is an experimental attempt to see if we can leverage the power of Large Language Models (LLMs) to generate high-quality mnemonics for English vocabulary words, and whether it's extensible to other languages, such as Mandarin Chinese.
+Main steps:
 
-![](assets/pipeline.svg)
+1. Generate synthetic dataset simulating traces of reasoning through linguistic features and grounding creative writing to arrive at a mnemonic device, using LLMs + chain-of-thought rationales, and few- or many-shot in-context learning, and
+2. Fine-tune a smaller language model to generate mnemonics for English vocabulary words, and
+3. Evaluate the model's performance on a test set of vocabulary words, using human evaluation and LLM-as-a-judge approach.
+4. Deploy the fine-tuned model in a local web UI, allowing users to input vocabulary words and receive mnemonics as output.
 
 ## Setup
 
@@ -28,9 +31,9 @@ uv pip install -r pyproject.toml -e .
 
 Create a `.env` by cloning `.env.template`. You will need:
 
-- Hugging Face Access Token. You will need at least `read` access token to load the dataset and model from Hugging Face (see the [doc](https://huggingface.co/docs/hub/en/security-tokens)). You can get it from [here](https://huggingface.co/settings/token).
+- Hugging Face Access Token (see the [doc](https://huggingface.co/docs/hub/en/security-tokens)). You can get it from [here](https://huggingface.co/settings/token).
 - Wandb API key (optional: for logging experiments). You can get it from [here](https://wandb.ai/authorize).
-- OpenAI API key (optional: for `data_prep` module). You can get keys from [OpenAI](https://platform.openai.com/account/api-keys) and [Anthropic](https://anthropic.com/).
+- OpenAI API & DeepSeek API keys. You can get keys from [OpenAI](https://platform.openai.com/account/api-keys) and [DeepSeek](https://platform.deepseek.com/api_keys).
 
 ## Development
 
@@ -52,6 +55,7 @@ Dealing with dependencies:
 1. Add new dependencies to `pyproject.toml` or use `uv add <package>`. To remove a package, use `uv remove <package>`.
 2. Compile to `requirements.txt` with `uv pip compile pyproject.toml -o requirements.txt`
 3. Sync the environment with uv.lock and install dev dependencies: `uv sync`.
+4. Upgrade the environment with `uv lock --upgrade`.
 
 ## Personal motivation
 

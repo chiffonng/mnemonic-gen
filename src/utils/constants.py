@@ -137,7 +137,8 @@ class DataPath:
 
     RAW_TEST = PATH.data_file("test", data_type="raw", ext="txt")
     FINAL_TEST = PATH.data_file("test", data_type="final", ext="txt")
-    MNEMONIC_DB_URI = f"sqlite:///{BASE_PATHS.DATA_PROCESSED}/mnemonics.db"
+    EXAMPLES = PATH.data_file("examples", data_type="processed", ext="csv")
+    EXAMPLES_JSONL = PATH.data_file("examples", data_type="processed", ext="jsonl")
 
     OPENAI_SFT_IMPROVE_TRAIN = PATH.data_file("sft_improve_train", ext="jsonl")
     OPENAI_SFT_IMPROVE_VAL = PATH.data_file("sft_improve_val", ext="jsonl")
@@ -147,7 +148,7 @@ class DataPath:
 class PromptPath:
     """Prompt paths for different stages of processing."""
 
-    # Synthetic data generation
+    # Synthetic data generation. Default is CoT + 10 shot
     REASON_SYSTEM: Path = PATH.prompt_file("reason", "system")
     REASON_USER: Path = PATH.prompt_file("reason", "user")
     JUDGE_SYSTEM: Path = PATH.prompt_file("judge", "system")

@@ -13,7 +13,7 @@ from src.utils import constants as const
 from src.utils.common import read_prompt
 
 if TYPE_CHECKING:
-    from typing import Optional
+    from typing import Literal, Optional
 
     from structlog.stdlib import BoundLogger
 
@@ -122,6 +122,7 @@ def prepare_user_instructions(
 
 # TODO: Add argparse and refactor to allow CLI usage
 def generate_mnemonics(
+    reasoner_name: str = "deepseek-reasoner",
     input_path: Optional[PathLike] = None,
     output_repo_id: Optional[str] = None,
     sample_size: Optional[int] = None,
@@ -130,18 +131,15 @@ def generate_mnemonics(
     """Generate mnemonics for vocabulary terms using OpenThoughts approach.
 
     Args:
+        reasoner_name: Name of the reasoning model to use
         input_path: Path to input vocabulary dataset
         output_repo_id: Hugging Face repo ID to push results
-        sample_size: Number of samples to process
+        sample_size: Number of samples to process. If None, process all samples.
         dry_run: If True, run with minimal samples for testing
 
     Returns:
         Dataset with generated mnemonics and reasoning traces
     """
-    # Force sample size to 3 for dry run
-    if dry_run:
-        sample_size = 3
-
     # 1. Load vocabulary dataset
     ds = load_txt_by_lines(input_path, sample_size=sample_size)
 
@@ -157,29 +155,38 @@ def generate_mnemonics(
     )
 
     # 5. Generate reasoning and mnemonics
-    ds = reason(ds)
+    ds = reason(ds, model_name=reasoner_name)
 
-    # 7. Push to Hugging Face if not a dry run
-    if output_repo_id and not dry_run:
+    # 7. Push to Hugging Face
+    if not dry_run and not output_repo_id:
+        raise ValueError(
+            "Please provide an output_repo_id to push the dataset to Hugging Face."
+        )
+    elif output_repo_id:
         repo_id = f"{const.HF_CONST.USER}/{output_repo_id}"
         ds_dict = DatasetDict({"train": ds})
-        push_data_to_hf(ds_dict, repo_id, private=True)  # TODO: CHANGE TO False
 
-    if dry_run:
+        if dry_run:
+            logger.info("==== MNEMONIC DATASET (DRY RUN) ====")
+            logger.info("Dataset summary:", ds_summary=ds)
+            push_data_to_hf(ds_dict, repo_id, private=True)
+        else:
+            logger.info("==== MNEMONIC DATASET ====")
+            push_data_to_hf(ds_dict, repo_id, private=False)
+
+    elif not output_repo_id and dry_run:
         logger.info("==== MNEMONIC DATASET (DRY RUN) ====")
         logger.info("Dataset summary:", ds_summary=ds)
-        if len(ds) > 0:
-            logger.info(
-                "Example of generated mnemonics and reasoning traces:", example=ds[0]
-            )
-        logger.info("==== END MNEMONIC DATASET ====")
+        logger.info("Dataset preview:", ds_preview=ds[0])
 
     return ds
 
 
 if __name__ == "__main__":
     generate_mnemonics(
-        input_path="data/raw/gre.txt",
-        output_repo_id="mnemonic_dataset_dry_run",  # Change this for actual runs
-        dry_run=True,
+        input_path="data/raw/train.txt",
+        output_repo_id="en-vocab-thoughts-mnemonics",
+        reasoner_name="deepseek-reasoner",
+        dry_run=False,
+        sample_size=None,
     )

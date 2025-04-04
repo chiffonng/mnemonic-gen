@@ -9,6 +9,7 @@ from datasets import Dataset, DatasetDict, load_dataset
 from structlog import getLogger
 
 from src.utils import check_file_path
+from src.utils.constants import HF_CONST, Column, Extension
 from src.utils.hf_utils import login_hf_hub
 
 if TYPE_CHECKING:
@@ -17,7 +18,6 @@ if TYPE_CHECKING:
     from structlog.stdlib import BoundLogger
 
     from src.utils import PathLike
-    from src.utils.constants import HF_CONST
 
 # Set up logging to console
 logger: BoundLogger = getLogger(__name__)
@@ -37,7 +37,8 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
         See src/utils/error_handling.py, check_file_path() for more details.
     """
     file_path = check_file_path(
-        file_path, extensions=[".parquet", ".csv", ".json", ".jsonl"]
+        file_path,
+        extensions=[Extension.PARQUET, Extension.CSV, Extension.JSON, Extension.JSONL],
     )
 
     if file_path.suffix == ".parquet":
@@ -50,7 +51,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
             na_values=[""],  # nan becomes empty string
             **kwargs,
         )
-    elif file_path.suffix == ".json" or file_path.suffix == ".jsonl":
+    elif file_path.suffix == Extension.JSON or file_path.suffix == Extension.JSONL:
         dataset = load_dataset("json", data_files=str(file_path), **kwargs)
 
     logger.info("Loaded dataset", source=file_path)
@@ -68,7 +69,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
 
 
 def load_txt_file(
-    file_path: PathLike, split_name: str = "test", col_name: str = "term"
+    file_path: PathLike, split_name: str = "test", col_name: str = Column.TERM
 ) -> DatasetDict:
     """Load a txt file as a pandas DataFrame.
 
@@ -80,7 +81,7 @@ def load_txt_file(
     Returns:
         DatasetDict: The loaded dataset dictionary {split_name: dataset}
     """
-    file_path = check_file_path(file_path, extensions=[".txt"])
+    file_path = check_file_path(file_path, extensions=[Extension.TXT])
 
     with file_path.open("r") as f:
         data = f.readlines().strip()
@@ -108,9 +109,9 @@ def load_txt_by_lines(
     Returns:
         Dataset containing vocabulary terms
     """
-    source_path = check_file_path(source_path)
+    source_path = check_file_path(source_path, extensions=[Extension.TXT])
     ds = Dataset.from_dict(
-        {"term": source_path.open("r").read().splitlines()}, split=split_name
+        {Column.TERM: source_path.open("r").read().splitlines()}, split=split_name
     )
     logger.info("Loaded full .txt dataset", source=source_path, size=ds.num_rows)
 
@@ -125,28 +126,6 @@ def load_txt_by_lines(
         logger.info(
             "View one example of .txt dataset", source=source_path, example=ds[0]
         )
-    return ds
-
-
-def load_from_database(table_or_query: str, uri: str, **kwargs) -> Dataset:
-    """Load a dataset from a SQLite database.
-
-    Args:
-        table_or_query (str): The SQL query or table name.
-        uri (str): The database URI.
-        kwargs: Additional keyword arguments for the Hugging Face Dataset.from_sql() function.
-
-    Returns:
-        Dataset: The loaded dataset.
-
-    Raises:
-        ValueError: If the URI does not start with 'sqlite:///'.
-    """
-    if not uri.startswith("sqlite:///"):
-        raise ValueError("URI must start with 'sqlite:///'")
-
-    ds = Dataset.from_sql(table_or_query, con=uri, **kwargs)
-    logger.info(f"Loaded dataset from {uri}.")
     return ds
 
 
@@ -201,11 +180,10 @@ def push_data_to_hf(
     """
     logger.info("Uploading dataset to HuggingFace", dataset=dataset_dict, repo=repo_id)
 
-    # Login to HuggingFace with write permission
     login_hf_hub()
 
     # Push to HuggingFace Hub
-    dataset_dict.push_to_hub(repo_id=repo_id, private=private)
+    dataset_dict.push_to_hub(repo_id=repo_id, private=private, **kwargs)
 
     logger.info(
         "Successfully uploaded dataset to HuggingFace",
@@ -215,14 +193,6 @@ def push_data_to_hf(
 
     return repo_id
 
-
-# Example usage
-# smart_dataset: Dataset = load_hf_dataset(
-#     "nbalepur/Mnemonic_SFT",
-#     split="train+test",
-#     to_csv=True,
-#     file_path=SMART_DATASET_CSV,
-# )
 
 if __name__ == "__main__":
     # Load a dataset from the Hugging Face hub

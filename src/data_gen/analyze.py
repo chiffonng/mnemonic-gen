@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from structlog import getLogger
 
-from src.data_gen.mnemonic_models import MnemonicType
+from src.data_gen.models import LinguisticFeature
 
 if TYPE_CHECKING:
     from typing import Optional
@@ -35,7 +35,7 @@ def extract_mnemonic_types(mnemonic: str) -> tuple[str, Optional[str]]:
     mnemonic = mnemonic.lower()
 
     keywords_by_type_dict = {
-        MnemonicType.etymology: [
+        LinguisticFeature.etymology: [
             "etymology",
             "comes from",
             "from",
@@ -45,7 +45,7 @@ def extract_mnemonic_types(mnemonic: str) -> tuple[str, Optional[str]]:
             "french",
             "root",
         ],
-        MnemonicType.morphology: [
+        LinguisticFeature.morphology: [
             "morphology",
             "formed from",
             "formed by",
@@ -54,7 +54,7 @@ def extract_mnemonic_types(mnemonic: str) -> tuple[str, Optional[str]]:
             "compound",
             "morpheme",
         ],
-        MnemonicType.semantic_field: [
+        LinguisticFeature.semantic_field: [
             "semantic field",
             "refers to",
             "related to",
@@ -64,19 +64,19 @@ def extract_mnemonic_types(mnemonic: str) -> tuple[str, Optional[str]]:
             "spectrum",
             ">",
         ],
-        MnemonicType.orthography: ["orthography", "looks like", "spell", "divide"],
-        MnemonicType.phonetics: [
+        LinguisticFeature.orthography: ["orthography", "looks like", "spell", "divide"],
+        LinguisticFeature.phonetics: [
             "phonetic",
             "sounds like",
             "pronounced as",
             "read as",
             "rhymes",
         ],
-        MnemonicType.context: ["context", "used in", "example", "sentence"],
+        LinguisticFeature.context: ["context", "used in", "example", "sentence"],
     }
 
     # Count keyword matches
-    type_scores = {mtype: 0 for mtype in MnemonicType}
+    type_scores = {mtype: 0 for mtype in LinguisticFeature}
     for mtype, keywords in keywords_by_type_dict.items():
         for keyword in keywords:
             if keyword.lower() in keywords_by_type_dict:
@@ -86,7 +86,9 @@ def extract_mnemonic_types(mnemonic: str) -> tuple[str, Optional[str]]:
     sorted_types = sorted(type_scores.items(), key=lambda x: x[1], reverse=True)
 
     # Assign main and sub types
-    main_type = sorted_types[0][0] if sorted_types[0][1] > 0 else MnemonicType.unknown
+    main_type = (
+        sorted_types[0][0] if sorted_types[0][1] > 0 else LinguisticFeature.unknown
+    )
     sub_type = (
         sorted_types[1][0] if len(sorted_types) > 1 and sorted_types[1][1] > 0 else None
     )
@@ -98,7 +100,7 @@ def extract_mnemonic_types(mnemonic: str) -> tuple[str, Optional[str]]:
     # morphology: search for pattern "term = morpheme1 + morpheme2", e.g. "unhappiness = un + happiness"
     pattern = re.compile(r"(\w+)\s*=\s*(\w+)\s*\+\s*(\w+)")
     if pattern.search(mnemonic):
-        main_type = MnemonicType.morphology
+        main_type = LinguisticFeature.morphology
 
     return main_type, sub_type
 

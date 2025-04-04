@@ -12,7 +12,7 @@ from src.utils import constants as const
 from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
-    from typing import Any
+    from typing import Any, Union
 
     from structlog.stdlib import BoundLogger
 
@@ -22,7 +22,9 @@ if TYPE_CHECKING:
 logger: BoundLogger = getLogger(__name__)
 
 
-def read_csv_file(file_path: PathLike, **kwargs) -> Any:
+def read_csv_file(
+    file_path: PathLike, **kwargs
+) -> Union[pd.DataFrame, dict[dict[str, Any]], list[dict[str, Any]], str]:
     """Read a CSV file and return its contents as a list of dictionaries.
 
     Args:
@@ -30,26 +32,24 @@ def read_csv_file(file_path: PathLike, **kwargs) -> Any:
         **kwargs: Additional arguments to process dataframe further
 
     Returns:
-        List of dictionaries representing CSV rows
+        DataFrame or
+        list of dictionaries representing CSV rows or
+        dict of dictionaries representing CSV columns or
+        str (json formatted string) representing the CSV file path
     """
-    validated_path = check_file_path(file_path, extensions=[const.CSV_EXT])
+    validated_path = check_file_path(file_path, extensions=[const.Extension.CSV])
 
     df = pd.read_csv(validated_path, na_values=[None], keep_default_na=False)
 
-    # Process the dataframe further if needed
-    to_dict = kwargs.get("to_dict", False)
-    to_lst_dict = kwargs.get("to_lst_dict", False)
-    to_json = kwargs.get("to_json", False)
-    to_jsonl = kwargs.get("to_jsonl", False)
-
-    if to_dict:
+    if kwargs.get("to_dict", False):
         content: dict[dict[str, Any]] = df.to_dict()
-    elif to_lst_dict:
+    elif kwargs.get("to_list_of_dicts", False):
         content: list[dict[str, Any]] = df.to_dict(orient="records")
-    elif to_json:
-        content: str = df.to_json(orient="records")
-    elif to_jsonl:
-        content: str = df.to_json(orient="records", lines=True)
+    elif kwargs.get("to_json", False):
+        json_str: str = df.to_json(orient="records")
+        content = json.dumps(json.loads(json_str), indent=4)
+    elif kwargs.get("to_jsonl", False):
+        json_str: str = df.to_json(orient="records", lines=True)
     else:
         return df
 
@@ -65,45 +65,50 @@ def read_json_file(file_path: PathLike) -> list[dict[str, Any]]:
         List of dictionaries representing JSON objects
     """
     # Validate path using existing utility
-    validated_path = check_file_path(file_path, extensions=[".json"])
+    validated_path = check_file_path(
+        file_path, extensions=[const.Extension.JSON, const.Extension.JSONL]
+    )
 
     with validated_path.open("r", encoding="utf-8") as jsonfile:
+        if validated_path.suffix == const.Extension.JSON:
+            data = json.load(jsonfile)
+        elif validated_path.suffix == const.Extension.JSONL:
+            data = [json.loads(line) for line in jsonfile if line.strip()]
         data = json.load(jsonfile)
 
     return data
 
 
-def read_jsonl_file(file_path: PathLike) -> list[dict[str, Any]]:
-    """Read a JSON Lines file and return its contents as a list of dictionaries.
-
-    Args:
-        file_path: Path to the JSON Lines file
-    Returns:
-        List of dictionaries representing JSON Lines objects
-    """
-    validated_path = check_file_path(file_path, extensions=[const.JSONL_EXT])
-
-    data = []
-    with validated_path.open("r", encoding="utf-8") as jsonlfile:
-        for line in jsonlfile:
-            if line.strip():  # Skip empty lines
-                data.append(json.loads(line))
-
-    return data
-
-
-def read_txt_file(file_path: PathLike) -> list[str]:
+def read_txt_file(
+    file_path: PathLike,
+    remove_empty_lines: bool = True,
+    by_lines: bool = False,
+) -> list[str]:
     """Read a text file and return its contents as a list of strings.
 
     Args:
         file_path: Path to the text file
+        remove_empty_lines: Whether to remove empty lines
+        by_lines: Whether to read the file line by line
+
+    Raises:
+        See `src.utils.error_handlers.check_file_path` for possible exceptions
+
     Returns:
         List of strings representing lines in the text file
     """
-    validated_path = check_file_path(file_path, extensions=[const.TXT_EXT])
+    validated_path = check_file_path(file_path, extensions=[const.Extension.TXT])
 
     with validated_path.open("r", encoding="utf-8") as txtfile:
-        data = [line.strip() for line in txtfile if line.strip()]
+        if by_lines and remove_empty_lines:
+            return [line.strip() for line in txtfile]
+        elif by_lines and not remove_empty_lines:
+            return [line for line in txtfile]
+
+        elif remove_empty_lines:
+            data = [line.strip() for line in txtfile if line.strip()]
+        else:
+            data = [line.strip() for line in txtfile]
 
     return data
 
@@ -116,7 +121,7 @@ def write_jsonl_file(data: list[dict[str, Any]], file_path: PathLike) -> None:
         file_path: Path to the output JSONL file
     """
     file_path = check_file_path(
-        file_path, new_ok=True, to_create=True, extensions=[const.JSONL_EXT]
+        file_path, new_ok=True, to_create=True, extensions=[const.Extension.JSONL]
     )
 
     with file_path.open("w", encoding="utf-8") as f:
