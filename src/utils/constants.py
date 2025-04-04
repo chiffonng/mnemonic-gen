@@ -148,9 +148,10 @@ class DataPath:
 class PromptPath:
     """Prompt paths for different stages of processing."""
 
-    # Synthetic data generation. Default is CoT + 10 shot
+    # Synthetic data generation. Default is CoT
     REASON_SYSTEM: Path = PATH.prompt_file("reason", "system")
     REASON_USER: Path = PATH.prompt_file("reason", "user")
+
     JUDGE_SYSTEM: Path = PATH.prompt_file("judge", "system")
 
     # Fine-tuning
@@ -195,10 +196,10 @@ class HfConst:
     """Hugging Face related constants."""
 
     USER: str = "chiffonng"
-    DATASET_NAME: str = f"{USER}/en-vocab-mnemonics"
+    DATASET_NAME: str = f"{USER}/en-vocab-en-mnemonics-cot"
     TESTSET_NAME: str = f"{USER}/en-vocab-mnemonics-test"
-    MODEL_NAME: str = f"{USER}/gemma3-4b-it-mnemonics"
-    CHAT_DATASET: str = f"{USER}/en-vocab-mnemonics-chat"
+    MODEL_NAME: str = f"{USER}/gemma-3-4b-it-mnemonics"
+    CHAT_DATASET: str = f"{USER}/en-vocab-en-mnemonics-chat"
 
 
 HF_CONST = HfConst()
