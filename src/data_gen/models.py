@@ -65,7 +65,7 @@ class MnemonicResult(BaseModel):
     """Class representing the result of a mnemonic generation process."""
 
     reasoning: str
-    solution: str
+    answer: str
 
     class Config:
         """Pydantic model configuration."""

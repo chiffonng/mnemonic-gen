@@ -16,7 +16,7 @@ MNEMONIC REQUIREMENTS:
 - Should be appropriate for learners of various backgrounds; avoid cultural or regional references not be universally understood, unless requested by the user.
 - Should be clear, memorable (references to living things, vivid imagery), and easy to recall
 
-If given EXAMPLE SOLUTIONS, see how the mnemonic is structured and classified, but do not use their format.
+If given EXAMPLE ANSWERS, see how the mnemonic is structured and classified, but do not use their format.
 
 RESPONSE FORMAT: Write items in a bullet list, each item separated by \n\n. No other markdown or json format.
 

@@ -49,7 +49,7 @@ class DeepSeekReasoner(curator.LLM):
             "term": input["term"],  # The term being reasoned about
             "instruction": input["instruction"],
             "reasoning": response["choices"][0]["message"]["reasoning_content"],
-            "solution": response["choices"][0]["message"]["content"],
+            "answer": response["choices"][0]["message"]["content"],
         }
 
 
@@ -78,7 +78,7 @@ class O3MiniReasoner(curator.LLM):
             "term": input["term"],  # The term being reasoned about
             "instruction": input["instruction"],
             "reasoning": response.reasoning,
-            "solution": response.solution,
+            "answer": response.answer,
         }
 
 
@@ -106,7 +106,7 @@ def reason(ds: Dataset, model_name: str = "deepseek-reasoner") -> Dataset:
         )
 
     elif model_name == "o3-mini":
-        default_generation_params.update(read_config(const.CONFIG_PATH.O3_MINI))
+        default_generation_params.update(read_config(const.CONFIG_PATH.OPENAI))
         reasoner = O3MiniReasoner(
             model_name="openai/o3-mini",
             batch=True,

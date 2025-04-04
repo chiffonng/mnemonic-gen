@@ -180,7 +180,7 @@ def get_system_prompt_examples(
 
     # Add the examples to the system prompt
     return (
-        system_prompt + "\n\nEXAMPLE SOLUTIONS:\n\n" + formatted_examples_str,
+        system_prompt + "\n\nEXAMPLE ANSWERS:\n\n" + formatted_examples_str,
         num_examples,
     )
 
@@ -228,7 +228,7 @@ def combine_prompt_examples(prompt_path: PathLike, examples_path: PathLike) -> s
     examples = read_prompt(examples_path)
 
     # Combine the system prompt with the examples
-    combined_prompt = system_prompt + "\n\nEXAMPLE SOLUTIONS:\n\n"
+    combined_prompt = system_prompt + "\n\nEXAMPLE ANSWERS:\n\n"
     for i, example in enumerate(examples):
         combined_prompt += f"{i + 1}. {example}\n"
 
