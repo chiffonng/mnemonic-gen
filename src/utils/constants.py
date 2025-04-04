@@ -196,10 +196,12 @@ class HfConst:
     """Hugging Face related constants."""
 
     USER: str = "chiffonng"
+    MODEL_NAME: str = f"{USER}/gemma-3-4b-it-mnemonics"
+
     DATASET_NAME: str = f"{USER}/en-vocab-en-mnemonics-cot"
     TESTSET_NAME: str = f"{USER}/en-vocab-mnemonics-test"
-    MODEL_NAME: str = f"{USER}/gemma-3-4b-it-mnemonics"
-    CHAT_DATASET: str = f"{USER}/en-vocab-en-mnemonics-chat"
+    CHAT_DATASET_NAME: str = f"{USER}/en-vocab-mnemonics-chat"
+    RL_DATASET_NAME: str = f"{USER}/en-vocab-mnemonics-rl"
 
 
 HF_CONST = HfConst()
