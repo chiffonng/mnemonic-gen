@@ -9,6 +9,7 @@ from datasets import Dataset, DatasetDict, load_dataset
 from structlog import getLogger
 
 from src.utils import check_file_path
+from src.utils.constants import HF_CONST, Column, Extension
 from src.utils.hf_utils import login_hf_hub
 
 if TYPE_CHECKING:
@@ -17,7 +18,6 @@ if TYPE_CHECKING:
     from structlog.stdlib import BoundLogger
 
     from src.utils import PathLike
-    from src.utils.constants import HF_CONST, Column, Extension
 
 # Set up logging to console
 logger: BoundLogger = getLogger(__name__)
