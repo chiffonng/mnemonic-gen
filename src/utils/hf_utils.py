@@ -9,7 +9,7 @@ def login_hf_hub(**kwargs):
     """
     from huggingface_hub import login
 
-    login(add_to_git_credential=True, **kwargs)
+    login(token=get_hf_token(), add_to_git_credential=True, **kwargs)
 
 
 def get_hf_token() -> str:
