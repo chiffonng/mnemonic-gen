@@ -4,16 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from datasets import Dataset, DatasetDict, load_dataset
+from datasets import Dataset, DatasetDict, concatenate_datasets, load_dataset
 from structlog import getLogger
 
 from src.data_gen.reasoner import reason
 from src.data_prep.data_hf import load_txt_by_lines, push_data_to_hf
+from src.data_prep.dedup import decontaminate, deduplicate
 from src.utils import constants as const
 from src.utils.common import read_prompt
 
 if TYPE_CHECKING:
-    from typing import Literal, Optional
+    from typing import Optional
 
     from structlog.stdlib import BoundLogger
 
@@ -21,69 +22,6 @@ if TYPE_CHECKING:
 
 # Set up logging
 logger: BoundLogger = getLogger(__name__)
-
-
-# TODO: Deduplicate using fuzzy matching
-def deduplicate(
-    dataset: Dataset, column="term", similarity_threshold: float = 95.0
-) -> Dataset:
-    """Deduplicate dataset based on term column.
-
-    Args:
-        dataset: Input dataset to deduplicate
-        column: Column to check for duplicates
-        similarity_threshold: Fuzzy matching threshold
-
-    Returns:
-        Deduplicated dataset
-    """
-    # For now, just do exact deduplication
-    unique_terms = set(dataset[column])
-    if len(unique_terms) < len(dataset):
-        # Create a mask of the first occurrence of each term
-        mask = []
-        seen = set()
-        for term in dataset[column]:
-            if term not in seen:
-                mask.append(True)
-                seen.add(term)
-            else:
-                mask.append(False)
-
-        dataset = dataset.select([i for i, keep in enumerate(mask) if keep])
-        logger.info(f"Removed {len(mask) - sum(mask)} duplicate terms")
-
-    return dataset
-
-
-def decontaminate(
-    dataset: Dataset, test_set: Optional[list[str]] = None, column: str = "term"
-) -> Dataset:
-    """Decontaminate dataset against a list of terms to avoid.
-
-    Args:
-        dataset: Input dataset to decontaminate
-        test_set: Optional list of terms to avoid (e.g., terms from a test set)
-        column: Column to check for contamination
-    Returns:
-        Decontaminated dataset
-    """
-    if test_set is None:
-        test_set = load_dataset(const.HF_CONST.TESTSET_NAME, split="test")
-
-    # Create a mask for terms not in the test set
-    mask = []
-    for term in dataset[column]:
-        if term in test_set:
-            mask.append(False)
-        else:
-            mask.append(True)
-
-    # Filter the dataset based on the mask
-    filtered_dataset = dataset.select([i for i, keep in enumerate(mask) if keep])
-    logger.info(f"Removed {len(mask) - sum(mask)} contaminated terms")
-
-    return filtered_dataset
 
 
 def prepare_user_instructions(
@@ -122,8 +60,9 @@ def prepare_user_instructions(
 
 # TODO: Add argparse and refactor to allow CLI usage
 def generate_mnemonics(
-    reasoner_name: str = "deepseek-reasoner",
-    input_path: Optional[PathLike] = None,
+    reasoner_name: str,
+    input_path: PathLike,
+    excluded_terms: Optional[list[str]] = None,
     output_repo_id: Optional[str] = None,
     sample_size: Optional[int] = None,
     dry_run: bool = True,
@@ -133,6 +72,7 @@ def generate_mnemonics(
     Args:
         reasoner_name: Name of the reasoning model to use
         input_path: Path to input vocabulary dataset
+        excluded_terms: Path to a file with terms to exclude from the dataset
         output_repo_id: Hugging Face repo ID to push results
         sample_size: Number of samples to process. If None, process all samples.
         dry_run: If True, run with minimal samples for testing
@@ -147,7 +87,7 @@ def generate_mnemonics(
     ds = deduplicate(ds)
 
     # 3. Decontaminate against potential test sets
-    ds = decontaminate(ds)
+    ds = decontaminate(ds, excluded_terms=excluded_terms)
 
     # 4. Prepare instructions
     ds = prepare_user_instructions(
@@ -183,10 +123,22 @@ def generate_mnemonics(
 
 
 if __name__ == "__main__":
-    generate_mnemonics(
-        input_path="data/raw/train.txt",
-        output_repo_id="en-vocab-thoughts-mnemonics",
+    repo_id = "chiffonng/en-vocab-thoughts-mnemonics"
+    old_dataset = load_dataset(repo_id, split="train")
+    excluded_terms = old_dataset["term"]
+    new_dataset = generate_mnemonics(
         reasoner_name="deepseek-reasoner",
+        input_path="data/raw/train.txt",
+        excluded_terms=excluded_terms,
         dry_run=False,
         sample_size=None,
+    )
+    combined_dataset = concatenate_datasets(
+        [old_dataset, new_dataset["train"]], axis=0, info=old_dataset.info
+    )
+    combined_dataset = deduplicate(combined_dataset)
+    combined_dataset.shuffle(seed=42).train_test_split(test_size=0.2).push_to_hub(
+        "chiffonng/en-vocab-mnemonics",
+        private=False,
+        split={"train": "train", "val": "test"},
     )
