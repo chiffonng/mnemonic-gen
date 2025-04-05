@@ -130,23 +130,15 @@ def check_essential_format(completions: list[Any], **kwargs):
         response_lower = response.lower()
         score = 0.0
 
-        # Fast initial check before using regex
-        if (
-            "<think>" in response_lower
-            and "</think>" in response_lower
-            and "<answer>" in response_lower
-        ):
-            # Only use regex if basic checks pass
-            if FORMAT_REGEX.search(response):
-                score += 1.0
-
-                # Use simple string checks for required sections
-                if "linguistic" in response_lower:
-                    score += 0.5
-                if "mnemonic:" in response_lower:
-                    score += 0.5
-                if "example:" in response_lower:
-                    score += 0.5
+        if FORMAT_REGEX.search(response):
+            score += 1.0
+            # Use simple string checks for required sections
+            if "linguistic" in response_lower:
+                score += 0.5
+            if "mnemonic:" in response_lower:
+                score += 0.5
+            if "example:" in response_lower:
+                score += 0.1
         else:
             score -= 1.0  # Strong penalty for missing format
 
@@ -194,35 +186,29 @@ def contains_linguistic_feature(completions, **kwargs):
         List of reward scores
     """
     rewards = []
-
     for completion in completions:
-        response = completion[0]["content"]
-        response.lower()
+        response = completion[0]["content"].lower()
         score = 0.0
 
-        reasoning = extract_reasoning(response)
-
+        # Simply count the linguistic features present
         feature_count = 0
-        reasoning_features = []
         for feature in LINGUISTIC_FEATURES:
-            if feature in reasoning:
+            if feature in response:
                 feature_count += 1
-                reasoning_features.append(feature)
 
-        # Reward for having 1-2 features, if more than 3, penalize
-        if 1 <= feature_count <= 2:
-            score += 1.0
+        # Optimal: 1-2 features
+        if 1 <= feature_count <= 3:
+            score = 1.0
+        # Good: 3 features
+        elif feature_count == 4:
+            score = 0.5
+        # Too many features: diminishing returns
         elif feature_count > 3:
-            score -= 0.5
+            score = 0.2
+        # No features: penalty
+        else:
+            score = -0.5
 
-        # Check overlap between reasoning and mnemonic
-        mnemonic = extract_mnemonic(response)
-        if mnemonic:
-            for feature in reasoning_features:
-                if feature in mnemonic.lower():
-                    score += 0.5
-                    break  # Only reward once for overlap
-
-        rewards.append(min(score, 1.5))  # Cap reward at 1.5
+        rewards.append(score)
 
     return rewards
