@@ -45,11 +45,18 @@ class DeepSeekReasoner(curator.LLM):
 
     def parse(self, input: dict, response: dict[str, str]) -> dict[str, Any]:
         """Parse the LLM response to extract reasoning and solution."""
+        content = response["choices"][0]["message"]["content"]
+        # Extract linguistic features from the content
+        # The word after "linguistic_feature:" is the linguistic feature, stripping the "*" and whitespace"
+        linguistic_feature = (
+            content.split("linguistic_feature:")[-1].split("\n")[0].strip()
+        )
         return {
             "term": input["term"],  # The term being reasoned about
             "instruction": input["instruction"],
+            "linguistic_feature": linguistic_feature,
             "reasoning": response["choices"][0]["message"]["reasoning_content"],
-            "answer": response["choices"][0]["message"]["content"],
+            "answer": content,
         }
 
 
