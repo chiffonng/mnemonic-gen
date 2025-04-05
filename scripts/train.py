@@ -2,6 +2,8 @@
 
 import os
 
+from unsloth import FastModel # noqa: F401
+
 import wandb
 from datasets import load_dataset
 from dotenv import load_dotenv
@@ -14,7 +16,7 @@ from src.train.reward_functions import (
 from src.utils.hf_utils import login_hf_hub
 from structlog import getLogger
 from trl import GRPOConfig, GRPOTrainer
-from unsloth import FastModel
+
 
 logger = getLogger(__name__)
 
@@ -22,17 +24,27 @@ logger = getLogger(__name__)
 max_seq_length = 2048
 lora_rank = 16
 base_model = "unsloth/gemma-3-4b-it"
+per_device_batch_size = 8
 
 load_dotenv()
 
 wandb.login(key=os.getenv("WANDB_API_KEY"))
 run = wandb.init(
-    project="ft-gemma-3-4b-it-en-mnemonics-reason",
+    project="gemma-3-4b-it-vmm",
     job_type="training",
     anonymous="allow",
 )
 logger.info("WandB initialized")
 login_hf_hub()
+
+# Load datasets
+logger.info("Loading datasets")
+train_dataset= load_dataset(
+    const.HF_CONST.RL_DATASET_NAME, split="train"
+)
+val_dataset = load_dataset(
+    const.HF_CONST.RL_DATASET_NAME, split="val"
+)
 
 # Setup model with LoRA
 logger.info(f"Loading base model: {base_model}")
@@ -57,14 +69,7 @@ model = FastModel.get_peft_model(
     use_rslora=True,
 )
 
-# Load datasets
-logger.info("Loading datasets")
-train_dataset, val_dataset = load_dataset(
-    const.HF_CONST.RL_DATASET_NAME, split="train+val"
-)
-
 # GRPO training config
-num_gens = 3
 reward_funcs = [
     check_essential_format,
     contains_linguistic_feature,
@@ -73,24 +78,38 @@ reward_funcs = [
 reward_weights = [1.0, 1.0, 1.5]
 
 training_args = GRPOConfig(
-    learning_rate=2e-5,
+    learning_rate=3e-5,
     adam_beta1=0.9,
     adam_beta2=0.99,
     weight_decay=0.1,
     warmup_ratio=0.1,
     lr_scheduler_type="cosine",
     optim="paged_adamw_8bit",
-    logging_steps=10,
-    per_device_train_batch_size=num_gens,
-    gradient_accumulation_steps=4,
-    num_generations=num_gens,
+    per_device_train_batch_size=per_device_batch_size,
+    gradient_accumulation_steps=2,
+    num_generations=2,
     max_prompt_length=1000,
     max_completion_length=800,
     num_train_epochs=3,
-    save_steps=50,
     max_grad_norm=0.1,
+
+    # Logging
     report_to="wandb",
+    logging_steps=10,
+    logging_dir="logs",
+
+    # Save strategy
     output_dir="outputs",
+    run_name=run.id,
+    save_strategy="steps",
+    save_total_limit=5,
+    load_best_model_at_end=True,
+
+    # Evaluation strategy
+    per_device_eval_batch_size=per_device_batch_size,
+    eval_strategy="steps",
+    eval_steps=50,
+    gradient_checkpointing=True,
 )
 
 # Create and run the GRPO trainer
