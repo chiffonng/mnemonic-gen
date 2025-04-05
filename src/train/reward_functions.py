@@ -152,7 +152,7 @@ def mnemonic_contains_term_no_acronyms(completions, term, **kwargs):
     rewards = []
 
     for i, completion in enumerate(completions):
-        response = completion[0]["content"]
+        response = completion[0]["content"].lower()
         score = 0.0
         current_term = term[i].lower() if i < len(term) else ""
 
@@ -160,14 +160,13 @@ def mnemonic_contains_term_no_acronyms(completions, term, **kwargs):
 
         if mnemonic_text:
             # Check if term appears in the mnemonic
-            if current_term and current_term in mnemonic_text:
-                score += 1.5
+            if current_term and current_term in mnemonic_text.lower():
+                score += 1.0
             else:
                 score -= 1.0
 
             # Check for acronyms
-            acronym_matches = ACRONYM_REGEX.findall(response)
-            if acronym_matches:
+            if ACRONYM_REGEX.search(response):
                 score -= 1.0
 
         rewards.append(score)
@@ -192,22 +191,17 @@ def contains_linguistic_feature(completions, **kwargs):
 
         # Simply count the linguistic features present
         feature_count = 0
-        for feature in LINGUISTIC_FEATURES:
-            if feature in response:
-                feature_count += 1
+        # Use list comprehension for counting features
+        feature_count = sum(1 for feature in LINGUISTIC_FEATURES if feature in response)
 
-        # Optimal: 1-2 features
-        if 1 <= feature_count <= 3:
+        if feature_count == 0:
+            score = -0.5
+        elif 1 <= feature_count <= 3:
             score = 1.0
-        # Good: 3 features
         elif feature_count == 4:
             score = 0.5
-        # Too many features: diminishing returns
-        elif feature_count > 3:
+        else:  # feature_count > 4
             score = 0.2
-        # No features: penalty
-        else:
-            score = -0.5
 
         rewards.append(score)
 
