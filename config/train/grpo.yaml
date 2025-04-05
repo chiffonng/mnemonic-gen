@@ -1,0 +1,43 @@
+# GRPO (General Reward-based Policy Optimization) Configuration
+grpo:
+  # Training hyperparameters
+  learning_rate: 2e-5
+  adam_beta1: 0.9
+  adam_beta2: 0.99
+  weight_decay: 0.1
+  warmup_ratio: 0.1
+  lr_scheduler_type: "cosine"
+  optim: "paged_adamw_8bit"
+  max_grad_norm: 0.1
+
+  # Generation parameters
+  num_generations: 3
+  max_prompt_length: 1000
+  max_completion_length: 800
+
+  # Trainer parameters
+  logging_steps: 10
+  per_device_train_batch_size: 3
+  gradient_accumulation_steps: 4
+  num_train_epochs: 3
+  save_steps: 50
+
+  # Output
+  report_to: "wandb" # Options: "wandb", "none"
+  output_dir: "outputs"
+
+# Data configuration
+data:
+  train_dataset: "chiffonng/en-vocab-mnemonics-grpo"
+  test_dataset: "chiffonng/en-vocab-mnemonics-test"
+  split: "train"
+
+# Push configuration
+push:
+  repo_id: "gemma3-4b-it-mnemonics"
+  commit_message: "Add GRPO finetuned model"
+  gguf:
+    repo_id: "chiffonng/gemma3-vmm-grpo"
+    quantization_methods: ["q4_k_m", "f16"]
+  merged:
+    save_methods: ["merged_4bit", "merged_16bit"]
