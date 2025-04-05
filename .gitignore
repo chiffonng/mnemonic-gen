@@ -497,3 +497,6 @@ TSWLatexianTemp*
 uv.lock
 Pipfile.lock
 poetry.lock
+
+wandb/
+*cache/
