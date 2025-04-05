@@ -500,3 +500,4 @@ poetry.lock
 
 wandb/
 *cache/
+outputs/

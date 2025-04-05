@@ -4,6 +4,7 @@ import os
 
 from unsloth import FastModel # noqa: F401
 
+import torch
 import wandb
 from datasets import load_dataset
 from dotenv import load_dotenv
@@ -17,14 +18,18 @@ from src.utils.hf_utils import login_hf_hub
 from structlog import getLogger
 from trl import GRPOConfig, GRPOTrainer
 
+torch.cuda.empty_cache()
+torch.cuda.memory_summary(device=None, abbreviated=False)
+
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 logger = getLogger(__name__)
 
 # LoRA and model config
-max_seq_length = 2048
-lora_rank = 16
+max_seq_length = 1024
+lora_rank = 8
 base_model = "unsloth/gemma-3-4b-it"
-per_device_batch_size = 8
+per_device_batch_size = 16
 
 load_dotenv()
 
@@ -38,13 +43,16 @@ logger.info("WandB initialized")
 login_hf_hub()
 
 # Load datasets
+required_columns = ["term", "prompt", "completion"]
 logger.info("Loading datasets")
-train_dataset= load_dataset(
-    const.HF_CONST.RL_DATASET_NAME, split="train"
+train_dataset = load_dataset(
+    const.HF_CONST.RL_DATASET_NAME, split="train[:10%]"
 )
 val_dataset = load_dataset(
-    const.HF_CONST.RL_DATASET_NAME, split="val"
+    const.HF_CONST.RL_DATASET_NAME, split="val[:10%]"
 )
+train_dataset = train_dataset.remove_columns([col for col in train_dataset.column_names if col not in required_columns])
+val_dataset = val_dataset.remove_columns([col for col in val_dataset.column_names if col not in required_columns])
 
 # Setup model with LoRA
 logger.info(f"Loading base model: {base_model}")
@@ -86,30 +94,33 @@ training_args = GRPOConfig(
     lr_scheduler_type="cosine",
     optim="paged_adamw_8bit",
     per_device_train_batch_size=per_device_batch_size,
-    gradient_accumulation_steps=2,
+    gradient_accumulation_steps=1,
     num_generations=2,
-    max_prompt_length=1000,
-    max_completion_length=800,
-    num_train_epochs=3,
+    max_prompt_length=800,
+    max_completion_length=600,
+    num_train_epochs=1,
     max_grad_norm=0.1,
+
+    gradient_checkpointing=True,
+    bf16=True,
 
     # Logging
     report_to="wandb",
-    logging_steps=10,
+    logging_steps=20,
     logging_dir="logs",
 
     # Save strategy
     output_dir="outputs",
     run_name=run.id,
     save_strategy="steps",
-    save_total_limit=5,
+    save_steps=200,
+    save_total_limit=2,
     load_best_model_at_end=True,
 
     # Evaluation strategy
-    per_device_eval_batch_size=per_device_batch_size,
+    per_device_eval_batch_size=16,
     eval_strategy="steps",
-    eval_steps=50,
-    gradient_checkpointing=True,
+    eval_steps=200,
 )
 
 # Create and run the GRPO trainer
@@ -130,13 +141,12 @@ logger.info("Training complete")
 
 # Push models to HuggingFace Hub for vllm
 logger.info("Pushing models to HuggingFace Hub")
-model.push_to_hub_merged("gemma3-grpo", tokenizer, save_method="merged_4bit")
-model.push_to_hub_merged("gemma3-grpo", tokenizer, save_method="merged_16bit")
+model.push_to_hub_merged("chiffonng/gemma3-grpo", tokenizer, save_method="merged_4bit", hf_token=get_hf_token())
 
 # Push GGUF model
 logger.info("Pushing GGUF model")
 model.push_to_hub_gguf(
-    "chiffonng/gemma3-vmm-grpo", tokenizer, quantization_method=["q4_k_m", "f16"]
+    "chiffonng/gemma3-vmm-grpo", tokenizer, quantization_method=["q4_k_m", "f16"], token=get_hf_token()
 )
 
 logger.info("All done!")
