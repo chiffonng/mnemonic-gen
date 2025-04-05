@@ -5,15 +5,15 @@ from pathlib import Path
 
 from datasets import load_dataset
 
+from src import constants as const
 from src.utils import check_file_path
-from src.utils import constants as const
 
 sample_size: int | None = 200
 
 # Construct the path to raw/test.txt and final/test.txt
-raw_test_data_path = check_file_path(const.RAW_TEST_DATASET_TXT, new_ok=True)
+raw_test_data_path = check_file_path(const.DATA_PATH.RAW_TEST, extensions=["txt"])
 final_test_data_path = check_file_path(
-    const.FINAL_TEST_DATASET_TXT, new_ok=True, to_create=True
+    const.DATA_PATH.FINAL_TEST, extensions=["txt"], new_ok=True
 )
 
 # Read the unique terms from test.txt (each term on a new line)

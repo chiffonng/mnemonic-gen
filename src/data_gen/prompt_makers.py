@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 from structlog import getLogger
 
+from src import constants as const
 from src.data_prep.data_io import read_csv_file, read_json_file
-from src.utils import constants as const
 from src.utils.common import read_prompt
 from src.utils.error_handlers import check_file_path
 
@@ -63,6 +63,11 @@ def get_system_prompt(
     else:
         num_examples = num_example_dict[learning_setting]
         kwargs["num_examples"] = num_examples
+
+    prompt_path = check_file_path(
+        prompt_path,
+        extensions=[const.Extension.TXT],
+    )
     logger.debug(
         "Getting system prompt",
         prompt_path=prompt_path,
@@ -175,7 +180,7 @@ def get_system_prompt_examples(
 
     # Add the examples to the system prompt
     return (
-        system_prompt + "\n\nEXAMPLE SOLUTIONS:\n\n" + formatted_examples_str,
+        system_prompt + "\n\nEXAMPLE ANSWERS:\n\n" + formatted_examples_str,
         num_examples,
     )
 
@@ -223,7 +228,7 @@ def combine_prompt_examples(prompt_path: PathLike, examples_path: PathLike) -> s
     examples = read_prompt(examples_path)
 
     # Combine the system prompt with the examples
-    combined_prompt = system_prompt + "\n\nEXAMPLE SOLUTIONS:\n\n"
+    combined_prompt = system_prompt + "\n\nEXAMPLE ANSWERS:\n\n"
     for i, example in enumerate(examples):
         combined_prompt += f"{i + 1}. {example}\n"
 

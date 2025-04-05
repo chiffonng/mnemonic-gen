@@ -11,12 +11,12 @@ from typing import TYPE_CHECKING
 from pydantic import ValidationError
 from structlog import getLogger
 
+from src import constants as const
 from src.data_prep.data_io import read_csv_file, write_jsonl_file
 from src.train.openai import (
     upload_file_to_openai,
     validate_openai_file,
 )
-from src.utils import constants as const
 from src.utils.common import read_config, read_prompt, update_config
 from src.utils.error_handlers import check_file_path, check_file_paths
 

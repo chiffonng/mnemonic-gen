@@ -8,8 +8,8 @@ import pandas as pd
 from datasets import Dataset, DatasetDict, load_dataset
 from structlog import getLogger
 
+from src.constants import HF_CONST, Column, Extension
 from src.utils import check_file_path
-from src.utils.constants import HF_CONST, Column, Extension
 from src.utils.hf_utils import login_hf_hub
 
 if TYPE_CHECKING:
@@ -84,7 +84,7 @@ def load_txt_file(
     file_path = check_file_path(file_path, extensions=[Extension.TXT])
 
     with file_path.open("r") as f:
-        data = f.readlines().strip()
+        data = f.readlines()
 
     df = pd.DataFrame(data, columns=[col_name])
     dataset = Dataset.from_pandas(df)

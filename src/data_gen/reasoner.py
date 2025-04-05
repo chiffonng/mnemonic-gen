@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 from bespokelabs import curator
 from structlog import getLogger
 
+from src import constants as const
 from src.data_gen.models import MnemonicResult
-from src.utils import constants as const
 from src.utils.common import read_config, read_prompt
 
 if TYPE_CHECKING:
@@ -45,11 +45,18 @@ class DeepSeekReasoner(curator.LLM):
 
     def parse(self, input: dict, response: dict[str, str]) -> dict[str, Any]:
         """Parse the LLM response to extract reasoning and solution."""
+        content = response["choices"][0]["message"]["content"]
+        # Extract linguistic features from the content
+        # The word after "linguistic_feature:" is the linguistic feature, stripping the "*" and whitespace"
+        linguistic_feature = (
+            content.split("linguistic_feature:")[-1].split("\n")[0].strip()
+        )
         return {
             "term": input["term"],  # The term being reasoned about
             "instruction": input["instruction"],
+            "linguistic_feature": linguistic_feature,
             "reasoning": response["choices"][0]["message"]["reasoning_content"],
-            "solution": response["choices"][0]["message"]["content"],
+            "answer": content,
         }
 
 
@@ -78,7 +85,7 @@ class O3MiniReasoner(curator.LLM):
             "term": input["term"],  # The term being reasoned about
             "instruction": input["instruction"],
             "reasoning": response.reasoning,
-            "solution": response.solution,
+            "answer": response.answer,
         }
 
 
@@ -106,7 +113,7 @@ def reason(ds: Dataset, model_name: str = "deepseek-reasoner") -> Dataset:
         )
 
     elif model_name == "o3-mini":
-        default_generation_params.update(read_config(const.CONFIG_PATH.O3_MINI))
+        default_generation_params.update(read_config(const.CONFIG_PATH.OPENAI))
         reasoner = O3MiniReasoner(
             model_name="openai/o3-mini",
             batch=True,

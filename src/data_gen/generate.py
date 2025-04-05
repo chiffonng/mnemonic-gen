@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 from datasets import Dataset, DatasetDict, concatenate_datasets, load_dataset
 from structlog import getLogger
 
+from src import constants as const
 from src.data_gen.reasoner import reason
 from src.data_prep.data_hf import load_txt_by_lines, push_data_to_hf
 from src.data_prep.dedup import decontaminate, deduplicate
-from src.utils import constants as const
 from src.utils.common import read_prompt
 
 if TYPE_CHECKING:
@@ -59,60 +59,63 @@ def prepare_user_instructions(
 
 
 # TODO: Add argparse and refactor to allow CLI usage
-def generate_mnemonics(
+def generate_ds(
     reasoner_name: str,
     input_path: PathLike,
     excluded_terms: Optional[list[str]] = None,
     output_repo_id: Optional[str] = None,
     sample_size: Optional[int] = None,
     dry_run: bool = True,
-) -> Dataset:
+) -> Dataset | DatasetDict:
     """Generate mnemonics for vocabulary terms using OpenThoughts approach.
 
     Args:
         reasoner_name: Name of the reasoning model to use
         input_path: Path to input vocabulary dataset
         excluded_terms: Path to a file with terms to exclude from the dataset
-        output_repo_id: Hugging Face repo ID to push results
+        output_repo_id: Hugging Face repo ID to push results. <user>/<repo>
         sample_size: Number of samples to process. If None, process all samples.
-        dry_run: If True, run with minimal samples for testing
+        dry_run: If True, run with minimal samples for testing, and return Dataset.
 
     Returns:
-        Dataset with generated mnemonics and reasoning traces
+        Dataset or DatasetDict: Generated mnemonics dataset
     """
-    # 1. Load vocabulary dataset
+    # Load vocabulary dataset
     ds = load_txt_by_lines(input_path, sample_size=sample_size)
 
-    # 2. Deduplicate terms
+    # Deduplicate terms
     ds = deduplicate(ds)
 
-    # 3. Decontaminate against potential test sets
+    # Decontaminate against potential test sets
     ds = decontaminate(ds, excluded_terms=excluded_terms)
 
-    # 4. Prepare instructions
+    # Prepare instructions
     ds = prepare_user_instructions(
         ds, instruction_prompt_path=const.PROMPT_PATH.REASON_USER
     )
 
-    # 5. Generate reasoning and mnemonics
+    # Generate reasoning and mnemonics
     ds = reason(ds, model_name=reasoner_name)
 
-    # 7. Push to Hugging Face
+    # Push to Hugging Face
     if not dry_run and not output_repo_id:
         raise ValueError(
             "Please provide an output_repo_id to push the dataset to Hugging Face."
         )
-    elif output_repo_id:
-        repo_id = f"{const.HF_CONST.USER}/{output_repo_id}"
-        ds_dict = DatasetDict({"train": ds})
+    elif output_repo_id and not dry_run:
+        # Split into train and val sets
+        # TODO: Stratify by linguistic features
+        ds_dict: DatasetDict = ds.train_test_split(test_size=0.2, seed=42, shuffle=True)
+        ds_dict = ds_dict.rename_column("test", "val")
 
         if dry_run:
             logger.info("==== MNEMONIC DATASET (DRY RUN) ====")
-            logger.info("Dataset summary:", ds_summary=ds)
-            push_data_to_hf(ds_dict, repo_id, private=True)
+            logger.info("Dataset summary:", ds_summary=ds_dict)
+            push_data_to_hf(ds_dict, output_repo_id, private=True)
         else:
             logger.info("==== MNEMONIC DATASET ====")
-            push_data_to_hf(ds_dict, repo_id, private=False)
+            push_data_to_hf(ds_dict, output_repo_id, private=False)
+        return ds_dict
 
     elif not output_repo_id and dry_run:
         logger.info("==== MNEMONIC DATASET (DRY RUN) ====")
@@ -123,22 +126,13 @@ def generate_mnemonics(
 
 
 if __name__ == "__main__":
-    repo_id = "chiffonng/en-vocab-thoughts-mnemonics"
-    old_dataset = load_dataset(repo_id, split="train")
-    excluded_terms = old_dataset["term"]
-    new_dataset = generate_mnemonics(
+    structured_ds_repo_id = const.HF_CONST.DATASET_NAME
+    rl_ds_repo_id = const.HF_CONST.RL_DATASET_NAME
+
+    structured_ds = generate_ds(
         reasoner_name="deepseek-reasoner",
         input_path="data/raw/train.txt",
-        excluded_terms=excluded_terms,
-        dry_run=False,
-        sample_size=None,
-    )
-    combined_dataset = concatenate_datasets(
-        [old_dataset, new_dataset["train"]], axis=0, info=old_dataset.info
-    )
-    combined_dataset = deduplicate(combined_dataset)
-    combined_dataset.shuffle(seed=42).train_test_split(test_size=0.2).push_to_hub(
-        "chiffonng/en-vocab-mnemonics",
-        private=False,
-        split={"train": "train", "val": "test"},
+        # output_repo_id=structured_ds_repo_id,
+        dry_run=True,
+        sample_size=1,
     )

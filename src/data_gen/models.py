@@ -27,6 +27,7 @@ class LinguisticFeature(ExplicitEnum):
     etymology = "etymology"
     morphology = "morphology"
     semantics = "semantics"
+    custom = "custom"  # custom linguistic feature created by llm/user
     unknown = "unknown"  # fallback for when the type is not recognized.
 
     @classmethod
@@ -36,7 +37,7 @@ class LinguisticFeature(ExplicitEnum):
 
 
 class Mnemonic(BaseModel):
-    """Mnemonic model. Fields: id (auto), term, reasoning, mnemonic, main_type, sub_type."""
+    """Mnemonic model. Fields: id (auto), term, reasoning, answer, linguistic_feature."""
 
     # Don't send the id field to OpenAI for schema generation
     id: SkipJsonSchema[UUID] = Field(default_factory=lambda: uuid4())
@@ -48,7 +49,7 @@ class Mnemonic(BaseModel):
         ...,
         description="The linguistic reasoning for the mnemonic.",
     )
-    mnemonic: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
+    answer: Annotated[str, BeforeValidator(validate_mnemonic)] = Field(
         ...,
         description="The mnemonic device for the term.",
     )
@@ -64,7 +65,7 @@ class MnemonicResult(BaseModel):
     """Class representing the result of a mnemonic generation process."""
 
     reasoning: str
-    solution: str
+    answer: str
 
     class Config:
         """Pydantic model configuration."""

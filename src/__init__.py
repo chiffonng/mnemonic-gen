@@ -1,2 +1,1 @@
-from src import settings
-from src.utils import constants as const
+from src import constants, settings

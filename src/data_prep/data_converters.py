@@ -11,15 +11,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from datasets import ClassLabel, Dataset, DatasetDict, Features, Value, load_dataset
+from datasets import ClassLabel, Dataset, DatasetDict, load_dataset
 from structlog import getLogger
 
+from src import constants as const
 from src.data_gen.models import LinguisticFeature, Mnemonic
 from src.data_prep.data_hf import (
     load_local_dataset,
     push_data_to_hf,
 )
-from src.utils import constants as const
 from src.utils.common import read_prompt
 
 if TYPE_CHECKING:
@@ -63,7 +63,7 @@ def create_hf_chat_dataset(
     def convert_to_chat_format(example):
         """Convert a single example to chat format."""
         think_block = f"<think>\n\n{example['reasoning']}\n</think>"
-        solution_block = f"<solution>\n\n{example['solution']}\n</solution>"
+        solution_block = f"<answer>\n\n{example['answer']}\n</answer>"
         assistant_response = f"{think_block}\n\n{solution_block}"
         messages = [
             {"role": "system", "content": system_prompt},
@@ -77,7 +77,7 @@ def create_hf_chat_dataset(
     for split_name, split_data in dataset.items():
         chat_dataset[split_name] = split_data.map(
             convert_to_chat_format,
-            remove_columns=["instruction", "reasoning", "solution"],
+            remove_columns=["instruction"],
         )
         logger.info(
             f"Converted {split_name} split to chat format",
@@ -107,7 +107,12 @@ def create_hf_grpo_dataset(
         private: Whether to make the repository private
 
     Returns:
-        DatasetDict containing the converted dataset
+        DatasetDict containing the converted dataset. Columns:
+        - term: The term to be explained
+        - reasoning: The reasoning behind the solution
+        - answer: The mnemonic to the term
+        - prompt: List of messages with role and content
+        - completion: List of messages with role and content
     """
     logger.info("Loading dataset", input_repo_id=input_repo_id)
     dataset = load_dataset(input_repo_id)
@@ -118,28 +123,23 @@ def create_hf_grpo_dataset(
     else:
         system_prompt = read_prompt(system_prompt_path)
 
-    # Function to convert a row to GRPO format
+    # Function to convert a row to GRPO conversational format
     def convert_to_grpo_format(example):
         think_block = f"<think>\n\n{example['reasoning']}\n</think>"
-        solution_block = f"<solution>\n\n{example['solution']}\n</solution>"
+        solution_block = f"<answer>\n\n{example['answer']}\n</answer>"
         assistant_response = f"{think_block}\n\n{solution_block}"
         prompts = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": example["instruction"]},
         ]
         completions = [{"role": "assistant", "content": assistant_response}]
-        return {
-            "term": example["term"],
-            "prompts": prompts,
-            "completions": completions,
-            "reasoning": example["reasoning"],  # Keep reasoning for reference
-        }
+        return {"prompt": prompts, "completion": completions}
 
     # Convert each split in the dataset
     grpo_dataset = DatasetDict()
     for split_name, split_data in dataset.items():
         grpo_dataset[split_name] = split_data.map(
-            convert_to_grpo_format, remove_columns=["instruction", "solution"]
+            convert_to_grpo_format, remove_columns=["instruction"]
         )
         logger.info(
             f"Converted {split_name} split to GRPO format",
@@ -182,20 +182,19 @@ def create_class_dataset(
 
     dataset: Dataset = load_local_dataset(input_path)
 
+    if "mnemonic" in dataset.column_names:
+        dataset = dataset.rename_column("mnemonic", "answer")
+    if "solution" in dataset.column_names:
+        dataset = dataset.rename_column("solution", "answer")
+
     dataset = dataset.select_columns(select_col_names)
     logger.debug("Loaded dataset columns", columns=dataset.column_names)
 
-    features = Features(
-        {
-            "term": Value("string"),
-            "mnemonic": Value("string"),
-            "reasoning": Value("string"),
-            "linguistic_feature": ClassLabel(
-                names=mnemonic_type_labels, num_classes=num_mnemonic_types
-            ),
-        }
-    )
-    dataset = dataset.cast(features)
+    if "linguistic_feature" in dataset.column_names:
+        dataset = dataset.cast_column(
+            "linguistic_feature",
+            ClassLabel(names=mnemonic_type_labels, num_classes=num_mnemonic_types),
+        )
 
     # Split into train and validation
     splits: DatasetDict = dataset.train_test_split(
