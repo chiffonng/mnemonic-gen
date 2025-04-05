@@ -23,7 +23,6 @@ max_seq_length = 2048
 lora_rank = 16
 base_model = "unsloth/gemma-3-4b-it"
 
-# Load environment variables
 load_dotenv()
 
 wandb.login(key=os.getenv("WANDB_API_KEY"))
@@ -102,6 +101,7 @@ trainer = GRPOTrainer(
     reward_funcs=reward_funcs,
     reward_weights=reward_weights,
     train_dataset=train_dataset,
+    eval_dataset=val_dataset,
     args=training_args,
 )
 
