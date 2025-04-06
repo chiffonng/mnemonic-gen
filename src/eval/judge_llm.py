@@ -23,17 +23,21 @@ class JudgeResult(BaseModel):
     correct: bool = Field(
         ..., description="Whether the vocabulary is used correctly in the mnemonic."
     )
-    relevance_score: int = Field(
+    is_ling_grounded: bool = Field(
         ...,
-        description="Score from 1-10 rating how relevant the mnemonic is to the vocabulary",
+        description="Whether the mnemonic is linguistically grounded.",
     )
-    linguistic_score: int = Field(
+    association_score: int = Field(
         ...,
-        description="Score from 1-10 rating the linguistic richness",
+        description="Score from 1-5 rating how strongly the mnemonic relates to the term.",
+    )
+    simplicity_score: int = Field(
+        ...,
+        description="Score from 1-5 rating how simple the mnemonic is.",
     )
     memorability_score: int = Field(
         ...,
-        description="Score from 1-10 rating how memorable the mnemonic is.",
+        description="Score from 1-5 rating how memorable the mnemonic is.",
     )
     reasoning: str = Field(..., description="Explanation of the evaluation.")
 
@@ -62,8 +66,9 @@ class MnemonicJudge(curator.LLM):
             # Extract the evaluation metrics from the response
             "correct": response.correct,
             "judge_reasoning": response.reasoning,
-            "relevance_score": response.relevance_score,
-            "linguistic_score": response.linguistic_score,
+            "is_ling_grounded": response.is_ling_grounded,
+            "association_score": response.association_score,
+            "simplicity_score": response.simplicity_score,
             "memorability_score": response.memorability_score,
         }
 
