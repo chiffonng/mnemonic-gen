@@ -1,0 +1,39 @@
+name: Python CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+      fail-fast: true
+    steps:
+      # Checkout the code
+      - uses: actions/checkout@v4
+
+        # Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip" # Caches the installed Python packages
+
+        # Install Python dependencies
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1

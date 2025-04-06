@@ -1,0 +1,9 @@
+{
+  "max_retries": 50,
+  "request_timeout": 300,
+  "require_all_responses": false,
+  "batch_size": 100,
+  "batch_check_interval": 1.0,
+  "delete_successful_batch_files": false,
+  "delete_failed_batch_files": false
+}
