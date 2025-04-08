@@ -11,8 +11,12 @@ from structlog import getLogger
 from src.utils.common import read_prompt
 
 if TYPE_CHECKING:
+    from typing import Optional
+
     from datasets import Dataset
     from structlog.stdlib import BoundLogger
+
+    from src.utils.types import PathLike
 
 logger: BoundLogger = getLogger(__name__)
 
@@ -20,20 +24,24 @@ logger: BoundLogger = getLogger(__name__)
 class JudgeResult(BaseModel):
     """Result of the judge's evaluation of a mnemonic."""
 
-    correct: bool = Field(
-        ..., description="Whether the vocabulary is used correctly in the mnemonic."
+    use_correct: bool = Field(
+        ..., description="Whether the term is used correctly in the mnemonic."
     )
-    relevance_score: int = Field(
+    is_linguistic_grounded: bool = Field(
         ...,
-        description="Score from 1-10 rating how relevant the mnemonic is to the vocabulary",
+        description="Whether the mnemonic is linguistically grounded, leveraging linguistic features like etymology, morphology, semantics, phonetics, orthography, etc.",
     )
-    linguistic_score: int = Field(
+    association_score: int = Field(
         ...,
-        description="Score from 1-10 rating the linguistic richness",
+        description="Score from 1-5 rating how strongly the mnemonic is associated with the term.",
+    )
+    clarity_score: int = Field(
+        ...,
+        description="Score from 1-5 rating how clear and understandable the mnemonic is.",
     )
     memorability_score: int = Field(
         ...,
-        description="Score from 1-10 rating how memorable the mnemonic is.",
+        description="Score from 1-5 rating how memorable the mnemonic is.",
     )
     reasoning: str = Field(..., description="Explanation of the evaluation.")
 
@@ -60,26 +68,40 @@ class MnemonicJudge(curator.LLM):
             "term": input["term"],
             "mnemonic": input["mnemonic"],
             # Extract the evaluation metrics from the response
-            "correct": response.correct,
             "judge_reasoning": response.reasoning,
-            "relevance_score": response.relevance_score,
-            "linguistic_score": response.linguistic_score,
+            "use_correct": response.use_correct,
+            "is_linguistic_grounded": response.is_linguistic_grounded,
+            "association_score": response.association_score,
+            "clarity_score": response.clarity_score,
             "memorability_score": response.memorability_score,
         }
 
 
-def judge(ds: Dataset):
+def judge(
+    ds: Dataset,
+    model_name: str = "o3-mini",
+    save_dir: Optional[PathLike] = "exp/judege_llm",
+) -> Dataset:
     """Evaluate a dataset of mnemonics using the Judge model.
 
     Args:
         ds (Dataset): The dataset containing mnemonics to be evaluated.
+        model_name (str): The name of the judge model to use.
+        save_dir (PathLike): Directory to save the evaluation results.
 
     Returns:
         Dataset: The original dataset with added evaluation metrics.
     """
     # Initialize the judge model
-    judge_model = MnemonicJudge(model_name="o3-mini", backend="openai")
+    judge_model = MnemonicJudge(model_name=model_name)
 
-    evaluations = judge_model(ds)
+    evaluations: Dataset = judge_model(ds)
 
-    return evaluations.to_pandas()
+    evaluations_df = evaluations.to_pandas()
+
+    if save_dir:
+        # Save the evaluations to a file
+        evaluations_df.save_to_disk(save_dir / model_name)
+        logger.info(f"Saved evaluations to {save_dir}")
+
+    return evaluations_df
