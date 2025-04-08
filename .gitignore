@@ -172,7 +172,7 @@ cython_debug/
 /temp
 
 # Write up
-write*/
+
 
 # Gradio
 .gradio/
