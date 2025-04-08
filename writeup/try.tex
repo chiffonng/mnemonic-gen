@@ -18,7 +18,7 @@
 % See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
 
 % This assumes your files are encoded as UTF8
-\usepackage[utf8]{inputenc}
+% \usepackage[utf8]{inputenc}
 
 % This is not strictly necessary, and may be commented out,
 % but it will improve the layout of the manuscript,
@@ -30,31 +30,19 @@
 % the typewriter font.
 \usepackage{inconsolata}
 
-\usepackage{amsmath}
-\usepackage{amsfonts}
-% \usepackage[demo]{graphicx}
-\usepackage{float}
-\usepackage{cleveref}
-\usepackage{tabularx}             % For flexible-width columns
-\usepackage{booktabs}             % For nicer table rules
-\usepackage{array}                % Extended col types if needed
-
 % If the title and author information does not fit in the area allocated, uncomment the following
 %
 %\setlength\titlebox{<dim>}
 %
 % and set <dim> to something 5cm or larger.
 
-\title{\textbf{LINKS}: Generate linguistically grounded mnemonic devices for English vocabulary learning with reasoning, multilingual LLMs
+\title{\textbf{LINKS}: Generate linguistically grounded mnemonic devices for English vocabulary learning with reasoning, multilingual LLMs.
 }
 
 \newcommand{\links}{\textbf{\textsc{Links}}}
 \newcommand{\recorder}{\textregistered}
 \newcommand{\studentmodel}{Gemma-3-1b-it}
 \newcommand{\teachermodel}{DeepSeek-R1}
-\newcommand{\mnemonic}{$m$}
-\newcommand{\vocabulary}{$v$}
-\newcommand{\eg}{$e$}
 
 \author{%
   My (Chiffon) Nguyen \\
@@ -64,7 +52,34 @@
 }
 
 \begin{document}
-%\input{pages/00_title.tex}
+
+\begin{titlepage}
+  \centering
+  {\scshape\LARGE Minerva University \par}
+  \vspace{1cm}
+  \includegraphics[width=0.4\linewidth]{figures/minerva_logo.pdf}
+  {\scshape\Large Capstone: Class of 2025 \par}
+  \vspace{1.5cm}
+  {\huge\bfseries LINKS: Generate linguistically grounded mnemonic devices for English vocabulary learning with reasoning, multilingual LLMs \par}
+  \vspace{2cm}
+  {\scshape\large Tra My Nguyen \par}
+  submitted in partial fulfillment of the requirements for the degree of Bachelor of Science in Computational Sciences \par
+  \vspace{2cm}
+  {\large\itshape Capstone Committee \par}
+  Dr. Patrick Watson \\
+  Dr. Philip Sterne
+
+  \vfill
+  {\large \today\par}
+\end{titlepage}
+
+\onecolumn
+\section*{Executive Summary}
+Note: Due to limited compute, some experiments conducted are small-scale and need more data for robust validation and conclusion. However, the codebase is reproducible and scalable when there is more compute.
+
+Tags: computational linguistics, natural language processing, large language model, language education, english as a foreign language, vocabulary acquisition, synthetic data generation.
+
+\clearpage
 
 \tableofcontents
 \clearpage
@@ -72,21 +87,17 @@
 \twocolumn
 
 \maketitle
-%\input{pages/01_abstract.tex}
+%\input{pages/00_abstract.tex}
 \input{pages/10_intro.tex}
 %\input{pages/20_background.tex}
 
 %\input{pages/30_icl.tex}
 %\input{pages/40_distillation.tex}
 %\input{pages/50_eval.tex}
-%\input{pages/60_related.tex}
-%\input{pages/70_discussion.tex} % includes limitations, conclusion, future work
+%\input{pages/60_discussion.tex} % includes limitations, conclusion, future work
 
 \section*{Acknowledgements}
 We would like to express my gratitude to my capstone committee, Dr. Patrick Watson and Dr. Philip Sterne, for their guidance and support throughout this project. I also want to thank my classmates and friends for their encouragement and feedback during the development of this project.
-
-% References
-\bibliography{custom}
 
 \clearpage
 
