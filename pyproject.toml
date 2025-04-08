@@ -18,13 +18,14 @@ dependencies = [
   "rich>=13.9.4", # format rich text
   "structlog>=25.2.0",
   "tenacity>=9.1.2", # retrying library for handling rate limits and transient errors
-  "torch==2.6.0 ; sys_platform == 'linux'",
+  "torch>=2.6.0 ; sys_platform == 'linux'",
   "transformers>=4.50.3 ; sys_platform == 'linux'",
   "trl>=0.11.4 ; sys_platform == 'linux'",
   "wandb>=0.19.0; sys_platform == 'linux'",
   "unsloth==2025.3.18 ; sys_platform == 'linux'",
   "unsloth_zoo==2025.3.16 ; sys_platform == 'linux'",
   "rapidfuzz>=3.13.0",
+  "scipy>=1.15.2",
 ]
 license = "Apache-2.0"
 keywords = ["mnemonic", "mnemonic generation", "LLM", "language model", "chain of thought", "CoT", "synthetic data generation", "vocabulary learning", "vocabulary acquisition", "language learning", "natural language processing", "NLP", "machine learning", "ML", "deep learning", "DL", "AI", "artificial intelligence", "fine-tuning"]
