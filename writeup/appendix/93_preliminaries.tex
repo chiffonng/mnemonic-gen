@@ -3,7 +3,7 @@
 
 \subsection{In-context learning}
 
-\paragraph{Chain-of-Thought (CoT) prompting} \citep{weiChainofThoughtPromptingElicits2023} is a prompting technique that encourages LLMs to generate intermediate reasoning steps before arriving at a final answer. This approach has been shown to improve performance on complex tasks by guiding the model through a structured thought process.
+\subsubsection{Chain-of-Thought (CoT) prompting} CoT \citep{weiChainofThoughtPromptingElicits2023} is a prompting technique that encourages LLMs to generate intermediate reasoning steps before arriving at a final answer. This approach has been shown to improve performance on complex tasks by guiding the model through a structured thought process.
 
 \subsection{Neural Language Models and Transformer Architecture} \label{app:llm-transformer}
 
@@ -42,7 +42,9 @@ SFT involves adapting a pre-trained model to a target task by minimizing a task-
 
 where \( f(\mathbf{x}; \theta) \) represents the model's output with parameters \( \theta \), and \( \ell \) is the loss function, typically cross-entropy loss.
 
-\textbf{Instruction-tuning} is a specialized form of SFT where models are trained on datasets comprising instruction-response pairs. This approach enables models to generalize across various tasks described by natural language instructions, enhancing their ability to follow diverse prompts. Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) denotes the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
+\subsubsection{Instruction tuning} \label{app:instruction-tuning-it}
+
+Instruction-tuning is a specialized form of SFT \Cref{app:sft} where models are trained on datasets comprising instruction-response pairs. This approach enables models to generalize across various tasks described by natural language instructions, enhancing their ability to follow diverse prompts. Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) denotes the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
 
 \[
 \mathcal{L} = \frac{1}{N} \sum_{i=1}^N \ell(f(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}; \theta), \mathbf{y}^{(i)})
@@ -69,13 +71,22 @@ LoRA introduces \( 2dr \) trainable parameters (size of \( A \) and \( B \)), wh
 
 \subsection{Reinforcement Learning (RL)} \label{app:rl}
 
-\subsubsection{Group Relative Policy Optimization (GRPO)} \label{app:grpo}
+Reinforcement Learning (RL) is a framework in which an agent interacts with an environment to learn a policy $\pi_\theta$ that maximizes a long-term reward. At each time step $t$, the agent observes a state, takes an action, and receives a reward $r_t$. The goal is to maximize the expected cumulative reward, given by
 
-Intuively, GRPO generates multiple responses for a given prompt, scores them using reward models, calculates the average reward of the group, and then compares each response's score to the average to determine which are better or worse. The model then updates its policy to favor high-reward responses.
+\begin{equation}
+J(\theta) = \mathbb{E}_{\pi_\theta}\Bigl[\sum_{t=0}^{T} \gamma^t\,r_t\Bigr],
+\end{equation}
+where $\gamma\in[0,1)$ is a discount factor.
 
-Formally, GRPO is a reinforcement learning approach introduced by \citet{DeepSeek-AIDEEPSEEKR12025} for improving mathematical reasoning in language models. GRPO extends standard Proximal Policy Optimization (PPO) by introducing group-based relative rewards that facilitate more effective learning in scenarios with multiple responses for each prompt. It is called an \textit{online} RL algorithm because it continuously improves by (1) generating responses, (2) evaluating them using reward models, and (3) updating the model's policy based on the rewards received from the generated responses. This allows for real-time adaptation to new data.
+In the next section, we consider an advanced method called Group Relative Policy Optimization (GRPO). GRPO extends PPO by generating multiple responses per prompt, comparing the rewards within each group, and adjusting the policy based on relative advantages. This online RL approach continuously improves by (1) generating completions, (2) scoring them using reward models, and (3) updating the model's policy with both an advantage term and a KL penalty.
 
-\paragraph{1. Generating completions} For each prompt $q$ in a batch, the model generates a set of $G$ completions:
+\subsubsection{Group Relative Policy Optimization} \label{app:grpo}
+
+Group Relative Policy Optimization (GRPO) \citet{DeepSeek-AIDEEPSEEKR12025} is an online reinforcement learning method specifically designed for scenarios where the model generates multiple responses (or completions) for the same prompt. It was introduced to improve the mathematical reasoning capabilities of LLMs, by generating multiple CoT responses for a given problem and then compares results to the ground truth.
+
+Intuitively, GRPO generates multiple responses for a given prompt, scores them using reward models, calculates the relative reward of the group, and then compares each response's score to that relative reward to determine which is better or worse. The model then updates its policy to favor high-reward responses.
+
+\paragraph{Generating completions} For each prompt $q$ in a batch, the model generates a set of $G$ completions:
 \begin{equation}
 O_q = \{o_1, o_2, \ldots, o_G\}
 \end{equation}
@@ -85,7 +96,7 @@ Each completion $o_i$ consists of a sequence of tokens:
 o_i = \{o_{i,1}, o_{i,2}, \ldots, o_{i,|o_i|}\}
 \end{equation}
 
-\paragraph{2. Computing the advantage} For each completion, a reward $r_i$ is computed using predefined reward functions. To enable comparison within groups, the rewards are normalized:
+\paragraph{Computing the advantage} For each completion, a reward $r_i$ is computed using predefined reward functions. To enable comparison within groups, the rewards are normalized:
 \begin{equation}
 \mu_r = \text{mean}(r)
 \end{equation}
@@ -98,7 +109,7 @@ o_i = \{o_{i,1}, o_{i,2}, \ldots, o_{i,|o_i|}\}
 
 where $r = \{r_1, r_2, \ldots, r_G\}$ is the set of rewards for all completions in the group, and $\hat{A}_{i,t}$ is the advantage for token $t$ in completion $i$. This normalization gives the method its name: Group Relative Policy Optimization.
 
-\paragraph{3. Estimating the KL divergence} To prevent the policy from deviating too far from the reference policy $\pi_{\text{ref}}$, the KL divergence is estimated:
+\paragraph{Estimating the KL divergence} To prevent the policy from deviating too far from the reference policy $\pi_{\text{ref}}$, the KL divergence is estimated:
 \begin{equation}
 \pi_\text{ratio} = \frac{\pi_\theta(o_{i,t} | q, o_{i,<t})}{\pi_{\text{ref}}(o_{i,t} | q, o_{i,<t})}
 \end{equation}
@@ -109,7 +120,7 @@ where $r = \{r_1, r_2, \ldots, r_G\}$ is the set of rewards for all completions 
 D_{\text{KL}} = \log\pi_\text{ratio} - 1 + \pi_\text{inv\_ratio}
 \end{equation}
 
-\paragraph{4. Computing the loss} The GRPO objective combines the advantage term with a KL penalty:
+\paragraph{Computing the loss} The GRPO objective combines the advantage term with a KL penalty:
 \begin{equation}
 L_{\text{adv}} = -\frac{1}{G}\sum_{i=1}^{G}\sum_{t=1}^{|o_i|}\pi_\text{ratio}\hat{A}_{i,t}
 \end{equation}
@@ -122,24 +133,24 @@ L_{\text{GRPO}}(\theta) = L_{\text{adv}} - L_{\text{KL}}
 
 where $\beta$ is a hyperparameter that controls the weight of the KL penalty. The advantage term encourages the policy to assign higher probability to tokens that lead to better rewards, while the KL term ensures that the policy doesn't deviate too far from the reference policy.
 
-\paragraph{Multiple iterations} In the original paper, this formulation is generalized to account for multiple updates after each generation (denoted $\mu$, controlled by \texttt{num\_iterations} in the implementation) by leveraging a clipped surrogate objective:
-
+\paragraph{Multiple updates} For multiple $\mu$ updates after each generation, GRPO uses a clipped surrogate objective. First, compute the old policy ratio:
+\begin{align}
+\pi_{\text{old\_ratio}} &= \frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} \mid q, o_{i,<t})},
+\end{align}
+then clip it:
+\begin{align}
+\pi_{\text{clipped}} &= \text{clip}\Bigl(\pi_{\text{old\_ratio}},\, 1-\epsilon,\, 1+\epsilon\Bigr).
+\end{align}
+The clipped advantage loss is $L_{\text{adv\_clipped}}$
 \begin{equation}
-\pi_\text{old\_ratio} = \frac{\pi_\theta(o_{i,t} | q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} | q, o_{i,<t})}
+-\frac{1}{G}\sum_{i=1}^{G}\sum_{t=1}^{|o_i|}
+\min\Bigl(\pi_{\text{old\_ratio}}\hat{A}_{i,t},\, \pi_{\text{clipped}}\hat{A}_{i,t}\Bigr),
+\end{equation}
+yielding the final objective:
+\begin{equation}
+L_{\text{GRPO\_clipped}}(\theta) = L_{\text{adv\_clipped}} - L_{\text{KL}}.
 \end{equation}
 
-\begin{equation}
-\pi_\text{clipped} = \text{clip}(\pi_\text{old\_ratio}, 1-\epsilon, 1+\epsilon)
-\end{equation}
+Here, $\epsilon$ (small constant, typically 0.2) controls how much the policy can change in a single update and $\beta$ controls the KL penalty's strength.
 
-\begin{equation}
-L_{\text{adv\_clipped}} = -\frac{1}{G}\sum_{i=1}^{G}\sum_{t=1}^{|o_i|} \min(\pi_\text{old\_ratio}\hat{A}_{i,t}, \pi_\text{clipped}\hat{A}_{i,t})
-\end{equation}
-
-\begin{equation}
-L_{\text{GRPO\_clipped}}(\theta) = L_{\text{adv\_clipped}} - L_{\text{KL}}
-\end{equation}
-
-where $\epsilon$ is a small constant (typically 0.2) that controls how much the policy can change in a single update. When $\mu = 1$ (the default in \verb|trl| implementation), the clipped surrogate objective simplifies to the original objective.
-
-\paragraph{Implementation} HuggingFace's \verb|trl| library abstracts the GRPO implementation, providing a user-friendly interface for training language models with the class \verb|GRPOTrainer|. Detailed configuration is provided in \Cref{app:grpo-config}.
+In HuggingFace's \texttt{trl} library, GRPO is implemented in the \texttt{GRPOTrainer} class and number of updates $\mu$ is controlled by the \texttt{num\_iterations} parameter. The default value of $\mu = 1$ simplifies the objective to the original GRPO formulation.
