@@ -42,29 +42,7 @@
 %\setlength\titlebox{<dim>}
 %
 % and set <dim> to something 5cm or larger.
-
-\setlength{\parindent}{0pt} % No indentation
-
-% Congfigure the table of contents and section numbering
-\setcounter{tocdepth}{4}
-\setcounter{secnumdepth}{4}
-
-% Configure \Cref to use \S for sections and \S\S for subsections
-\usepackage{cleveref}
-\makeatletter
-\newcommand{\crefnames}[3]{%
-  \@for\next:=#1\do{%
-    \expandafter\crefname\expandafter{\next}{#2}{#3}%
-  }%
-}
-\makeatother
-\crefnames{part,chapter,section}{\S}{\S\S}
-\crefnames{paragraph}{\P}{\P\P}
-
-\newcommand{\numlist}[1]{(\textbf{#1})}
-
-\newcounter{para}
-\newcommand\numpara{\par\refstepcounter{para}{\thepara}.\space\textbf}
+\input{preamble/common}
 
 % need to add this to avoid "undefined control sequence" error in .bib
 % Holmes paper
