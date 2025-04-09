@@ -1,5 +1,7 @@
 # Mining LLMs for Mnemonic Devices to aid Vocabulary Acquisition
 
+[![wakatime](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365.svg)](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365)
+
 [Hugging Face Artifacts](https://huggingface.co/collections/chiffonng/mnemonic-generation-67563a0a1ab91e84e9827579)
 
 Mnemonic devices (memory aids) are powerful tools to help individuals remember information more effectively, such as acquiring new, abstract vocabulary fast. This project proposes to explore the potential of using large language models (LLMs) to generate linguisticaly-grounded mnemonics, with the goal of aiding vocabulary acquisition and retention. The system currently works for English-English mnemonics.
