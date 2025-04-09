@@ -492,6 +492,10 @@ TSWLatexianTemp*
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
 
+# Some supp writeup
+*.drawio
+writeup/old
+
 # TODO: Comment when the project finishes
 # Locked dependencies
 *.lock

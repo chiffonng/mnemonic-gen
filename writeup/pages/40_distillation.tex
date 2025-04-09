@@ -1,12 +1,12 @@
 
 \section{Knowledge and reasoning distillation} \label{sec:distillation}
 
-%% \begin{figure}[htb]
-%%   \centering
-%%   \includegraphics[width=\linewidth]{figures/pipeline.pdf}
-%%   \caption{\links pipeline. The pipeline consists of two main components: (1) CoT data generation and (2) model distillation. In the first step, we generate a dataset of mnemonics with reasoning traces using a large language model (LLM) as a teacher. In the second step, we distill the reasoning capabilities of the teacher model into a smaller student model using GRPO \Cref{app:grpo}. The final model can be deployed locally for vocabulary learning tasks.}
-%%   \label{fig:distillation}
-%% \end{figure}
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\linewidth]{figures/pipeline.pdf}
+  \caption{\links pipeline. The pipeline consists of two main components: (1) CoT data generation and (2) model distillation. In the first step, we generate a dataset of mnemonics with reasoning traces using a large language model (LLM) as a teacher. In the second step, we distill the reasoning capabilities of the teacher model into a smaller student model using GRPO \Cref{app:grpo}. The final model can be deployed locally for vocabulary learning tasks.}
+  \label{fig:distillation}
+\end{figure}
 
 \subsection{Preparation} \label{sec:data-prep}
 To generate high-quality linguistically grounded mnemonics, we first created a comprehensive training dataset. Following best practices in synthetic data generation with LLMs \citetext{\citealp{longLLMsDrivenSyntheticData2024b}, \citealp{openthoughtsteamOpenThoughts2025}}, we designed a data construction pipeline with several key components.
