@@ -29,15 +29,13 @@
 % However, it will improve the aesthetics of text in
 % the typewriter font.
 \usepackage{inconsolata}
-
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage{cleveref}
-\usepackage{tabularx}             % For flexible-width columns
-\usepackage{booktabs}             % For nicer table rules
-\usepackage{array}                % Extended col types if needed
+\usepackage{tabularx} % For flexible-width columns
+\usepackage{booktabs} % For nicer table rules
+\usepackage{array}  % Extended col types if needed
 
 % If the title and author information does not fit in the area allocated, uncomment the following
 %
@@ -45,12 +43,36 @@
 %
 % and set <dim> to something 5cm or larger.
 
+\setlength{\parindent}{0pt} % No indentation
+
+% Congfigure the table of contents and section numbering
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+% Configure \Cref to use \S for sections and \S\S for subsections
+\usepackage{cleveref}
+\makeatletter
+\newcommand{\crefnames}[3]{%
+  \@for\next:=#1\do{%
+    \expandafter\crefname\expandafter{\next}{#2}{#3}%
+  }%
+}
+\makeatother
+\crefnames{part,chapter,section}{\S}{\S\S}
+\crefnames{paragraph}{\P}{\P\P}
+
+\newcommand{\numlist}[1]{(\textbf{#1})}
+
 \newcounter{para}
 \newcommand\numpara{\par\refstepcounter{para}{\thepara}.\space\textbf}
-\setlength{\parindent}{0pt}
 
-\newcommand{\links}{\textbf{\textsc{Links}}}
+% need to add this to avoid "undefined control sequence" error in .bib
+% Holmes paper
 \newcommand{\recorder}{\textregistered}
+
+% specific to this paper
+\newcommand{\links}{\textbf{\textsc{Links}}}
+\newcommand{\linksys}{\textbf{\textsc{LinkSYS}}}
 \newcommand{\studentmodel}{Gemma-3-1b-it }
 \newcommand{\teachermodel}{DeepSeek-R1 }
 \newcommand{\judgemodel}{OpenAi's o3-mini }
@@ -82,17 +104,15 @@
 \input{pages/60_discussion.tex} % includes limitations, conclusion, future work
 
 \section*{Acknowledgements}
-We would like to express my gratitude to my capstone committee, Dr. Patrick Watson and Dr. Philip Sterne, for their guidance and support throughout this project. I also want to thank my classmates and friends for their encouragement and feedback during the development of this project.
+I would like to express my gratitude to my capstone committee, Dr. Patrick Watson and Dr. Philip Sterne, for their guidance and support throughout this project. I also want to thank my classmates and friends for their encouragement and feedback during the development of this project.
 
 \section*{Ethics Statement}
 This project was conducted in accordance with the ethical guidelines of Minerva University. The dataset used for training and evaluation was generated using an LLM, and a \textbf{subset} of generated mnemonics were reviewed for quality and appropriateness. We acknowledge the potential biases present in the training data and the need for continuous monitoring and improvement of the model's outputs. The final model is designed to be deployed locally, ensuring user privacy and data security.
 
 The generated mnemonics are intended to be used as a supplementary tool for language learners and should \textbf{not} replace other language learning methods. We recommend that users critically evaluate the generated mnemonics and adapt them to their individual learning styles and preferences. We welcome feedback on any aspect of the paper to help improve the model's performance and address any ethical concerns that may arise.
+
 % References
 \bibliography{custom}
 
-\clearpage
-
-
-\input{pages/90_appendix} % TODO: uncomment
+\include{pages/90_appendix}
 \end{document}

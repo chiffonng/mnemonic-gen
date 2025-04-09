@@ -1,9 +1,9 @@
 
-\section{Background}
+\section{Background} \label{sec:background}
 
 We assume a background on LLMs, including their transformer-based architecture (\Cref{app:llm-transformer}), in-context learning (\Cref{sec:icl-performance}), and reinforcement learning (full preliminaries are provided in \Cref{app:technicality}). We briefly review the literature on mnemonic devices for vocabulary learning and the use of LLMs in linguistic tasks.
 
-\subsection{Mnemonic devices for vocabulary learning}
+\subsection{Mnemonic devices for vocabulary learning} \label{sec:mnemonic-review}
 
 \begin{table*}[htb]
 \centering
@@ -13,23 +13,23 @@ We assume a background on LLMs, including their transformer-based architecture (
 \toprule
 \textbf{feature} & \textbf{description} & \textbf{example} \\
 \midrule
-\textbf{phonetics} & vocab's sound patterns & \emph{apparent} sounds like “a bare Asian.” \\
+\textbf{phonetics} & sound patterns & \emph{apparent} sounds like “a bare Asian.” \\
 \addlinespace
 \textbf{orthography} & written/spelling patterns & \emph{abet} looks like “a + bet.” \\
 \addlinespace
-\textbf{morphology} & structure including free and bound morphemes & \emph{aggrandize} = a + grand + –ize, to mean to make grander. \\
+\textbf{morphology} & modern English forms, including free and bound morphemes & \emph{aggrandize} = a + grand + –ize, to mean to make grander. \\
 \addlinespace
-\textbf{etymology} & vocab origin and history & \emph{adumbrate} comes from Latin ad- (to, on) + umbra (shade) + ate, to mean foreshadow or outline. \\
+\textbf{etymology} & origin and history & \emph{adumbrate} comes from Latin ad- (to, on) + umbra (shade) + ate, to mean foreshadow or outline. \\
 \addlinespace
-\textbf{semantics} & vocab meaning and relationships & \emph{confound} has similar meaning and history with 'confuse'. \\
+\textbf{semantics} & meaning and semantic relationships & \emph{confound} has similar meaning and history with 'confuse'. \\
 \bottomrule
 \end{tabularx}
 \end{table*}
 
 % TODO: Add a figure for what good mnemonics means. Here is a placeholder
-\begin{figure}
+\begin{figure*}
   \includegraphics[width=\linewidth]{figures/good_bad_mnemonics.pdf}
   \caption{Non-exhausitive list of characteristics of a good mnemonic, inferred from \citetext{\citealp{BalepurSMART2024}, \citealp{CamposUSING2011}, \citealp{SariogluUSE2024}}.}
   \label{fig:good-mnemonic}
-\end{figure}
-\subsection{LLMs: linguistic competence and creativity}
+\end{figure*}
+\subsection{LLMs: linguistic competence and creativity} \label{sec:llm-linguistic-competence}
