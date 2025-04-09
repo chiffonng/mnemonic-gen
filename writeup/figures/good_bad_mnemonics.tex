@@ -1,0 +1,102 @@
+
+% TODO: Add a figure for what good mnemonics means. Here is a placeholder
+% \begin{figure*}[htb]
+%   \includegraphics[width=\linewidth]{figures/good_bad_mnemonics.pdf}
+%   \caption{Non-exhausitive list of characteristics of a good mnemonic, inferred from \citetext{\citealp{BalepurSMART2024}; \citealp{CamposUSING2011}; \citealp{luExplorationMnemonicsESL2015}; \citealp{SariogluUSE2024}}.}
+%   \label{fig:good-bad-mnemonics}
+% \end{figure*}
+
+% Define custom colors
+\definecolor{goodgreen}{RGB}{76,175,80}
+\definecolor{goodlight}{RGB}{232,245,233}
+\definecolor{badred}{RGB}{244,67,54}
+\definecolor{badlight}{RGB}{255,235,238}
+
+% Define custom box styles
+\tcbset{
+    goodbox/.style={
+        colback=goodlight,
+        colframe=goodgreen,
+        fonttitle=\bfseries\color{white},
+        coltitle=white,
+        colbacktitle=goodgreen,
+        enhanced,
+        attach boxed title to top center={yshift=-1mm},
+        boxed title style={sharp corners},
+        top=2mm,
+    },
+    badbox/.style={
+        colback=badlight,
+        colframe=badred,
+        fonttitle=\bfseries\color{white},
+        coltitle=white,
+        colbacktitle=badred,
+        enhanced,
+        attach boxed title to top center={yshift=-1mm},
+        boxed title style={sharp corners},
+        top=2mm,
+    }
+}
+
+% Start the figure environment
+\begin{figure*}[htb]
+\centering
+\footnotesize
+% First row - Good mnemonic + characteristics
+\begin{minipage}{0.66\textwidth}
+    \begin{tcolorbox}[goodbox, title=Good Mnemonic]
+        \textcolor{red}{\textbf{preposterous}}: \textcolor{goodgreen}{comes from pre- ("before") + post ("after") + -ous}, meaning reversed or absurd. \textcolor{orange}{If you put pre (before) post (after), it's backward — doing things in reverse is ridiculous!}
+    \end{tcolorbox}
+\end{minipage}
+\hspace{0.5em}
+\begin{minipage}{0.3\textwidth}
+    \begin{itemize}[leftmargin=*, nosep]
+        \item \vocabulary is used correctly in \mnemonic
+        \item Clear \textbf{a} linking \vocabulary and \mnemonic
+        \item Strong \textbf{a}
+        \item \mnemonic uses similar or lower vocabulary than \vocabulary
+        \item \mnemonic is memorable
+    \end{itemize}
+\end{minipage}
+
+\vspace{0.3cm}
+
+% Second row - 3 bad mnemonics
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[badbox, title=Incorrect Definition]
+        Preposterous means very important or significant
+    \end{tcolorbox}
+\end{minipage}%
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[badbox, title=Circular Association]
+        Preposterous sounds like preposterous...
+    \end{tcolorbox}
+\end{minipage}%
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[badbox, title=Weak Association]
+        Preposterous sounds like prosperous. Preposterous people usually make prosperous business decisions.
+    \end{tcolorbox}
+\end{minipage}
+
+\vspace{0.3cm}
+
+% Third row - 3 more bad mnemonics
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[badbox, title=Difficult Vocabulary]
+        Preposterous means ludicrously implausible or contrary to conventional hierarchies of logical induction.
+    \end{tcolorbox}
+\end{minipage}%
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[badbox, title=Too Abstract]
+        Preposterous describes logical fallacies where the premise negates itself through temporal displacement.
+    \end{tcolorbox}
+\end{minipage}%
+\begin{minipage}{0.33\textwidth}
+    \begin{tcolorbox}[badbox, title=Offensive Content]
+        Preposterous contains "post" which reminds me of [inappropriate culturally-specific reference].
+    \end{tcolorbox}
+\end{minipage}
+
+\caption{Characteristics of good mnemonics, and examples of bad mnemonics. We propose VAM/VEM model, where a good mnemonic must have three components: v=vocabulary, a=association (or e=explanation), m=mnemonic, and characteristics listed above.}
+\label{fig:good-bad-mnemonics}
+\end{figure*}

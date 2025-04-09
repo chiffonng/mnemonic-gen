@@ -188,10 +188,6 @@ Evaluation
 
 Generate mnemonics for 200 example vocabulary in test set, using both
 
-CAP-52
-
-CAP-57
-
 Results
 
 Fig 4 Report pairwise reference for models: Gemma3-1b-it (base) vs Gemma3-1b-vmm

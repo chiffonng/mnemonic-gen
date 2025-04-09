@@ -36,7 +36,10 @@
 \usepackage{tabularx} % For flexible-width columns
 \usepackage{booktabs} % For nicer table rules
 \usepackage{array}  % Extended col types if needed
-
+\usepackage{multirow}
+\usepackage{multicol} % For captions
+\usepackage[most]{tcolorbox} % For colored boxes
+\usepackage{enumitem} % For custom list environments
 % If the title and author information does not fit in the area allocated, uncomment the following
 %
 %\setlength\titlebox{<dim>}
@@ -49,14 +52,14 @@
 \newcommand{\recorder}{\textregistered}
 
 % specific to this paper
-\newcommand{\links}{\textbf{\textsc{Links}}}
-\newcommand{\linksys}{\textbf{\textsc{LinkSYS}}}
-\newcommand{\studentmodel}{Gemma-3-1b-it }
-\newcommand{\teachermodel}{DeepSeek-R1 }
-\newcommand{\judgemodel}{OpenAi's o3-mini }
-\newcommand{\mnemonic}{$m$}
-\newcommand{\vocabulary}{$v$}
-\newcommand{\eg}{$e$}
+\newcommand{\links}{\textbf{\textsc{Links}}\space}
+\newcommand{\linksys}{\textbf{\textsc{LinkSYS}}\space}
+\newcommand{\studentmodel}{Gemma-3-1b-it\space}
+\newcommand{\teachermodel}{DeepSeek-R1\space}
+\newcommand{\judgemodel}{OpenAi's o3-mini\space}
+\newcommand{\mnemonic}{$m$\space}
+\newcommand{\vocabulary}{$v$\space}
+\newcommand{\eg}{$e$\space}
 
 \title{\textbf{LINKS}: Generate linguistically grounded mnemonic devices for English vocabulary learning with reasoning, multilingual LLMs
 }
