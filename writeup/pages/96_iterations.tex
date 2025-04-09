@@ -1,0 +1,9 @@
+
+\section{Documentation of previous iterations} \label{app:previous-iterations}
+\subsection{Fine-tune OpenAI} \label{app:openai-finetune}
+
+\subsection{Fine-tune Gemma-3-4b-it} \label{app:gemma-finetune}
+
+For supervised fine-tuning (SFT), we utilized the \texttt{trl} library with the following hyperparameters: batch size \( b = 16 \), number of epochs \( \text{eps} = 4 \), learning rate \( \alpha = 2 \times 10^{-5} \), weight decay \( \lambda = 0.05 \), and a cosine annealing learning rate scheduler with restarts.
+
+The batch size \( b \) defines the number of training examples processed simultaneously during each forward and backward pass. A batch size of 16 balances computational efficiency and gradient estimation accuracy. Training for 4 epochs (\( \text{eps} = 4 \)) means the model will see the training data a total of four times, which ensures sufficient exposure to the training data without risking overfitting. The learning rate \( \alpha \) controls the step size for weight updates; a value of \( 2 \times 10^{-5} \) is typical for fine-tuning large language models, facilitating gradual convergence. Weight decay \( \lambda \) serves as a regularization term, penalizing large weights to prevent overfitting. The cosine annealing scheduler adjusts the learning rate following a cosine decay pattern, periodically restarting to allow the model to escape local minima and potentially achieve better generalization, compared to linear decay.

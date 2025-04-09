@@ -32,7 +32,7 @@
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
-% \usepackage[demo]{graphicx}
+\usepackage{graphicx}
 \usepackage{float}
 \usepackage{cleveref}
 \usepackage{tabularx}             % For flexible-width columns
@@ -45,16 +45,20 @@
 %
 % and set <dim> to something 5cm or larger.
 
-\title{\textbf{LINKS}: Generate linguistically grounded mnemonic devices for English vocabulary learning with reasoning, multilingual LLMs
-}
+\newcounter{para}
+\newcommand\numpara{\par\refstepcounter{para}{\thepara}.\space\textbf}
+
 
 \newcommand{\links}{\textbf{\textsc{Links}}}
 \newcommand{\recorder}{\textregistered}
-\newcommand{\studentmodel}{Gemma-3-1b-it}
-\newcommand{\teachermodel}{DeepSeek-R1}
+\newcommand{\studentmodel}{Gemma-3-1b-it }
+\newcommand{\teachermodel}{DeepSeek-R1 }
 \newcommand{\mnemonic}{$m$}
 \newcommand{\vocabulary}{$v$}
 \newcommand{\eg}{$e$}
+
+\title{\textbf{LINKS}: Generate linguistically grounded mnemonic devices for English vocabulary learning with reasoning, multilingual LLMs
+}
 
 \author{%
   My (Chiffon) Nguyen \\
@@ -64,31 +68,30 @@
 }
 
 \begin{document}
-%\input{pages/00_title.tex}
-
-\tableofcontents
-\clearpage
-
-\twocolumn
+\include{pages/00_title.tex}
 
 \maketitle
-%\input{pages/01_abstract.tex}
+\input{pages/01_abstract.tex}
 \input{pages/10_intro.tex}
-%\input{pages/20_background.tex}
+\input{pages/20_background.tex}
 
-%\input{pages/30_icl.tex}
-%\input{pages/40_distillation.tex}
-%\input{pages/50_eval.tex}
-%\input{pages/60_related.tex}
-%\input{pages/70_discussion.tex} % includes limitations, conclusion, future work
+\input{pages/30_icl.tex}
+\input{pages/40_distillation.tex}
+\input{pages/50_eval.tex}
+\input{pages/60_discussion.tex} % includes limitations, conclusion, future work
 
 \section*{Acknowledgements}
 We would like to express my gratitude to my capstone committee, Dr. Patrick Watson and Dr. Philip Sterne, for their guidance and support throughout this project. I also want to thank my classmates and friends for their encouragement and feedback during the development of this project.
 
+\section*{Ethics Statement}
+This project was conducted in accordance with the ethical guidelines of Minerva University. The dataset used for training and evaluation was generated using an LLM, and a \textbf{subset} of generated mnemonics were reviewed for quality and appropriateness. We acknowledge the potential biases present in the training data and the need for continuous monitoring and improvement of the model's outputs. The final model is designed to be deployed locally, ensuring user privacy and data security.
+
+The generated mnemonics are intended to be used as a supplementary tool for language learners and should \textbf{not} replace other language learning methods. We recommend that users critically evaluate the generated mnemonics and adapt them to their individual learning styles and preferences. We welcome feedback on any aspect of the paper to help improve the model's performance and address any ethical concerns that may arise.
 % References
 \bibliography{custom}
 
 \clearpage
 
-% \input{pages/90_appendix} % TODO: uncomment
+
+\input{pages/90_appendix} % TODO: uncomment
 \end{document}

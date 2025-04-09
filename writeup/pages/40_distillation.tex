@@ -23,7 +23,7 @@ To generate high-quality linguistically grounded mnemonics, we first created a c
 
 \paragraph{Quality control} To ensure the quality of the generated mnemonics, we implemented a multi-step validation process. We first filtered out any entries that did not meet our structured output format or contained incomplete reasoning traces. We then performed a manual review of a random sample of 200 entries to assess the linguistic grounding and coherence of the mnemonics. This review process involved checking for clear connections between the vocabulary and the mnemonic, as well as ensuring that the example sentence accurately reflected the vocabulary's meaning.
 
-\subsection{Training and inference}
+\subsection{Training and inference} \label{sec:training-inference}
 After generating the synthetic dataset, we implemented a distillation process to transfer this linguistic reasoning capability to a smaller, easier-to-deploy model.
 
 \paragraph{Student model selection} We selected \studentmodel as our student model due to its balance of performance, size, and deployment flexibility. This instruction-tuned variant of Google's Gemma-3 (1 billion parameters) \citep{GemmaTeamGEMMA2025} offers several advantages: (1) demonstrated instruction-following abilities, (2) multilingual capabilities for potential cross-lingual applications, and (3) compact size enabling deployment on consumer hardware including Apple Silicon.
@@ -36,6 +36,6 @@ We defined three reward functions that encode basic characteristics of effective
 (3) usage of the target vocabulary in the mnemonic,  penalizing bad mnemonics such as acronyms.
 These reward functions operate directly on model outputs, assigning scalar scores based on how well the generation satisfies each criterion. The scores are then combined using weighted summation, with higher weights assigned to criteria 1 and 2. We generated two candidate outputs per training example to enable reinforcement from comparisons. Training was performed on a single NVIDIA H100 GPU approximately 4 hours.
 
-\paragraph{Low-Rank Adaptation (LoRA)} We trained \studentmodel using GRPO wrapped in LoRA layers (\Cref{app:lora}) to reduce the number of trainable parameters and rank-stabilized LoRA that maintains stability for adapters with higher ranks. Full LoRA configuration is provided in \Cref{app:lora-config}.
+\paragraph{Low-Rank Adaptation (LoRA)} We trained \studentmodel using GRPO wrapped in LoRA layers (\Cref{app:peft}) to reduce the number of trainable parameters and rank-stabilized LoRA that maintains stability for adapters with higher ranks. Full LoRA configuration is provided in \Cref{app:lora-config}.
 
 \paragraph{Model quantization and serving} To enable efficient deployment on consumer hardware, we quantized the final model using 4-bit quantization with the NormalFloat (NF4) data type \citep{dettmersQLoRAEfficientFinetuning2023}. This significantly reduced the model size while maintaining performance quality. The quantized model can be served with a local application such as OpenWebUI (interface) and Ollama (command-line), making it accessible for language learners without requiring continuous internet connectivity or sharing potentially sensitive language learning data with third-party services.
