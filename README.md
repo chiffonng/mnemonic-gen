@@ -1,8 +1,8 @@
-# Mining LLMs for Mnemonic Devices to aid Vocabulary Acquisition
+# LINKS: Generate linguistically grounded mnemonic devices for vocabulary learning with reasoning, multilingual LLMs
 
-[![wakatime](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365.svg)](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365)
-
-[Hugging Face Artifacts](https://huggingface.co/collections/chiffonng/mnemonic-generation-67563a0a1ab91e84e9827579)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=huggingface&logoColor=000)](https://huggingface.co/collections/chiffonng/mnemonic-generation-67563a0a1ab91e84e9827579)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Linting: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv) [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/) [![wakatime](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365.svg)](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365)
 
 Mnemonic devices (memory aids) are powerful tools to help individuals remember information more effectively, such as acquiring new, abstract vocabulary fast. This project proposes to explore the potential of using large language models (LLMs) to generate linguisticaly-grounded mnemonics, with the goal of aiding vocabulary acquisition and retention. The system currently works for English-English mnemonics.
 
@@ -11,7 +11,7 @@ Main steps:
 1. Generate synthetic dataset simulating traces of reasoning through linguistic features and grounding creative writing to arrive at a mnemonic device, using LLMs + chain-of-thought rationales, and few- or many-shot in-context learning, and
 2. Fine-tune a smaller language model to generate mnemonics for English vocabulary words, and
 3. Evaluate the model's performance on a test set of vocabulary words, using human evaluation and LLM-as-a-judge approach.
-4. Deploy the fine-tuned model in a local web UI, allowing users to input vocabulary words and receive mnemonics as output.
+4. Test the fine-tuned model in a local web UI, input vocabulary words and receive mnemonics as output.
 
 ## Setup
 
@@ -24,7 +24,7 @@ Prerequisites: Have [conda](https://docs.conda.io/projects/conda/en/latest/user-
 If you have `conda`, you can create a new environment with the following command:
 
 ```bash
-conda env create -n mnemonic-gen python=3.10 torch==2.4.0
+conda env create -n mnemonic-gen python=3.11 torch==2.6.0
 conda activate mnemonic-gen
 uv pip install -r pyproject.toml -e .
 ```
@@ -36,6 +36,14 @@ Create a `.env` by cloning `.env.template`. You will need:
 - Hugging Face Access Token (see the [doc](https://huggingface.co/docs/hub/en/security-tokens)). You can get it from [here](https://huggingface.co/settings/token).
 - Wandb API key (optional: for logging experiments). You can get it from [here](https://wandb.ai/authorize).
 - OpenAI API & DeepSeek API keys. You can get keys from [OpenAI](https://platform.openai.com/account/api-keys) and [DeepSeek](https://platform.deepseek.com/api_keys).
+
+## Scripts
+
+To train the model with GRPO on LINKS dataset:
+
+```bash
+python scripts/train.py
+```
 
 ## Development
 
@@ -67,5 +75,5 @@ On the technical side, it's also a great opportunity for me to fuse some LLMOps 
 
 - Increase reproducibility of this project, by resolving the dependencies and environment issues, and tracking experiments and hyperparameter search
 - Increase manageability of the project, by using a modular structure and clear documentation.
-- Have a template for future projects that involve fine-tuning models on custom datasets, and deploying them in a web interface.
-- Learn mathematical and technical details of SOTA techniques, such as LoRA (QLoRA, rank-stablized LoRA), instruction tuning.
+- Have a template for future projects that involve post-training models on custom datasets.
+- Learn mathematical and technical details of SOTA techniques, such as LoRA (QLoRA, rank-stablized LoRA), instruction tuning, reinforcement learning.
