@@ -73,4 +73,73 @@ LoRA introduces \( 2dr \) trainable parameters (size of \( A \) and \( B \)), wh
 
 Intuively, GRPO generates multiple responses for a given prompt, scores them using reward models, calculates the average reward of the group, and then compares each response's score to the average to determine which are better or worse. The model then updates its policy to favor high-reward responses.
 
-Formally,
+Formally, GRPO is a reinforcement learning approach introduced by \citet{DeepSeek-AIDEEPSEEKR12025} for improving mathematical reasoning in language models. GRPO extends standard Proximal Policy Optimization (PPO) by introducing group-based relative rewards that facilitate more effective learning in scenarios with multiple responses for each prompt. It is called an \textit{online} RL algorithm because it continuously improves by (1) generating responses, (2) evaluating them using reward models, and (3) updating the model's policy based on the rewards received from the generated responses. This allows for real-time adaptation to new data.
+
+\paragraph{1. Generating completions} For each prompt $q$ in a batch, the model generates a set of $G$ completions:
+\begin{equation}
+O_q = \{o_1, o_2, \ldots, o_G\}
+\end{equation}
+
+Each completion $o_i$ consists of a sequence of tokens:
+\begin{equation}
+o_i = \{o_{i,1}, o_{i,2}, \ldots, o_{i,|o_i|}\}
+\end{equation}
+
+\paragraph{2. Computing the advantage} For each completion, a reward $r_i$ is computed using predefined reward functions. To enable comparison within groups, the rewards are normalized:
+\begin{equation}
+\mu_r = \text{mean}(r)
+\end{equation}
+\begin{equation}
+\sigma_r = \text{std}(r)
+\end{equation}
+\begin{equation}
+\hat{A}_{i,t} = \frac{r_i - \mu_r}{\sigma_r}
+\end{equation}
+
+where $r = \{r_1, r_2, \ldots, r_G\}$ is the set of rewards for all completions in the group, and $\hat{A}_{i,t}$ is the advantage for token $t$ in completion $i$. This normalization gives the method its name: Group Relative Policy Optimization.
+
+\paragraph{3. Estimating the KL divergence} To prevent the policy from deviating too far from the reference policy $\pi_{\text{ref}}$, the KL divergence is estimated:
+\begin{equation}
+\pi_\text{ratio} = \frac{\pi_\theta(o_{i,t} | q, o_{i,<t})}{\pi_{\text{ref}}(o_{i,t} | q, o_{i,<t})}
+\end{equation}
+\begin{equation}
+\pi_\text{inv\_ratio} = \frac{\pi_{\text{ref}}(o_{i,t} | q, o_{i,<t})}{\pi_\theta(o_{i,t} | q, o_{i,<t})}
+\end{equation}
+\begin{equation}
+D_{\text{KL}} = \log\pi_\text{ratio} - 1 + \pi_\text{inv\_ratio}
+\end{equation}
+
+\paragraph{4. Computing the loss} The GRPO objective combines the advantage term with a KL penalty:
+\begin{equation}
+L_{\text{adv}} = -\frac{1}{G}\sum_{i=1}^{G}\sum_{t=1}^{|o_i|}\pi_\text{ratio}\hat{A}_{i,t}
+\end{equation}
+\begin{equation}
+L_{\text{KL}} = \beta D_{\text{KL}}
+\end{equation}
+\begin{equation}
+L_{\text{GRPO}}(\theta) = L_{\text{adv}} - L_{\text{KL}}
+\end{equation}
+
+where $\beta$ is a hyperparameter that controls the weight of the KL penalty. The advantage term encourages the policy to assign higher probability to tokens that lead to better rewards, while the KL term ensures that the policy doesn't deviate too far from the reference policy.
+
+\paragraph{Multiple iterations} In the original paper, this formulation is generalized to account for multiple updates after each generation (denoted $\mu$, controlled by \texttt{num\_iterations} in the implementation) by leveraging a clipped surrogate objective:
+
+\begin{equation}
+\pi_\text{old\_ratio} = \frac{\pi_\theta(o_{i,t} | q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} | q, o_{i,<t})}
+\end{equation}
+
+\begin{equation}
+\pi_\text{clipped} = \text{clip}(\pi_\text{old\_ratio}, 1-\epsilon, 1+\epsilon)
+\end{equation}
+
+\begin{equation}
+L_{\text{adv\_clipped}} = -\frac{1}{G}\sum_{i=1}^{G}\sum_{t=1}^{|o_i|} \min(\pi_\text{old\_ratio}\hat{A}_{i,t}, \pi_\text{clipped}\hat{A}_{i,t})
+\end{equation}
+
+\begin{equation}
+L_{\text{GRPO\_clipped}}(\theta) = L_{\text{adv\_clipped}} - L_{\text{KL}}
+\end{equation}
+
+where $\epsilon$ is a small constant (typically 0.2) that controls how much the policy can change in a single update. When $\mu = 1$ (the default in \verb|trl| implementation), the clipped surrogate objective simplifies to the original objective.
+
+\paragraph{Implementation} HuggingFace's \verb|trl| library abstracts the GRPO implementation, providing a user-friendly interface for training language models with the class \verb|GRPOTrainer|. Detailed configuration is provided in \Cref{app:grpo-config}.
