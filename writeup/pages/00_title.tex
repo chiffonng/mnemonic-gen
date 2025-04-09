@@ -1,10 +1,9 @@
-
 \begin{titlepage}
 \centering
 {\scshape\LARGE Minerva University \par}
 \vspace{1cm}
 \begin{center}
-  \includegraphics[width=0.4\linewidth]{preamble/minerva_logo.pdf}
+  \includegraphics[width=0.4\linewidth]{minerva/minerva_logo.pdf}
 \end{center}
 {\scshape\Large Capstone: Class of 2025 \par}
 \vspace{1.5cm}
@@ -35,6 +34,15 @@ Tags: computational linguistics, natural language processing, large language mod
 Note:
 
 \subsection*{AI Statement}
+
+The main idea of this project is to use large language models (LLMs) to generate mnemonic devices for English vocabulary learning. Such AI usage is documented in the main paper.
+
+I extensively used Claude 3.7 Sonnet connected with my codebase to \numlist{1} generate working Python code for major features and plots, \numlist{2} debug my code and \numlist{3} iteratively improve my codebase with best practices including refactoring, modularization, and documentation. I also used Claude to aid producing this paper by \numlist{4} generating TeX-based figures, such as \Cref{fig:good-bad-mnemonics} and \Cref{sec:distillation}, \numlist{5} explaining new methods used, especially GRPO (\Cref{app:grpo}), and \numlist{6} rewriting some sections of the paper to improve clarity and conciseness, partifcularly Abstract and \Cref{sec:discussion}.
+
+There were several instances where AI failed to help, mostly due to \numlist{1} the usage of AI-related knowledge and packages that are recently released, such as \verb|trl|
+s \verb|GRPOTrainer| class, or and \numlist{2}
+
+
 \subsection*{Important Notes}
 
 Due to limited compute, some experiments conducted are small-scale and need more data for robust validation and conclusion. However, the codebase is reproducible and scalable when there is more compute. All links, including this paper source .tex, is included on \hyperlink{https://github.com/chiffonng/mnemonic-gen}{Github}.
