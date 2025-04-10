@@ -1,4 +1,3 @@
-
 \section{Background} \label{sec:background}
 
 We assume a background on LLMs, including their transformer-based architecture (\Cref{app:llm-transformer}), in-context learning (\Cref{sec:icl-performance}), and reinforcement learning (full preliminaries are provided in \Cref{app:technicality}). We briefly review the literature on mnemonic devices for vocabulary learning and the use of LLMs in linguistic tasks.
@@ -6,29 +5,22 @@ We assume a background on LLMs, including their transformer-based architecture (
 \subsection{Mnemonic devices for vocabulary learning} \label{sec:mnemonic-review}
 \input{figures/good_bad_mnemonics.tex}
 
+Mnemonic devices are systematic mental techniques that enhance memory through meaningful associations between new information and pre-existing knowledge \citep{PintrichROLE2002, pressleyMnemonicKeywordMethod1982}. For vocabulary acquisition, the keyword method has been widely studied, involving the creation of acoustically or orthographically similar keywords to the target vocabulary, followed by an association between these keywords and the word's meaning \citep{atkinsonApplicationMnemonicKeyword1975, wangKeywordMnemonicRetention1992}.
 
-\begin{table*}[htb]
-\centering
-\caption{Examples of feature categories for English words.}
-\label{tab:linguistic-features}
-\begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
-\toprule
-\textbf{feature} & \textbf{description} & \textbf{example} \\
-\midrule
-\textbf{phonetics} & sound patterns & \emph{apparent} sounds like “a bare Asian.” \\
-\addlinespace
-\textbf{orthography} & written/spelling patterns & \emph{abet} looks like “a + bet.” \\
-\addlinespace
-\textbf{morphology} & modern English forms, including free and bound morphemes & \emph{aggrandize} = a + grand + –ize, to mean to make grander. \\
-\addlinespace
-\textbf{etymology} & origin and history & \emph{adumbrate} comes from Latin ad- (to, on) + umbra (shade) + ate, to mean foreshadow or outline. \\
-\addlinespace
-\textbf{semantics} & meaning and semantic relationships & \emph{confound} has similar meaning and history with 'confuse'. \\
-\bottomrule
-\end{tabularx}
-\end{table*}
-\subsection{LLMs: linguistic competence and creativity} \label{sec:llm-linguistic-competence}
+While the keyword method has shown effectiveness for concrete vocabulary \citep{avilaExploringNewApplications1996, camposImportanceKeywordGenerationMethod2004a}, research indicates it becomes less effective for abstract terms \citep{fothMnemonicTechniqueEffectiveness1973, CamposLIMITATIONS2003} and may even result in longer retrieval times compared to rote learning \citep{vanhellKeywordMnemonicsRote1997}. Additionally, experienced language learners often find traditional rote learning more effective than keyword mnemonics, suggesting that mnemonic effectiveness varies with learner proficiency \citep{vanhellKeywordMnemonicsRote1997, CamposUSING2011}.
 
-Review linguistic competence and lingusitic reasoning
+More linguistically sophisticated approaches, such as etymology-based mnemonics, could provide deeper encoding and potentially stronger retention for abstract vocabulary \citep{piersonUsingEtymologyClassroom1989, akarslanEffectsTeachingWord2019, gangavarapuUsingEtymologyVocabulary2024}. These approaches leverage morphological, etymological, and semantic properties of words, creating more meaningful associations that align with how language is naturally structured \citep{zhangApplicationEtymologySemantic2013}.
 
-Mention related work in \citep{KhoujaLINGOLYTOO2025} here
+According to psycholinguistics, characteristics make mnemonics more memorable include references to animate entities, potential usefulness, and connecion to concrete visual imagery \citep{madanExploringWordMemorability2021, ledingAdaptiveMemoryAnimacy2019}. Additionally, emotionally charged associations create stronger memory traces than neutral ones \citep{altarribaConcretenessContextAvailability1999}. The effectiveness of mnemonics also depends on the depth of processing involved, with deeper linguistic analysis creating more robust memory traces \citep{rankinAgePresentationRate1983, SariogluUSE2024}.
+
+We explore these principles in our work, focusing on how LLMs can generate mnemonics that incorporate good characteristics (\Cref{fig:good-bad-mnemonics}) and leverage linguistic features (\Cref{tab:linguistic-features}).
+
+\subsection{LLMs: linguistic competence, reasoning, and creativity} \label{sec:llm-linguistic-competence}
+
+Significant advancements have been made in enhancing the reasoning capabilities of large language models (LLMs), particularly in mathematical and scientific domains where problems have unique correct answers. Several prompting techniques were introduced to make LLMs learn from demonstrations (or "shots") or produce explicit step-by-step thinking processes to improve their reasoning, notably few-shot prompting \citep{brownFewShotLearners2020}, chain-of-thought (CoT) \citep{weiChainofThoughtPromptingElicits2022}, self-consistency \citep{wangSelfConsistencyImprovesChain2022}, zero-shot reasoning \citep{kojimaZeroShotReasoners2022}, analogical reasoning (automated few-shot CoT) \citep{YasunagaLLMAnalogicalReasoners2023}. Post-training techniques such as reinforcement learning from human feedback (RLHF) \citep{ouyangRLHF2022} and CoT data \citep{DeepSeek-AIDEEPSEEKR12025} further endows LLMs with instruction-following and reasoning capabilities. However, LLMs still struggle with complex reasoning tasks that require multiple steps, abstract thinking \citep{weiChainofThoughtPromptingElicits2022} or low-frequency knowledge \citep{kandpalLongTailKnowledge2023,sunHeadtoTailHowKnowledgeable2024}.
+
+LLMs' linguistic competence and reasoning are less studied. Recent studies have explored LLMs' linguistic competence, defined as their ability to understand and apply language rules and patterns \citep{waldisHOLMES2024}. LLMs typically perform better on formal linguistic competence tasks, such as morphology and syntax, than on functional linguistic competence tasks, such as semantics, discourse \citep{KhoujaLINGOLYTOO2025} or phonology \citep{suvarnaPhonologyBenchEvaluatingPhonological2024}. Their competence is influenced by model architecture, with encoder-based models often outperforming decoder-only models, and larger models generally showing better linguistic understanding \citep{waldisHOLMES2024}. Instruction tuning has been shown to improve performance on linguistic tasks, though sometimes at the expense of deeper language understanding \citep{waldisHOLMES2024,yinDidYouRead2023}.
+
+LLMs can also perform inductive multilingual reasoning, primarily demonstrated through inferring rules in linguistic puzzles as seen in International Olympiad in Linguistics, especially when provided with analogical demonstrations \citep{RamjiINDUCTIVE2024}. However, its reasoning remains inconsistent, with performance varying across minor problem perturbations, suggesting that it may not fully understand the underlying linguistic principles and memorize it \citep{RamjiINDUCTIVE2024,KhoujaLINGOLYTOO2025}. This inconsistency is also observed in other reasoning tasks, such as mathematical reasoning, where LLMs can produce correct answers but often fail to provide coherent explanations \citep{weiChainofThoughtPromptingElicits2022}.
+
+For mnemonic generation specifically, previous work has explored using LLMs for automated keyword mnemonic generation \citep{LeeSMARTPHONE2023, LeeEXPLORING2024, BalepurSMART2024}, but these approaches have primarily focused on phonetic similarity rather than leveraging the broader linguistic knowledge embedded in LLMs. Our work extends these efforts by exploring how LLMs can use linguistic reasoning abilities to incorporate multiple linguistic features to generate mnemonic devices.
