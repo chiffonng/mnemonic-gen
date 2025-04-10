@@ -15,10 +15,32 @@
   }%
 }
 \makeatother
+\newcommand{\appsection}[1]{%
+  \refstepcounter{section}%
+  \section*{\thesection. #1}%
+  \addcontentsline{toc}{section}{Appendix \thesection. #1}%
+  \label{app:\thesection}%
+}
+\newcommand{\appsubsection}[1]{%
+  \refstepcounter{subsection}%
+  \subsection*{\thesubsection. #1}%
+  \addcontentsline{toc}{subsection}{\thesubsection: #1}%
+  \label{app:\thesubsection}%
+}
+\newcommand{\appsubsubsection}[1]{%
+  \refstepcounter{subsubsection}%
+  \subsubsection*{\thesubsubsection. #1}%
+  \addcontentsline{toc}{subsubsection}{\thesubsubsection. #1}%
+  \label{app:\thesubsubsection}%
+}
+
 %\crefname{section}{Section}{Sections}
-\crefnames{app}{Appendix}{Appendices}
-\crefname{appendix}{Appendix}{Appendices}
-\Crefname{appendix}{Appendix}{Appendices}
+\crefname{appsection}{Appendix}{Appendices}
+\Crefname{appsection}{Appendix}{Appendices}
+\crefname{appsubsection}{Appendix}{Appendices}
+\Crefname{appsubsection}{Appendix}{Appendices}
+\crefname{appsubsubsection}{Appendix}{Appendices}
+\Crefname{appsubsubsection}{Appendix}{Appendices}
 % \crefnames{part,chapter,section}{\S}{\S\S}
 % \crefnames{paragraph}{\P}{\P\P}
 % \crefname{abstract}{abstract}{abstracts}

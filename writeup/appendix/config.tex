@@ -1,19 +1,20 @@
-\section{Training details} \label{app:training-details}
-\subsection{Environment setup}
+\appsection{Training details} \label{app:training-details}
+
+\appsubsection{Environment setup}
 The training was conducted, alternately, on a NVIDIA Tesla T4 GPU provided for free by Google Cloud (through Google Colab, Kaggle Notebook, or Google Cloud's Deep Learning Virtual Machine image) and a H100 NVIDIA GPU server with RunPod \footnote{\url{https://www.runpod.io/}} (paid by the author, for detailed costs, see \Cref{app:cost}). The T4 GPU has 16GB of memory, while the H100 GPU has 80GB of memory. The T4 GPU was used for initial experiments and supervised fine-tuning, while the H100 GPU was employed for  more extensive training runs and reinforcement learning. The T4 GPU was used for initial experiments and supervised fine-tuning, while the H100 GPU was employed for more extensive training runs and GRPO (\Cref{app:grpo-config}).
 
 The training environment was set up using these libraries developed by HuggingFace: \verb|bitsandbytes| for quantization, \verb|peft| for parameter-efficient fine-tuning, \verb|transformers| for model management. The training process was executed using the \verb|trl| library, which provides tools for pre-training and post-training with transformers (including GRPO). \verb|unsloth| was used to reduce memory usage on single-GPU environment. \verb|vllm| was used for fast inference and serving of the trained model, especially during GRPO.
 
 The base student model used is \studentmodel, an open-weight 1-billion parameter Transformer-based decoder-only text-to-text model pre-trained to work well on general-purpose tasks in multiple languages, and fine-tuned to increase instruction following capabilities. To save memory, a 4-bit quantized version of the model was used, which reduces the model size and speeds up inference without significantly sacrificing performance.
 
-\subsection{LoRA configuration} \label{app:lora-config}
+\appsubsection{LoRA configuration} \label{app:lora-config}
 
 To reduce computational overhead, we employed LoRA \citep{huLoRALowRankAdaptation2021} and rank-Stabilized LoRA (rsLoRA) scaling. The LoRA configuration parameters were set as follows: rank \( r = 8 \), scaling factor \( \alpha_{\text{LoRA}} = 16 \), and dropout rate of 0. These configurations were applied to both the attention and feed-forward layers.
 
 The rank \( r \) determines the dimensionality of the low-rank adaptation matrices, controlling the number of trainable parameters introduced during fine-tuning. A higher rank allows the model to capture more complex adaptations but increases computational complexity. The scaling factor \( \alpha_{\text{LoRA}} \) modulates the impact of the low-rank updates on the original weights, effectively controlling the contribution of the adaptation matrices to the final model parameters. Setting the dropout rate to 0 indicates that no dropout regularization was applied during the LoRA updates, allowing all connections to be utilized during training.
 
 
-\subsection{GRPO configuration} \label{app:grpo-config}
+\appsubsection{GRPO configuration} \label{app:grpo-config}
 
 We implemented GRPO using the \texttt{trl} library, which provides a convenient interface for training language models with reinforcement learning. Our specific implementation used three reward functions (explained in the main paper): 1) outputs that follow the required format with reasoning, mnemonic, and example sections, 2) explicitly incorporate linguistic features from our taxonomy, 3) meaningfully use the target vocabulary in the mnemonic while penalizing acronyms. These reward functions were combined with weights [1.0, 1.5, 1.0] respectively, placing greater emphasis on linguistic grounding. The model generated two completions ($G=2$) per prompt, allowing for relative comparison. The KL penalty coefficient $\beta$ was set to 0.04, and we used a single iteration ($\mu=1$) per batch.
 
