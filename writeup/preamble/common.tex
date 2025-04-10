@@ -6,6 +6,7 @@
 \setcounter{secnumdepth}{4}
 
 % Configure \Cref to use \S for sections and \S\S for subsections
+\usepackage[titletoc]{appendix}
 \usepackage{cleveref}
 \makeatletter
 \newcommand{\crefnames}[3]{%
@@ -14,8 +15,13 @@
   }%
 }
 \makeatother
-\crefnames{part,chapter,section}{\S}{\S\S}
-\crefnames{paragraph}{\P}{\P\P}
+%\crefname{section}{Section}{Sections}
+\crefnames{app}{Appendix}{Appendices}
+\crefname{appendix}{Appendix}{Appendices}
+\Crefname{appendix}{Appendix}{Appendices}
+% \crefnames{part,chapter,section}{\S}{\S\S}
+% \crefnames{paragraph}{\P}{\P\P}
+% \crefname{abstract}{abstract}{abstracts}
 
 \newcommand{\numlist}[1]{(\textbf{#1})}
 

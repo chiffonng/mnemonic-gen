@@ -22,7 +22,7 @@ Dr. Philip Sterne \\
 \end{titlepage}
 
 \onecolumn
-\section*{Executive Summary}
+\section*{Executive Summary} \label{sec:exec-summary}
 %% TODO: Explain the project to a non-technical audience.
 % - What is the problem?
 % - What is the solution?
@@ -33,17 +33,17 @@ Tags: computational linguistics, natural language processing, large language mod
 
 Note:
 
-\subsection*{AI Statement}
+\subsection*{AI Statement} \label{sec:ai-statement}
 
 The main idea of this project is to use large language models (LLMs) to generate mnemonic devices for English vocabulary learning. Such AI usage is documented in the main paper.
 
-I extensively used Claude 3.7 Sonnet connected with my codebase to \numlist{1} generate working Python code for major features and plots, \numlist{2} debug my code and \numlist{3} iteratively improve my codebase with best practices including refactoring, modularization, and documentation. I also used Claude to aid producing this paper by \numlist{4} generating TeX-based figures, such as \Cref{fig:good-bad-mnemonics} and \Cref{sec:distillation}, \numlist{5} explaining new methods used, especially GRPO (\Cref{app:grpo}), and \numlist{6} rewriting some sections of the paper to improve clarity and conciseness, partifcularly Abstract and \Cref{sec:discussion}.
+I extensively used Claude 3.7 Sonnet connected with my codebase to \numlist{1} generate working Python code for major features and plots, \numlist{2} debug my code and \numlist{3} iteratively improve my codebase with best practices including refactoring, modularization, and documentation. I also used Claude to aid producing this paper by \numlist{4} generating TeX-based figures, such as \Cref{fig:good-bad-mnemonics,sec:distillation}, \numlist{5} explaining new methods used, especially GRPO (\Cref{app:grpo}), and \numlist{6} rewriting some sections of the paper to improve clarity and conciseness, particularly Abstract and \Cref{sec:discussion}.
 
 There were several instances where AI failed to help, mostly due to \numlist{1} the usage of AI-related knowledge and packages that are recently released, such as \verb|trl|
 s \verb|GRPOTrainer| class, or and \numlist{2}
 
 
-\subsection*{Important Notes}
+\subsection*{Important Notes} \label{sec:important-notes}
 
 Due to limited compute, some experiments conducted are small-scale and need more data for robust validation and conclusion. However, the codebase is reproducible and scalable when there is more compute. All links, including this paper source .tex, is included on \hyperlink{https://github.com/chiffonng/mnemonic-gen}{Github}.
 

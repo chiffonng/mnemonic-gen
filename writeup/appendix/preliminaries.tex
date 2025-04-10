@@ -11,9 +11,9 @@ Neural language models are probabilistic frameworks that assign probabilities to
 
 Given a sequence of tokens \( \mathbf{x} = (x_1, x_2, \ldots, x_T) \), a language model estimates the joint probability \( P(\mathbf{x}) \) by factorizing it into conditional probabilities:
 
-\[
+\begin{equation}
 P(\mathbf{x}) = \prod_{t=1}^T P(x_t \mid x_1, x_2, \ldots, x_{t-1})
-\]
+\end{equation}
 
 At each time step \( t \), the model predicts the next token \( x_t \) based on the preceding sequence \( (x_1, x_2, \ldots, x_{t-1}) \). This autoregressive approach enables the generation of coherent text by sequentially predicting subsequent tokens.
 
@@ -36,9 +36,9 @@ There are several approaches to fine-tuning, which can be categorized by: 1. the
 
 SFT involves adapting a pre-trained model to a target task by minimizing a task-specific loss function over a labeled dataset. For a dataset \( \mathcal{D} = \{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{x}^{(i)} \) is the input and \( \mathbf{y}^{(i)} \) is the target output, the objective is to minimize:
 
-\[
+\begin{equation}
 \mathcal{L} = \frac{1}{N} \sum_{i=1}^N \ell(f(\mathbf{x}^{(i)}; \theta), \mathbf{y}^{(i)})
-\]
+\end{equation}
 
 where \( f(\mathbf{x}; \theta) \) represents the model's output with parameters \( \theta \), and \( \ell \) is the loss function, typically cross-entropy loss.
 
@@ -46,9 +46,9 @@ where \( f(\mathbf{x}; \theta) \) represents the model's output with parameters 
 
 Instruction-tuning is a specialized form of SFT \Cref{app:sft} where models are trained on datasets comprising instruction-response pairs. This approach enables models to generalize across various tasks described by natural language instructions, enhancing their ability to follow diverse prompts. Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) denotes the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
 
-\[
+\begin{equation}
 \mathcal{L} = \frac{1}{N} \sum_{i=1}^N \ell(f(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}; \theta), \mathbf{y}^{(i)})
-\]
+\end{equation}
 
 where \( f \) represents the model parameterized by \( \theta \), and \( \ell \) is the loss function measuring the discrepancy between the model's prediction and the target output.
 
@@ -59,9 +59,9 @@ The most common PEFT method is Low-Rank Adaptation (LoRA), and its variants. The
 
 \paragraph{Low-Rank Adaptation (LoRA)} decomposes the weight updates into low-rank matrices, reducing the number of trainable parameters \citep{huLoRALowRankAdaptation2021}. Specifically, for a weight matrix \( W \in \mathbb{R}^{d \times k} \), LoRA introduces two low-rank matrices \( A \in \mathbb{R}^{d \times r} \) and \( B \in \mathbb{R}^{r \times k} \), where \( 0 < r \ll \min(d, k) \). The adapted weight is:
 
-\[
+\begin{equation}
 W' = W + \alpha \cdot A B
-\]
+\end{equation}
 
 Here, \( \alpha \) is a scaling factor that controls the contribution of the low-rank adaptation. The rank \( r \) determines the capacity of the adaptation, balancing between expressiveness and efficiency.
 
@@ -74,9 +74,10 @@ LoRA introduces \( 2dr \) trainable parameters (size of \( A \) and \( B \)), wh
 Reinforcement Learning (RL) is a framework in which an agent interacts with an environment to learn a policy $\pi_\theta$ that maximizes a long-term reward. At each time step $t$, the agent observes a state, takes an action, and receives a reward $r_t$. The goal is to maximize the expected cumulative reward, given by
 
 \begin{equation}
-J(\theta) = \mathbb{E}_{\pi_\theta}\Bigl[\sum_{t=0}^{T} \gamma^t\,r_t\Bigr],
+J(\theta) = \mathbb{E}_{\pi_\theta}\left( \sum_{t=0}^{T} \gamma^t\,r_t\right)
 \end{equation}
-where $\gamma\in[0,1)$ is a discount factor.
+
+where $\gamma\in(0,1)$ is a discount factor.
 
 In the next section, we consider an advanced method called Group Relative Policy Optimization (GRPO). GRPO extends PPO by generating multiple responses per prompt, comparing the rewards within each group, and adjusting the policy based on relative advantages. This online RL approach continuously improves by (1) generating completions, (2) scoring them using reward models, and (3) updating the model's policy with both an advantage term and a KL penalty.
 
