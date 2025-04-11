@@ -1,6 +1,6 @@
 
 \setlength{\parindent}{0pt} % No indentation
-
+\setlength{\parskip}{0.2em} % Space between paragraphs
 % Congfigure the table of contents and section numbering
 \setcounter{tocdepth}{4}
 \setcounter{secnumdepth}{4}
@@ -21,6 +21,8 @@
 \usepackage{cleveref}
 \usepackage[titletoc]{appendix}
 \AtBeginEnvironment{appendices}{\crefalias{section}{appendix}}
+\AtBeginEnvironment{appendices}{\crefalias{subsection}{appendix}}
+\AtBeginEnvironment{appendices}{\crefalias{subsubsection}{appendix}}
 
 % \crefnames{part,chapter,section}{\S}{\S\S}
 % \crefnames{paragraph}{\P}{\P\P}
