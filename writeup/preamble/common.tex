@@ -5,42 +5,23 @@
 \setcounter{tocdepth}{4}
 \setcounter{secnumdepth}{4}
 
-% Configure \Cref to use \S for sections and \S\S for subsections
-\usepackage[titletoc]{appendix}
-\usepackage{cleveref}
-\makeatletter
-\newcommand{\crefnames}[3]{%
-  \@for\next:=#1\do{%
-    \expandafter\crefname\expandafter{\next}{#2}{#3}%
-  }%
-}
-\makeatother
-\newcommand{\appsection}[1]{%
-  \refstepcounter{section}%
-  \section*{\thesection. #1}%
-  \addcontentsline{toc}{section}{Appendix \thesection. #1}%
-  \label{app:\thesection}%
-}
-\newcommand{\appsubsection}[1]{%
-  \refstepcounter{subsection}%
-  \subsection*{\thesubsection. #1}%
-  \addcontentsline{toc}{subsection}{\thesubsection: #1}%
-  \label{app:\thesubsection}%
-}
-\newcommand{\appsubsubsection}[1]{%
-  \refstepcounter{subsubsection}%
-  \subsubsection*{\thesubsubsection. #1}%
-  \addcontentsline{toc}{subsubsection}{\thesubsubsection. #1}%
-  \label{app:\thesubsubsection}%
-}
+% \usepackage{microtype}
+% \usepackage{inconsolata}
+% \usepackage{amsmath}
+% \usepackage{amsfonts}
+% \usepackage{graphicx}
+% \usepackage{float}
+% \usepackage{tabularx} % For flexible-width columns
+% \usepackage{booktabs} % For nicer table rules
+% \usepackage{array}  % Extended col types if needed
+% \usepackage{xspace} % add space after only if needed
 
-%\crefname{section}{Section}{Sections}
-\crefname{appsection}{Appendix}{Appendices}
-\Crefname{appsection}{Appendix}{Appendices}
-\crefname{appsubsection}{Appendix}{Appendices}
-\Crefname{appsubsection}{Appendix}{Appendices}
-\crefname{appsubsubsection}{Appendix}{Appendices}
-\Crefname{appsubsubsection}{Appendix}{Appendices}
+% Configure \Cref to use \S for sections and \S\S for subsections
+% \usepackage{hyperref} % must be loaded before cleveref
+\usepackage{cleveref}
+\usepackage[titletoc]{appendix}
+\AtBeginEnvironment{appendices}{\crefalias{section}{appendix}}
+
 % \crefnames{part,chapter,section}{\S}{\S\S}
 % \crefnames{paragraph}{\P}{\P\P}
 % \crefname{abstract}{abstract}{abstracts}

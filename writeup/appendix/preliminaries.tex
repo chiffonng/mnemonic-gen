@@ -1,11 +1,11 @@
 
-\appsection{Technical preliminaries} \label{app:technicality}
+\section{Technical preliminaries} \label{app:technicality}
 
-\appsubsection{In-context learning} \label{sec:icl-info}
+\subsection{In-context learning} \label{sec:icl-info}
 
-\appsubsubsection{Chain-of-Thought (CoT) prompting} CoT \citep{weiChainofThoughtPromptingElicits2022} is a prompting technique that encourages LLMs to generate intermediate reasoning steps before arriving at a final answer. This approach has been shown to improve performance on complex tasks by guiding the model through a structured thought process.
+\subsubsection{Chain-of-Thought (CoT) prompting} CoT \citep{weiChainofThoughtPromptingElicits2022} is a prompting technique that encourages LLMs to generate intermediate reasoning steps before arriving at a final answer. This approach has been shown to improve performance on complex tasks by guiding the model through a structured thought process.
 
-\appsubsection{Neural Language Models and Transformer Architecture} \label{app:llm-transformer}
+\subsection{Neural Language Models and Transformer Architecture} \label{app:llm-transformer}
 
 Neural language models are probabilistic frameworks that assign probabilities to sequences of words or subword units, known as tokens. A token is the smallest unit of text that the model processes, which can be as granular as individual characters, subwords, or entire words, depending on the tokenization strategy employed.
 
@@ -27,12 +27,12 @@ Byte Pair Encoding (BPE) is a subword tokenization algorithm that operates on th
 
 For instance, the word "preposterous" might be tokenized into subwords like "pre", "poster", and "ous," facilitating the model's understanding and generation of these subwords in novel contexts. This subword granularity enables the model to generalize across morphologically complex words and out-of-vocabulary words, enhancing its robustness and vocabulary coverage. However, not all subwords are valid morphemes, which can limit the model's ability to capture morphological structure accurately. For instance, \texttt{tiktoken} (OpenAI's tokenizer)\footnote{\href{https://platform.openai.com/tokenizer}{https://platform.openai.com/tokenizer}} recognizes "ephemeral" as a single subword rather than three morphemes ("ept", "hemera", "-al"), because the affixes are not explicitly segmented, and 'epheremal' is a rare word so BPE better learns it as a single token.
 
-\appsubsection{Family of Fine-Tuning Methods} \label{app:finetuning}
+\subsection{Family of Fine-Tuning Methods} \label{app:finetuning}
 Fine-tuning is the process of adapting a pre-trained model to a specific task T or domain D by updating its parameters on a target dataset \(\mathcal{D}\). This process is crucial for leveraging pre-trained models' knowledge and enhancing their performance on downstream tasks.
 
 There are several approaches to fine-tuning, which can be categorized by: 1. the availability of labeled data (supervised vs unsupervised fine-tuning), 2. the extent of parameter updates (full-parameter vs parameter-efficient fine-tuning), and 3. task. We focus on supervised fine-tuning, which involves minimizing a task-specific loss function over a labeled dataset.
 
-\appsubsubsection{Supervised Fine-Tuning (SFT)}\label{app:sft}
+\subsubsection{Supervised Fine-Tuning (SFT)}\label{app:sft}
 
 SFT involves adapting a pre-trained model to a target task by minimizing a task-specific loss function over a labeled dataset. For a dataset \( \mathcal{D} = \{(\mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{x}^{(i)} \) is the input and \( \mathbf{y}^{(i)} \) is the target output, the objective is to minimize:
 
@@ -42,7 +42,7 @@ SFT involves adapting a pre-trained model to a target task by minimizing a task-
 
 where \( f(\mathbf{x}; \theta) \) represents the model's output with parameters \( \theta \), and \( \ell \) is the loss function, typically cross-entropy loss.
 
-\appsubsubsection{Instruction tuning} \label{app:instruction-tuning-it}
+\subsubsection{Instruction tuning} \label{app:instruction-tuning-it}
 
 Instruction-tuning is a specialized form of SFT \Cref{app:sft} where models are trained on datasets comprising instruction-response pairs. This approach enables models to generalize across various tasks described by natural language instructions, enhancing their ability to follow diverse prompts. Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) denotes the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
 
@@ -52,7 +52,7 @@ Instruction-tuning is a specialized form of SFT \Cref{app:sft} where models are 
 
 where \( f \) represents the model parameterized by \( \theta \), and \( \ell \) is the loss function measuring the discrepancy between the model's prediction and the target output.
 
-\appsubsubsection{Parameter-Efficient Fine-Tuning} \label{app:peft}
+\subsubsection{Parameter-Efficient Fine-Tuning} \label{app:peft}
 Full-parameter fine-tuning updates \textit{all} parameters of a pre-trained model on the target dataset, which can be computationally expensive and memory-intensive for large models. Parameter-efficient fine-tuning (PEFT) methods adjust only a subset of the parameters, reducing computational and storage requirements while maintaining performance \citep{XuPARAMETEREFFICIENT2023}.
 
 The most common PEFT method is Low-Rank Adaptation (LoRA), and its variants. They are used in the training process as a wrapper around the model's weights, allowing for efficient updates without modifying the entire model. This approach is particularly useful for large models, where full fine-tuning may be impractical due to resource constraints.
@@ -81,7 +81,7 @@ where $\gamma\in(0,1)$ is a discount factor.
 
 In the next section, we consider an advanced method called Group Relative Policy Optimization (GRPO). GRPO extends PPO by generating multiple responses per prompt, comparing the rewards within each group, and adjusting the policy based on relative advantages. This online RL approach continuously improves by (1) generating completions, (2) scoring them using reward models, and (3) updating the model's policy with both an advantage term and a KL penalty.
 
-\appsubsubsection{Group Relative Policy Optimization} \label{app:grpo}
+\subsubsection{Group Relative Policy Optimization} \label{app:grpo}
 
 Group Relative Policy Optimization (GRPO) \citet{DeepSeek-AIDEEPSEEKR12025} is an online reinforcement learning method specifically designed for scenarios where the model generates multiple responses (or completions) for the same prompt. It was introduced to improve the mathematical reasoning capabilities of LLMs, by generating multiple CoT responses for a given problem and then compares results to the ground truth.
 
