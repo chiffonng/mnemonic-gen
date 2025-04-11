@@ -39,7 +39,8 @@
 \usepackage{multirow}
 \usepackage{multicol} % For captions
 \usepackage[most]{tcolorbox} % For colored boxes
-\usepackage{enumitem} % For custom list environments
+\usepackage{enumitem} % For custom list styles, for tcolorbox
+\usepackage{xspace}
 % If the title and author information does not fit in the area allocated, uncomment the following
 %
 %\setlength\titlebox{<dim>}
@@ -51,15 +52,28 @@
 % Holmes paper
 \newcommand{\recorder}{\textregistered}
 
+\definecolor{goodgreen}{RGB}{76,175,80}
+\definecolor{goodlight}{RGB}{232,245,233}
+\definecolor{badred}{RGB}{244,67,54}
+\definecolor{badlight}{RGB}{255,235,238}
+
 % specific to this paper
-\newcommand{\links}{\textbf{\textsc{Links}}\space}
-\newcommand{\linksys}{\textbf{\textsc{LinkSYS}}\space}
-\newcommand{\studentmodel}{Gemma-3-1b-it\space}
-\newcommand{\teachermodel}{DeepSeek-R1\space}
-\newcommand{\judgemodel}{OpenAI's o3-mini\space}
-\newcommand{\mnemonic}{$m$\space}
-\newcommand{\vocabulary}{$v$\space}
-\newcommand{\eg}{$e$\space}
+\newcommand{\links}{\textbf{\textsc{Links}}\xspace}
+\newcommand{\linksys}{\textbf{\textsc{LinkSYS}}\xspace}
+\newcommand{\lgms}{linguistically grounded mnemonics\xspace}
+\newcommand{\lgm}{linguistically grounded mnemonic\xspace}
+\newcommand{\studentmodel}{Gemma-3-1b-it\xspace}
+\newcommand{\xstudentmodel}{gemma-3-4b-it\xspace}
+\newcommand{\teachermodel}{DeepSeek-R1\xspace}
+\newcommand{\xteachermodel}{DeepSeek-V3\xspace}
+\newcommand{\judgemodel}{OpenAI's o3-mini\xspace}
+\newcommand{\mnemonic}{\textcolor{orange}{mnemonic}\xspace}
+\newcommand{\vocabulary}{\textcolor{red}{vocabulary}\xspace}
+\newcommand{\association}{\textcolor{goodgreen}{association}\xspace}
+\newcommand{\mnem}{$m$\xspace}
+\newcommand{\vocab}{$v$\xspace}
+\newcommand{\assoc}{$a$\xspace}
+\newcommand{\eg}{$e$\xspace}
 
 \title{\textbf{LINKS}: Generate linguistically grounded mnemonic devices for English vocabulary learning with reasoning, multilingual LLMs
 }

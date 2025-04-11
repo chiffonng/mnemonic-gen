@@ -1,13 +1,13 @@
 \section{In-context learning performance} \label{sec:icl-performance}
 
-We first investigated how effectively frontier LLMs could generate linguistically grounded mnemonics through in-context learning without additional training. This exploration aimed to establish baseline performance and identify optimal prompting strategies before progressing to more resource-intensive approaches.
+We first investigated how effectively frontier LLMs could generate linguistically grounded mnemonics through in-context learning. This exploration aimed to establish baseline performance and identify optimal prompting strategies before progressing to more resource-intensive approaches.
 
 \subsection{Experimental setup}
-We systematically compared different in-context learning approaches to understand how various prompting techniques affect mnemonic generation quality. Using a test set of 50 vocabulary words from SAT and TOEFL exams, we evaluated four distinct prompting strategies with \teachermodel \citep{DeepSeek-AIDEEPSEEKR12025}.
+We compared different in-context learning approaches to understand how they affect mnemonic generation quality. Using a test set of 50 vocabulary words from SAT and TOEFL exams, we evaluated four distinct prompting strategies with \xteachermodel (multimodal) and \teachermodel (reasoning) \citep{DeepSeek-AIDEEPSEEKR12025,DeepSeekV32025}.
 
-For each test word, we instructed the model to generate a mnemonic that would help learners remember both the meaning and spelling of the vocabulary. We used \verb|curator| \citep{BespokeLabBESPOKE2025} with the \verb|litellm| orchestration layer to standardize API calls, manage rate limits, and handle retries across experiments.
+Given a vocabulary \vocab and a list of mnemonic characteristics (\Cref{fig:good-bad-mnemonics}), we designed a prompt $p$ and prompted the model $M$ to generate a \lgm \mnem for \vocab. We repeated this process for 50 vocabulary \vocab, 4 prompts $p$, and 2 models $M$, resulting in 400 total API requests. The prompts were designed to elicit different levels of linguistic reasoning and mnemonic generation strategies, with full description in \Cref{app:prompt-usage}. We used \verb|curator| \citep{BespokeLabBESPOKE2025} with \verb|litellm| orchestration layer to standardize API calls, manage rate limits, and handle retries across experiments.
 
-To evaluate the linguistic grounding of generated mnemonics, we assessed each output on whether it explicitly incorporated at least one of the linguistic features described in \Cref{tab:linguistic-features}. We also evaluated the overall quality using criteria derived from mnemonic literature (\Cref{fig:good-bad-mnemonics}).
+We evaluated the outputs based on two criteria: \numlist{1} lingusitic grounding, whether there is at least one of the linguistic features (\Cref{tab:linguistic-features}) and \numlist{2} overall quality, which we manually assessed using the given rubric (\Cref{fig:good-bad-mnemonics}).
 
 \subsection{Results} \label{sec:icl-results}
 
@@ -18,11 +18,11 @@ To evaluate the linguistic grounding of generated mnemonics, we assessed each ou
   \label{fig:prompting-methods}
 \end{figure}
 
-As shown in \Cref{fig:prompting-methods}, we observed significant variation in the linguistic grounding of generated mnemonics based solely on prompt formulation. The vanilla prompt, which simply requested a mnemonic for a vocabulary word, produced linguistically grounded outputs in only 28\% of cases. Interestingly, changing the terminology from "mnemonic" to "memory cue" increased the proportion of linguistically grounded responses to 42\%, suggesting that the term "mnemonic" may carry pre-training biases that associate it primarily with acronyms or simple keyword methods rather than deeper linguistic analysis \citep{hackmannWordImportanceExplains2024}.
+As shown in \Cref{fig:prompting-methods}, we observed significant variation in the linguistic grounding of generated mnemonics based solely on prompt formulation. The vanilla prompt, which simply requested a \lgm for a vocabulary \vocab, produced only 28\% linguistically grounded outputs in only 28\% of cases. Interestingly, changing the terminology from "mnemonic" to "memory cue" increased the proportion of linguistically grounded responses to 42\%, suggesting that the term "mnemonic" may carry pre-training biases that associate it primarily with acronyms or simple keyword methods rather than deeper linguistic analysis \citep{hackmannWordImportanceExplains2024}.
 
 The structured prompt, which explicitly requested a "linguistically grounded mnemonic" and specified that linguistic features should be used, achieved 64\% linguistically grounded outputs. This aligns with findings from \citet{yinDidYouRead2023} that explicit task instructions significantly impact LLM performance.
 
-Most notably, the 10-shot chain-of-thought (CoT) prompt, which included examples of step-by-step linguistic analysis before mnemonic generation, achieved 86\% linguistically grounded responses. This substantial improvement demonstrates that CoT prompting effectively elicits linguistic reasoning capabilities from LLMs \citep{weiChainofThoughtPromptingElicits2023}.
+Most notably, the 10-shot chain-of-thought (CoT) prompt, which included examples of step-by-step linguistic analysis before mnemonic generation, achieved 86\% linguistically grounded responses. This substantial improvement demonstrates that CoT prompting effectively elicits linguistic reasoning capabilities from LLMs \citep{weiChainofThoughtPromptingElicits2022}.
 
 Our qualitative analysis revealed several patterns in the generated mnemonics:
 
