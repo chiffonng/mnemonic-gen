@@ -1,4 +1,4 @@
-# src/eval/statistical_tests.py
+# src/eval/significance.py
 """Module for statistical significance tests on mnemonic evaluation data."""
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ def compare_likert_scores(
     base_scores: Series | np.ndarray,
     finetuned_scores: Series | np.ndarray,
     alpha: float = 0.05,
-) -> tuple[str, float, bool, str]:
+) -> tuple[float, float, str]:
     """Compare Likert scale scores between base and finetuned models.
 
     Args:
@@ -34,7 +34,7 @@ def compare_likert_scores(
     Returns:
         Tuple containing:
         - p_value: p-value of the test
-        - is_significant: Whether the difference is statistically significant
+        - effect_size: Cohen's d effect size
         - interpretation: Human-readable interpretation of the result
     """
     # Check if data length matches
@@ -53,7 +53,9 @@ def compare_likert_scores(
     is_significant = p_value < alpha
 
     # Compute effect size - Cohen's d for paired samples
-    effect_size = np.mean(diff) / np.std(diff, ddof=1)
+    effect_size = (
+        np.mean(diff) / np.std(diff, ddof=1) if np.std(diff, ddof=1) != 0 else 0
+    )
 
     # Create interpretation
     mean_diff = np.mean(finetuned_scores) - np.mean(base_scores)
@@ -89,7 +91,7 @@ def compare_boolean_outcomes(
     base_outcomes: Series | np.ndarray,
     finetuned_outcomes: Series | np.ndarray,
     alpha: float = 0.05,
-) -> tuple[float, bool, str]:
+) -> tuple[float, str]:
     """Compare boolean outcomes between base and finetuned models using McNemar's test.
 
     Args:
@@ -100,7 +102,6 @@ def compare_boolean_outcomes(
     Returns:
         Tuple containing:
         - p_value: p-value of the test
-        - is_significant: Whether the difference is statistically significant
         - interpretation: Human-readable interpretation of the result
     """
     # Ensure inputs are proper boolean arrays
@@ -116,7 +117,7 @@ def compare_boolean_outcomes(
     # McNemar's test
     if b01 + b10 < 20:
         # Use exact binomial test for small samples
-        p_value = stats.binom_test(min(b01, b10), b01 + b10, p=0.5)
+        p_value = stats.binomtest(min(b01, b10), b01 + b10, p=0.5).pvalue
     else:
         # Use chi-square approximation
         stat = ((b01 - b10) ** 2) / (b01 + b10)
@@ -160,7 +161,7 @@ def analyze_mnemonic_evaluation(
         finetuned_results: DataFrame with evaluation results from finetuned model
         matched_by: Column to match results (default: "term")
         metrics: List of metrics to analyze. If None, uses all numeric and boolean columns
-            except the matching column.
+            except the matching column and model column.
 
     Returns:
         DataFrame with statistical test results for each metric
@@ -181,6 +182,7 @@ def analyze_mnemonic_evaluation(
     ].sort_values(matched_by)
 
     # If metrics not specified, use all numeric and boolean columns except matching column
+    # remove any columns that are not in both dataframes, not of type int/float/bool
     if metrics is None:
         metrics = []
         for col in base_df.columns:
@@ -197,9 +199,9 @@ def analyze_mnemonic_evaluation(
             logger.warning(f"Metric '{metric}' not found in both dataframes. Skipping.")
             continue
 
-        if base_df[metric].dtype == "bool":
+        if base_df[metric].dtype == bool:
             # Boolean metrics (e.g., correctness)
-            p_value, is_significant, interpretation = compare_boolean_outcomes(
+            p_value, interpretation = compare_boolean_outcomes(
                 base_df[metric], finetuned_df[metric]
             )
             effect_size = None
@@ -214,10 +216,10 @@ def analyze_mnemonic_evaluation(
             {
                 "metric": metric,
                 "base_mean": base_df[metric].mean(),
-                "rl_mean": finetuned_df[metric].mean(),
+                "linksys_mean": finetuned_df[metric].mean(),
                 "mean_diff": finetuned_df[metric].mean() - base_df[metric].mean(),
                 "base_std": base_df[metric].std(),
-                "rl_std": finetuned_df[metric].std(),
+                "linksys_std": finetuned_df[metric].std(),
                 "p_value": p_value,
                 "effect_size": effect_size,
                 "n_samples": len(matched_terms),
@@ -226,3 +228,17 @@ def analyze_mnemonic_evaluation(
         )
 
     return pd.DataFrame(results)
+
+
+if __name__ == "__main__":
+    base_results = pd.read_csv("data/eval/it_model_evaluation.csv")
+    finetuned_results = pd.read_csv("data/eval/rl_model_evaluation.csv")
+
+    # Analyze all metrics
+    results = analyze_mnemonic_evaluation(base_results, finetuned_results)
+
+    # don't print last two columns
+    print(results.drop(columns=["interpretation", "n_samples"]))
+
+    # Save results to file
+    results.to_csv("data/eval/significance_results.csv", index=False)
