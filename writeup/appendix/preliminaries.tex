@@ -44,7 +44,9 @@ where \( f(\mathbf{x}; \theta) \) represents the model's output with parameters 
 
 \subsubsection{Instruction tuning} \label{app:instruction-tuning-it}
 
-Instruction-tuning is a specialized form of SFT \Cref{app:sft} where models are trained on datasets comprising instruction-response pairs. This approach enables models to generalize across various tasks described by natural language instructions, enhancing their ability to follow diverse prompts. Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) denotes the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
+Instruction-tuning is a specialized form of SFT (\Cref{app:sft}) where models are trained on datasets comprising instruction-response pairs. This approach enables models to generalize across various tasks described by natural language instructions, enhancing their ability to follow diverse prompts.
+
+Formally, an instruction-tuning dataset consists of pairs \( \{(\mathbf{I}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \) or triplets \( \{(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}, \mathbf{y}^{(i)})\}_{i=1}^N \), where \( \mathbf{I}^{(i)} \) denotes the instruction, \( \mathbf{x}^{(i)} \) is the optional input, and \( \mathbf{y}^{(i)} \) is the desired output. The training objective is to minimize the loss:
 
 \begin{equation}
 \mathcal{L} = \frac{1}{N} \sum_{i=1}^N \ell(f(\mathbf{I}^{(i)}, \mathbf{x}^{(i)}; \theta), \mathbf{y}^{(i)})
@@ -87,7 +89,7 @@ Group Relative Policy Optimization (GRPO) \citet{DeepSeek-AIDEEPSEEKR12025} is a
 
 Intuitively, GRPO generates multiple responses for a given prompt, scores them using reward models, calculates the relative reward of the group, and then compares each response's score to that relative reward to determine which is better or worse. The model then updates its policy to favor high-reward responses.
 
-\paragraph{Generating completions} For each prompt $q$ in a batch, the model generates a set of $G$ completions:
+\paragraph{Generating completions} For each prompt $q$ in a batch, the model generates $G$ completions:
 \begin{equation}
 O_q = \{o_1, o_2, \ldots, o_G\}
 \end{equation}
