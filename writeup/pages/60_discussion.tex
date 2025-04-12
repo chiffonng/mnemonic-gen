@@ -4,12 +4,14 @@
 \section{Conclusion} \label{sec:conclusion}
 This paper introduced
 
-\section{Limitations} \label{sec:limitations}
-Despite promising results, several limitations warrant acknowledgment. (1) Our evaluation focused primarily on intermediate measures of mnemonic quality rather than direct assessment of learning outcomes. Future work should include longitudinal studies measuring actual vocabulary retention. (2) our linguistic feature classification relied on manual annotation for a subset of examples, which may introduce inconsistencies. Finally, while our comparative analysis included both open and closed-source models, resource constraints limited the scale of fine-tuning experiments, particularly for larger models.
+\subsection{Limitations} \label{sec:limitations}
+Despite promising results, several limitations warrant acknowledgment. (1) Resource constraints limited the scale of our experiments (\Cref{sec:icl-performance,sec:evaluation}) and the limited number of annotators in our double-blind study (\Cref{sec:pairwise-preference}) may have introduced bias in the evaluation process. Future work should consider using a larger and more diverse set of judges and annotators to ensure robustness and generalizability of the findings.
 
-(4) The use of LLM-as-a-judge
+(2) Our evaluation focused primarily on intermediate measures of mnemonic quality rather than direct assessment of learning outcomes. Future work should include longitudinal studies measuring actual vocabulary retention using LLM-generated mnemonics.
 
-We can include more
+(3) The use of LLM-as-a-judge for qualitative grading and pairwise preference evaluation may introduce biases. We acknowledged the potential for biases in LLMs, including self-enhancement bias \citep{panicksseryLLMEvaluatorsRecognize2024}, positional bias \citep{wangNotFairEvaluators2024,zhengJudgingLLMasajudgeMTbench2023}, verbosity bias \citep{zhengJudgingLLMasajudgeMTbench2023}, and others. Respectively, we attempted to mitigate these biases by employing a structured evaluation protocol, shuffling the order of mnemonics in a pair, enforcing a structured output format, and controlling for generated mnemonics length by both models in comparison \citep{guSurveyLLMasaJudge2025}. Additionally, we employed a double-blind annotation study with human annotators to validate the results. However, the limited number of annotators (two) may have introduced bias in the evaluation process. Future work should consider using a larger and more diverse set of judges and annotators to ensure robustness and generalizability of the findings.
+
+(4) The focus on English words and English mnemonics may limit the generalizability of our findings to other types of vocabulary (e.g., phrasal verbs, idioms), other languages, and cross-lingual vocabulary-mnemonics. Future research should explore the applicability of our approach to different languages and cultural contexts, such as generating Vietnamese mnemonics to help learn Chinese vocabulary through radicals and cognates.
 
 \subsection{Future Work} \label{sec:future-work}
 Future research directions include expanding linguistic annotations to cover a broader range of features and vocabulary types, developing automated methods for linguistic feature extraction, and exploring personalized mnemonic generation that adapts to individual learning preferences and styles. Additionally, integrating multimodal elements that combine visual and textual mnemonics could further enhance learning effectiveness, particularly for concrete vocabulary.
