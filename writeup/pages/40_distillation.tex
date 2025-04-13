@@ -11,7 +11,8 @@
 \subsection{Preparation} \label{sec:data-prep}
 We first created a comprehensive training dataset. Following best practices in synthetic data generation with LLMs \citetext{\citealp{longLLMsDrivenSyntheticData2024b}, \citealp{openthoughtsteamOpenThoughts2025}}, we designed a data construction pipeline with key components (\Cref{fig:distillation}).
 
-\paragraph*{Vocabulary selection} We collected 5,000 distinct words from three main sources: English as a foreign language tests (TOEFL iBT, IELTS Academic), standardized tests with verbal reasoning (SAT, GRE), and CEFR C1/C2 word lists. This ensured coverage of academic and abstract vocabulary that would benefit from mnemonic devices. After fuzzy-matching deduplication (threshold 95\%), we refined the dataset and sampled 2,000 distinct vocabulary for post-training.
+\paragraph*{Vocabulary selection} \label{sec:vocab-selection}
+We collected 5,000 distinct words from three main sources: English as a foreign language tests (TOEFL iBT, IELTS Academic), standardized tests with verbal reasoning (SAT, GRE), and CEFR C1/C2 word lists. This ensured coverage of academic and abstract vocabulary that would benefit from mnemonic devices. After fuzzy-matching deduplication (threshold 95\%), we refined the dataset and performed stratified random sampling (stratified by linguistic features used) to obtain 2,000 distinct vocabulary for post-training.
 
 \paragraph*{Prompt design and model selection} Based on \cref{sec:icl-performance}'s findings, we designed system and user prompts, focusing on the 10-shot CoT approach that demonstrated superior performance in eliciting linguistic reasoning and creating memorable, \lgms.
 

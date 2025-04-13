@@ -81,8 +81,6 @@ J(\theta) = \mathbb{E}_{\pi_\theta}\left( \sum_{t=0}^{T} \gamma^t\,r_t\right)
 
 where $\gamma\in(0,1)$ is a discount factor.
 
-In the next section, we consider an advanced method called Group Relative Policy Optimization (GRPO). GRPO extends PPO by generating multiple responses per prompt, comparing the rewards within each group, and adjusting the policy based on relative advantages. This online RL approach continuously improves by (1) generating completions, (2) scoring them using reward models, and (3) updating the model's policy with both an advantage term and a KL penalty.
-
 \subsubsection{Group Relative Policy Optimization} \label{app:grpo}
 
 Group Relative Policy Optimization (GRPO) \citet{DeepSeek-AIDEEPSEEKR12025} is an online reinforcement learning method specifically designed for scenarios where the model generates multiple responses (or completions) for the same prompt. It was introduced to improve the mathematical reasoning capabilities of LLMs, by generating multiple CoT responses for a given problem and then compares results to the ground truth.
