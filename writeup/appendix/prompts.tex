@@ -1,12 +1,46 @@
 
 \section{Prompt usage} \label{app:prompt-usage}
 
-All of the following prompts are system prompts for \teachermodel. We also added \Cref{app:mnemonic-characteristics} as mnemonic requirements for all.
+All of the following prompts are system prompts for \teachermodel. We also added \Cref{app:mnemonic-characteristics} as mnemonic requirements for all prompts, and added the phrase "Let's think step by step" to the prompt variants sent to \xteachermodel. To conserve tokens, we remove unnecessary words that did not contribute to task instructions, such as modifiers.
 
-\subsection*{Vanilla vs. Alternative Phrasing} When comparing "Generate a mnemonic to help learn and remember the meaning of English vocabulary and how it is written: \{term\}" against "Generate a memory cue to help learn and remember the meaning of English vocabulary and how it is written: \{term\}", we observed substantial differences in output quality. This highlights the word importance effect noted by \citet{hackmannWordImportanceExplains2024}, where specific terms like "mnemonic" may have acquired pre-training biases that associate them primarily with acronyms or keyword methods rather than broader linguistic strategies.
+\subsection*{Vanilla vs. Alternative Phrasing}
 
-\subsection*{Structured Prompting} We found improved performance with structured prompts that explicitly request linguistic analysis: "Generate a linguistically grounded mnemonic to help me learn and remember the meaning of English vocabulary and how it is written: \{term\}. Think in short traces and stop when you have a good linguistic connection. You must use that linguistic feature to form a mnemonic for the word." This approach yielded a higher percentage of mnemonics with clear linguistic association.
+Vanilla prompt
+\begin{quotation}
+  A mnemonic to help learn and remember meaning of English vocabulary: \{term\}. Mnemonic should have following characteristics:
 
-\subsection*{Chain-of-Thought (CoT) Prompting} Incorporating chain-of-thought reasoning by providing both the instruction and examples of step-by-step linguistic analysis significantly improved the quality of generated mnemonics. Our implementation used 10 human-written examples, each demonstrating the process of finding linguistic association of the vocabulary before constructing a mnemonic.
+  [INSERT MNEMONIC REQUIREMENTS HERE].
+\end{quotation}
 
-\subsection*{Concise Reasoning Traces} Inspired by \citet{xuChainDraftThinking2025}, we experimented with prompting models to generate minimal reasoning steps. For example: "Generate a mnemonic for \{term\}. Think step by step, but keep a minimum draft for each thinking step." This approach balanced comprehensive linguistic analysis with efficiency, preventing models from overthinking and/or elaborating on irrelevant aspects.
+Vanilla-Alternative prompt, with "linguistically grounded" added:
+\begin{quotation}
+  A \lgm
+\end{quotation}
+
+We observed that the vanilla prompts, with the term "mnemonic", often elicit backronyms (i.e. an existing word's letters are expanded into a phrase), initialisms or list. We hypothesized that this was because commonly encountered mnemonics are used for long information and non-linguistic contexts, and the training data reflects that popular use of mnemonic devices. This effect can be mitigated by adding the term "lingusitically grounded" to the prompt, to steer the model towards analyzing linguistic features, especially etymology and morphology.
+
+\subsection*{Structured Output and Task Description}
+We found improved performance with prompts that explicitly request broader linguistic analysis and provides structured output format with output descriptions \citep{MishraREFRAMING2022,yinDidYouRead2023}. We also tried to reduce the overthinking tendency in LLMs
+
+\begin{quotation}
+Generate a \lgm to help me learn and remember the meaning of English vocabulary: \{term\}.
+
+Analyze linguistic features for this word (etymology, morphology, phonetics, orthography, semantics, etc). Stop linguistic analysis when you have a good linguistic connection. You must use that linguistic feature to form a mnemonic for the word.
+
+Mnemonic should have following characteristics:
+[INSERT MNEMONIC REQUIREMENTS HERE].
+
+Provide output in this format:
+
+- linguistic\_feature: chosen linguistic feature for mnemonic
+
+- mnemonic: association + mnemonic
+
+- example: example sentence of the vocabulary in context
+\end{quotation}
+
+This approach yielded a higher percentage of mnemonics with clear linguistic association, and better mnemonics overall. We also found that the model was more likely to use the same linguistic feature in the mnemonic as in the analysis, which is a key requirement for our task.
+
+\subsection*{Added CoT examples}
+
+For this prompt, we reused the task instructions and added 10 human-written CoT examples, each demonstrating the process of finding linguistic association of the vocabulary before constructing a mnemonic.
