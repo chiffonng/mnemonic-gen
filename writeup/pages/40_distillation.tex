@@ -37,7 +37,7 @@ where $f_{\text{teacher}}$ is the teacher model function, $v_i$ is vocabulary $i
 \subsection{Training and inference} \label{sec:training-inference}
 To transfer the linguistic reasoning capability to a smaller model, we implemented a distillation process using Group Relative Policy Optimization (GRPO).
 
-We selected Google's \studentmodel \citep{GemmaTeamGEMMA2025} as our student model due to its balance of performance and size (1 billion parameters). It can handle general-purpose tasks in multiple languages, and demonstrate instruction-following abilities. We used a 4-bit quantized version to further reduce memory requirements while maintaining performance \citep{dettmersQLoRAEfficientFinetuning2023}.
+We selected Google's \studentmodel \citep{gemma-teamGemma3Technical2025} as our student model due to its balance of performance and size (1 billion parameters). It can handle general-purpose tasks in multiple languages, and demonstrate instruction-following abilities. We used a 4-bit quantized version to further reduce memory requirements while maintaining performance \citep{dettmersQLoRAEfficientFinetuning2023}.
 
 \paragraph*{Group Relative Policy Optimization (GRPO)} We employed GRPO \citep{DeepSeek-AIDEEPSEEKR12025} to distill the reasoning capabilities into the student model. For each input prompt $q$ generating a vocabulary $v$, the model produces $G$ candidate outputs:
 
@@ -60,4 +60,4 @@ We defined three reward functions $r$ that encode essential characteristics of e
 
 We assigned higher weights to criterion 3, and generated $G=2$ candidates per training example to enable learning from comparisons. Training was performed on a single NVIDIA H100 GPU for approximately 4 hours (more details in \Cref{app:grpo-config}).
 
-\paragraph*{Low-Rank Adaptation (LoRA)} We trained \studentmodel using GRPO (\Cref{app:peft}) wrapped in LoRA layers (\Cref{app:lora-config}) to reduce the number of trainable parameters and rank-stabilized LoRA that maintains stability for adapters with higher ranks.
+\paragraph*{Low-Rank Adaptation (LoRA)} We trained \studentmodel using GRPO wrapped in LoRA layers (\Cref{app:lora-config}) to reduce the number of trainable parameters and rank-stabilized LoRA that maintains stability for adapters with higher ranks.
