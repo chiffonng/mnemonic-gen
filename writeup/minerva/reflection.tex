@@ -1,17 +1,51 @@
-
 \section{Documentation of previous iterations} \label{app:previous-iterations}
+
 \subsection{Fine-tune OpenAI (Nov 2024)} \label{app:openai-finetune}
+
+In November 2024, my initial approach involved fine-tuning OpenAI's 4o-mini model on a curated dataset of approximately 1,300 mnemonics. The dataset was structured to include vocabulary terms, existing mnemonics, and improved versions of those mnemonics. However, I encountered limitations in this approach as the fine-tuned model only partially adopted the intended mnemonic style and I did not provide reasoning patterns. This experience aligns with findings from \citet{zhouLIMALessMore2023}, who observed that even with high-quality data, models may struggle to fully internalize specific patterns without explicit guidance on the process itself.
 
 \subsection{Fine-tune Gemma-2-9b-it (Dec 2024)} \label{app:gemma2-finetune}
 
-For supervised fine-tuning (SFT), we utilized the \verb|trl| library's \verb|SFTTrainer| class with the following hyperparameters: batch size \( b = 16 \), number of epochs \( \text{eps} = 4 \), learning rate \( \alpha = 2 \times 10^{-5} \), weight decay \( \lambda = 0.05 \), and a cosine annealing learning rate scheduler with restarts.
+In December 2024, I pivoted to fine-tuning Gemma-2-9b-it using Low-Rank Adaptation (LoRA) on my curated dataset. The Gemma-2 model, with 9 billion parameters, offered a more suitable foundation for my specialized task while being accessible for academic research. I utilized the \verb|trl| library's \verb|SFTTrainer| class with the following hyperparameters: batch size \( b = 16 \), number of epochs \( \text{eps} = 4 \), learning rate \( \alpha = 2 \times 10^{-5} \), Iight decay \( \lambda = 0.05 \), and a cosine annealing learning rate scheduler with restarts.
 
-The batch size \( b \) defines the number of training examples processed simultaneously during each forward and backward pass. A batch size of 16 balances computational efficiency and gradient estimation accuracy. Training for 4 epochs (\( \text{eps} = 4 \)) means the model will see the training data a total of four times, which ensures sufficient exposure to the training data without risking overfitting. The learning rate \( \alpha \) controls the step size for weight updates; a value of \( 2 \times 10^{-5} \) is typical for fine-tuning large language models, facilitating gradual convergence. Weight decay \( \lambda \) serves as a regularization term, penalizing large weights to prevent overfitting. The cosine annealing scheduler adjusts the learning rate following a cosine decay pattern, periodically restarting to allow the model to escape local minima and potentially achieve better generalization, compared to linear decay.
+The batch size \( b \) defines the number of training examples processed simultaneously during each forward and backward pass. A batch size of 16 balances computational efficiency and gradient estimation accuracy. Training for 4 epochs (\( \text{eps} = 4 \)) means the model will see the training data a total of fmy times, which ensures sufficient exposure to the training data without risking overfitting. The learning rate \( \alpha \) controls the step size for Iight updates; a value of \( 2 \times 10^{-5} \) is typical for fine-tuning large language models, facilitating gradual convergence. Iight decay \( \lambda \) serves as a regularization term, penalizing large Iights to prevent overfitting. The cosine annealing scheduler adjusts the learning rate following a cosine decay pattern, periodically restarting to allow the model to escape local minima and potentially achieve better generalization, compared to linear decay.
+
+While this approach shows promise, I encountered significant technical limitations related to computational resources. Specifically, the model size of 9 billion parameters, even with LoRA optimization, exceeded the memory capacity of available Google Colab instances. This made it impossible to export the trained model components for deployment and evaluation. This experience highlighted the practical challenges in working with large language models in resource-constrained environments, as discussed in \citet{dettmersQLoRAEfficientFinetuning2023}.
 
 \subsection{Fine-tune Gemma-3-4b-it (Feb 2025)} \label{app:gemma3-finetune}
 
+With the release of Gemma-3 in February 2025, I updated my approach to fine-tune the smaller Gemma-3-4b-it model. This decision was motivated by two key factors: (1) the improved base capabilities of the Gemma-3 series despite having fewer parameters than Gemma-2-9b \citep{gemma-teamGemma3Technical2025}, and (2) the feasibility of working with a 4 billion parameter model given my computational constraints.
+
+For this iteration, I first established a clearer framework for effective mnemonics, developing a taxonomy of linguistic features that contribute to mnemonic effectiveness. I re-annotated 180 examples with explicit linguistic associations (connecting vocabulary to mnemonics), identified specific linguistic features utilized, and standardized mnemonic styles. These annotated examples served as Chain-of-Thought (CoT) demonstrations for prompting LLMs.
+
+My fine-tuning approach incorporated the CoT methodology, training the model to generate a three-step sequence: linguistic analysis, linguistic association, and mnemonic creation. However, I encountered a significant challenge in applying CoT reasoning to smaller language models.
+
 However, directly applying CoT reasoning to small language models (SLMs) with fewer than 10 billion parameters has proven to be considerably less effective \citep{hoLLMReasoningTeachers2023}. \citet{lanhamMeasuringFaithfulnessChainofThought2023} propose that CoT prompting only performs effectively under specific scenarios and model scales.
+
+While the fine-tuned Gemma-3-4b-it model shows some improvement in mnemonic generation, the CoT reasoning capabilities remained inconsistent and occasionally interfered with the model's baseline language generation abilities. This aligns with observations from \citet{biEnhancingReasoningCapabilities2025a}, who noted that naive fine-tuning of small language models for reasoning tasks can lead to unstable performance and reduced general capabilities.
 
 \subsection{Post-train \studentmodel with GRPO (Mar 2025)} \label{app:gemma3-grpo}
 
+Based on my experiences with supervised fine-tuning and the limitations of traditional CoT approaches for smaller models, I made a final pivot to employ Group Relative Policy Optimization (GRPO) \citep{DeepSeek-AIDEEPSEEKR12025} for post-training Gemma-3-4b-it. This approach represented a significant shift in my methodology, leveraging reinforcement learning techniques specifically designed to enhance reasoning capabilities in language models.
+
+The GRPO approach offered several advantages over traditional fine-tuning methods for my specific use case:
+
+1. It allowed for more effective distillation of reasoning patterns from a larger teacher model (\teachermodel) to my smaller student model (\studentmodel)
+2. It provided a mechanism to generate multiple reasoning paths and reward those that led to high-quality mnemonics
+3. It better preserved the base capabilities of the student model while enhancing its specialized mnemonic generation skills
+
+I generated a comprehensive dataset of approximately 2,000 linguistically grounded mnemonics using \teachermodel as the teacher model, each accompanied by detailed reasoning traces. This dataset served as the foundation for my GRPO training process, which ultimately produced \linksys, my specialized model for mnemonic generation.
+
 \section{Reflection} \label{sec:reflection}
+
+Throughout the development of this project, several key insights emerged regarding the effective training of specialized language models for educational applications:
+
+1. \textbf{Resource constraints drive innovation}: The limitations of available computational resmyces forced us to explore more efficient approaches, ultimately leading to the development of a more practical and deployable solution.
+
+2. \textbf{Quality of data trumps quantity, but quantity is needed}: My experience reinforced that carefully curated examples with explicit reasoning traces produced better results than larger datasets of simple input-output pairs, particularly for tasks requiring sophisticated linguistic reasoning. However, the need for a larger dataset to train the model effectively was also evident, as smaller datasets alone could not capture the full range of linguistic features and associations necessary for effective mnemonic generation.
+
+3. \textbf{Reasoning in smaller models requires specialized techniques}: Traditional Chain-of-Thought approaches that work Ill for frontier models needed significant adaptation for smaller models, highlighting the importance of model-appropriate training methodologies.
+
+4. \textbf{Reinforcement learning bridges the gap}: GRPO proved especially valuable for distilling complex reasoning patterns from larger to smaller models, offering a pathway to create specialized models that retain the reasoning capabilities of much larger systems.
+
+These insights not only guided the successful development of \linksys but also contribute to the broader understanding of how to effectively develop specialized language models for educational applications in resmyce-constrained environments.
