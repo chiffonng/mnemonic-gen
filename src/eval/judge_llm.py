@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from bespokelabs import curator
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
     from typing import Optional
 
     from datasets import Dataset
+    from pandas import DataFrame
     from structlog.stdlib import BoundLogger
 
     from src.utils.types import PathLike
@@ -80,8 +82,8 @@ class MnemonicJudge(curator.LLM):
 def judge(
     ds: Dataset,
     model_name: str = "o3-mini",
-    save_dir: Optional[PathLike] = "exp/judege_llm",
-) -> Dataset:
+    save_dir: Optional[PathLike] = "outputs/judge_llm",
+) -> DataFrame:
     """Evaluate a dataset of mnemonics using the Judge model.
 
     Args:
@@ -100,8 +102,11 @@ def judge(
     evaluations_df = evaluations.to_pandas()
 
     if save_dir:
+        save_path = Path(save_dir) / model_name
+        save_path.parent.mkdir(parents=True, exist_ok=True)
+
         # Save the evaluations to a file
-        evaluations_df.save_to_disk(save_dir / model_name)
+        evaluations_df.to_csv(save_path, index=False)
         logger.info(f"Saved evaluations to {save_dir}")
 
     return evaluations_df

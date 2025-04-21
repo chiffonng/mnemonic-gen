@@ -104,8 +104,9 @@ def check_file_path(
         path.parent.mkdir(parents=True, exist_ok=True)
         path.touch()
 
-    extensions = validate_and_normalize_extensions(extensions)
-    check_extension(path, extensions)
+    if extensions:
+        extensions = validate_and_normalize_extensions(extensions)
+        check_extension(path, extensions)
 
     return path
 
@@ -115,7 +116,7 @@ def check_file_paths(
     new_ok: bool = False,
     to_create: bool = False,
     extensions: Optional[list[ExtensionsType]] = None,
-) -> tuple[Path]:
+) -> list[Path]:
     """Check if the file paths exist, convert them to Path objects if they are strings, and return them. Optionally, check if the files have one of the specified extensions.
 
     Args:
@@ -125,7 +126,7 @@ def check_file_paths(
         extensions (list[str], optional): A list of allowed file extensions. Defaults to []. If provided, all files must have one of the specified extensions.
 
     Returns:
-        paths (tuple[Path]): The paths to the files.
+        paths (list[Path]): The paths to the files.
 
     Raises (inherits from check_file_path):
         TypeError: If 'paths' is not a list of strings or Path objects OR if 'extensions' is not a string or a list of strings.
@@ -159,7 +160,7 @@ def check_dir_path(
     dir_path = validate_path(dir_path)
     if not new_ok and not dir_path.is_dir():
         raise FileNotFoundError(
-            "Path is not an existing directory", path=dir_path.resolve()
+            f"Path is not an existing directory: {dir_path.resolve()}"
         )
 
     if new_ok and not dir_path.exists():
@@ -167,55 +168,3 @@ def check_dir_path(
         dir_path.mkdir(parents=True, exist_ok=True)
 
     return dir_path
-
-
-def find_files_with_extensions(
-    dir_path: PathLike, *extensions: ExtensionsType
-) -> list[Path]:
-    """Find files with specified extensions in a directory.
-
-    Args:
-        dir_path (PathLike): The path to the directory.
-        extensions (list[str]): A list of allowed file extensions.
-
-    Returns:
-        list[Path]: A list of file paths with the specified extensions.
-
-    Raises:
-        TypeError: If 'dir_path' is not a string or a Path object OR if 'extensions' is not a string or a list of strings.
-        FileNotFoundError: If the directory does not exist, OR if "extensions" are provided but and no files with the specified extensions are found.
-    """
-    dir_path = check_dir_path(dir_path)
-
-    extensions = validate_and_normalize_extensions(extensions)
-
-    # Collect files with the specified extensions if provided
-    paths = [p for p in dir_path.iterdir() if p.suffix in extensions]
-    if not paths:
-        raise FileNotFoundError(
-            f"No files with one of the extensions {extensions} found in directory: {dir_path.resolve()}"
-        )
-
-    return paths
-
-
-def first_file_exists(
-    *files: PathLike, extensions: Optional[ExtensionsType] = None
-) -> Path:
-    """Return the first file found in the list of files. Optionally, return the first file with the specified extensions.
-
-    Args:
-        files (PathLike): The list of file paths to check.
-        extensions (list[str], optional): A list of allowed file extensions. Defaults to [].
-
-    Returns:
-        file_path (Path): The first file found in the list.
-    """
-    for file in files:
-        file_path = check_file_path(file, new_ok=True, extensions=extensions)
-        if file_path.exists():
-            return file_path
-
-    raise FileNotFoundError(
-        f"None of the specified files were found: {[str(p) for p in files]}."
-    )

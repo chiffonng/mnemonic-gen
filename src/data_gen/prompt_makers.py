@@ -82,7 +82,6 @@ def get_system_prompt(
 
     if to_export and num_examples == 0:
         logger.info("No examples requested, not exporting prompt")
-        return prompt_path
 
     elif to_export and num_examples > 0:
         export_path = prompt_path.parent / f"{prompt_path.stem}_{num_examples}_shot.txt"
@@ -94,15 +93,13 @@ def get_system_prompt(
         # Add export_path to constants.py
         setattr(const.PROMPT_PATH, f"REASON_SYSTEM_{num_examples}SHOT", export_path)
 
-        return export_path
-
     return get_system_prompt_examples(prompt_path, **kwargs)
 
 
 def get_system_prompt_examples(
     prompt_path: PathLike,
     examples_path: Optional[PathLike] = None,
-    num_examples: Optional[int] = 0,
+    num_examples: int = 0,
 ) -> tuple[str, int]:
     """Read prompt and add k examples to it, used for 0-shot, few-shot, and many-shot learning.
 
@@ -126,7 +123,7 @@ def get_system_prompt_examples(
         num_examples = 0
 
     if num_examples == 0:
-        return system_prompt
+        return system_prompt, 0
 
     # If no examples path is provided, try common locations
     if examples_path is None:
@@ -147,7 +144,7 @@ def get_system_prompt_examples(
         # If we didn't find a valid path, return just the system prompt
         if found_examples_path is None:
             logger.warning("No examples found. Using system prompt without examples.")
-            return system_prompt
+            return system_prompt, 0
 
         # Set the found path to examples_path
         examples_path = found_examples_path
@@ -157,7 +154,6 @@ def get_system_prompt_examples(
         examples = load_examples(examples_path)
     except Exception as e:
         logger.warning(f"Failed to load examples from {examples_path}: {e}")
-        return system_prompt
 
     actual_num_examples = len(examples)
     if num_examples > actual_num_examples:
@@ -201,7 +197,7 @@ def load_examples(
         extensions=[const.Extension.CSV, const.Extension.JSONL],
     )
     if examples_path.suffix == const.Extension.CSV:
-        return read_csv_file(examples_path, to_list_of_dicts=True)
+        return read_csv_file(examples_path, to_list=True)
     elif examples_path.suffix == const.Extension.JSONL:
         return read_json_file(examples_path)
     else:
@@ -228,7 +224,7 @@ def combine_prompt_examples(prompt_path: PathLike, examples_path: PathLike) -> s
     examples = read_prompt(examples_path)
 
     # Combine the system prompt with the examples
-    combined_prompt = system_prompt + "\n\nEXAMPLE ANSWERS:\n\n"
+    combined_prompt = system_prompt + "\n\nEXAMPLES:\n\n"
     for i, example in enumerate(examples):
         combined_prompt += f"{i + 1}. {example}\n"
 

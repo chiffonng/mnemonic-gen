@@ -34,11 +34,11 @@ class ExplicitEnum(str, Enum):
 
 
 def validate_enum_field(
-    enum_class: type[Enum],
-) -> Callable[[StrNoneType], StrNoneType]:
+    enum_class: type[ExplicitEnum],
+) -> None | str:
     """Create a validator for enum fields."""
 
-    def validator(value: StrNoneType) -> StrNoneType:
+    def validator(value: str | None) -> str | None:
         """Validate the enum field."""
         if value is None or value == "":
             return None
@@ -52,9 +52,6 @@ def validate_enum_field(
                 # If value doesn't match enum, use the _missing_ method
                 if hasattr(enum_class, "_missing_"):
                     return enum_class._missing_(value)
-                raise ValueError(
-                    f"Invalid value '{value}' for {enum_class.__name__}"
-                ) from None
         return value
 
     return validator
