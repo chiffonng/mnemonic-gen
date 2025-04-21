@@ -54,7 +54,7 @@ def extract_mnemonic_types(mnemonic: str) -> tuple[str, Optional[str]]:
             "compound",
             "morpheme",
         ],
-        LinguisticFeature.semantic_field: [
+        LinguisticFeature.semantics: [
             "semantic field",
             "refers to",
             "related to",
@@ -72,7 +72,6 @@ def extract_mnemonic_types(mnemonic: str) -> tuple[str, Optional[str]]:
             "read as",
             "rhymes",
         ],
-        LinguisticFeature.context: ["context", "used in", "example", "sentence"],
     }
 
     # Count keyword matches
@@ -92,10 +91,6 @@ def extract_mnemonic_types(mnemonic: str) -> tuple[str, Optional[str]]:
     sub_type = (
         sorted_types[1][0] if len(sorted_types) > 1 and sorted_types[1][1] > 0 else None
     )
-
-    for mnemonic_type, keywords in keywords_by_type_dict.items():
-        if any(keyword in mnemonic for keyword in keywords):
-            return mnemonic_type
 
     # morphology: search for pattern "term = morpheme1 + morpheme2", e.g. "unhappiness = un + happiness"
     pattern = re.compile(r"(\w+)\s*=\s*(\w+)\s*\+\s*(\w+)")

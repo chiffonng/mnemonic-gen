@@ -132,5 +132,4 @@ if __name__ == "__main__":
         input_path="data/raw/train.txt",
         # output_repo_id=structured_ds_repo_id,
         dry_run=True,
-        sample_size=1,
     )
