@@ -20,24 +20,11 @@
 % This assumes your files are encoded as UTF8
 \usepackage[utf8]{inputenc}
 
-% This is not strictly necessary, and may be commented out,
-% but it will improve the layout of the manuscript,
-% and will typically save some space.
-\usepackage{microtype}
-
 % This is also not strictly necessary, and may be commented out.
 % However, it will improve the aesthetics of text in
 % the typewriter font.
-\usepackage{inconsolata}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{graphicx}
-\usepackage{float}
-\usepackage{tabularx} % For flexible-width columns
-\usepackage{booktabs} % For nicer table rules
-\usepackage{array}  % Extended col types if needed
-\usepackage{multirow}
-\usepackage{multicol} % For captions
+\input{preamble/common}
+
 \usepackage[most]{tcolorbox} % For colored boxes
 \usepackage{enumitem} % For custom list styles, for tcolorbox
 \usepackage{xspace}
@@ -46,7 +33,7 @@
 %\setlength\titlebox{<dim>}
 %
 % and set <dim> to something 5cm or larger.
-\input{preamble/common}
+
 
 % need to add this to avoid "undefined control sequence" error in .bib
 % Holmes paper
