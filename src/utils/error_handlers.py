@@ -104,8 +104,9 @@ def check_file_path(
         path.parent.mkdir(parents=True, exist_ok=True)
         path.touch()
 
-    extensions = validate_and_normalize_extensions(extensions)
-    check_extension(path, extensions)
+    if extensions:
+        extensions = validate_and_normalize_extensions(extensions)
+        check_extension(path, extensions)
 
     return path
 

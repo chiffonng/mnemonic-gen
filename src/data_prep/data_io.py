@@ -24,8 +24,8 @@ logger: BoundLogger = getLogger(__name__)
 
 def read_csv_file(
     file_path: PathLike, **kwargs
-) -> Union[pd.DataFrame, dict[dict[str, Any]], list[dict[str, Any]], str]:
-    """Read a CSV file and return its contents as a list of dictionaries.
+) -> Union[pd.DataFrame, dict[str, dict[str, Any]], list[dict[str, Any]], str]:
+    """Read a CSV file and return its contents as a DataFrame or other formats.
 
     Args:
         file_path: Path to the CSV file
@@ -34,7 +34,7 @@ def read_csv_file(
     Returns:
         DataFrame or
         list of dictionaries representing CSV rows or
-        dict of dictionaries representing CSV columns or
+        dict (column -> {index -> value}) or
         str (json formatted string) representing the CSV file path
     """
     validated_path = check_file_path(file_path, extensions=[const.Extension.CSV])
@@ -42,14 +42,15 @@ def read_csv_file(
     df = pd.read_csv(validated_path, na_values=[None], keep_default_na=False)
 
     if kwargs.get("to_dict", False):
-        content: dict[dict[str, Any]] = df.to_dict()
-    elif kwargs.get("to_list_of_dicts", False):
+        content: dict[str, dict[str, Any]] = df.to_dict()
+    elif kwargs.get("to_list", False) or kwargs.get("to_records", False):
         content: list[dict[str, Any]] = df.to_dict(orient="records")
     elif kwargs.get("to_json", False):
         json_str: str = df.to_json(orient="records")
-        content = json.dumps(json.loads(json_str), indent=4)
+        content: str = json.dumps(json.loads(json_str), indent=4)
     elif kwargs.get("to_jsonl", False):
         json_str: str = df.to_json(orient="records", lines=True)
+        content: str = json.dumps(json.loads(json_str), indent=4)
     else:
         return df
 

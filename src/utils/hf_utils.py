@@ -12,7 +12,7 @@ def login_hf_hub(**kwargs):
     login(token=get_hf_token(), add_to_git_credential=True, **kwargs)
 
 
-def get_hf_token() -> str:
+def get_hf_token() -> str | None:
     """Get the Hugging Face token from the environment."""
     import os
 
