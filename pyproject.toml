@@ -39,7 +39,10 @@ dataset    = "https://doi.org/10.57967/hf/3750"
 dev = [
     "deptry>=0.23.0",
     "ipykernel>=6.29.5",
+    "mypy>=1.15.0",
+    "pandas-stubs",
     "pytest>=8.3.5",
+    "types-PyYAML"
 ]
 
 [tool.ruff]
@@ -96,3 +99,12 @@ managed          = true
 
 [tool.uv.pip]
 upgrade-package  = ["ruff", "pre-commit"]
+
+[tool.mypy]
+files = ["src", "scripts"]
+disable_error_code = [
+  "attr-defined",
+  "empty-body",
+  "import-untyped",
+  "no-redef",
+]
