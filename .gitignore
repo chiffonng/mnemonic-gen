@@ -165,6 +165,7 @@ cython_debug/
 .DS_Store
 
 # Data
+data/
 */final/
 */processed/
 */interim/
@@ -172,7 +173,7 @@ cython_debug/
 /temp
 
 # Write up
-write*/
+
 
 # Gradio
 .gradio/
@@ -490,6 +491,10 @@ TSWLatexianTemp*
 # option is specified. Footnotes are the stored in a file with suffix Notes.bib.
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
+
+# Some supp writeup
+*.drawio
+writeup/old
 
 # TODO: Comment when the project finishes
 # Locked dependencies

@@ -1,0 +1,21 @@
+\begin{table*}[!htb]
+\centering
+\caption{Metric comaparison between the base (\studentmodel) and \linksys models}
+\label{tab:significance-llm-judge}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Evaluation Metric} & \textbf{Base} ($\mu$) & \linksys ($\mu$) & $\mu$ diff. & \textbf{p-value} & \textbf{Effect size} \\
+\midrule
+Correct vocabulary usage (bool) & 0.755 & 0.795 & +0.040 & 0.077 & -- \\
+Linguistic grounding (bool) & 0.670 & 0.735 & +0.065 & \textbf{0.009} & -- \\
+Association strength (1-5) & 2.845 & 3.070 & +0.225 & \textbf{<0.001} & 0.464 \\
+Clarity (1-5) & 3.155 & 3.410 & +0.255 & \textbf{<0.001} & 0.481 \\
+Memorability (1-5) & 2.600 & 2.900 & +0.300 & \textbf{<0.001} & 0.566 \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{\textwidth}
+\vspace{0.1em}
+\small
+\textit{Note:} Bold p-values indicate statistically significant differences ($p < 0.05$). Effect sizes are Cohen's d, where 0.2 is small, 0.5 is medium, and 0.8 is large. Boolean metrics (first two rows) do not have effect sizes.
+\end{minipage}
+\end{table*}

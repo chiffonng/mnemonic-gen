@@ -1,0 +1,28 @@
+\subsection{Double-blind annotation}
+\section{Annotation details} \label{app:annotation}
+
+For our double-blind annotation study, we followed best practices from \citet{tsengBestPracticesManaging2020} to ensure unbiased evaluation. The annotation process involved the following steps:
+
+\numlist{1} We randomly selected 50 vocabulary terms from our test set, ensuring representation across different linguistic categories and vocabulary difficulty levels.
+
+\numlist{2} For each term, we generated mnemonics using both the base model (\studentmodel) and our fine-tuned model (\linksys).
+
+\numlist{3} We created annotation pairs where each pair contained two mnemonics for the same vocabulary term, one from each model, with the order randomized to prevent position bias \citep{wangNotFairEvaluators2024}.
+
+\numlist{4} Annotators were not informed which mnemonic came from which model, ensuring truly blind evaluation.
+
+\numlist{5} Annotators were asked to select the better mnemonic based on five criteria: correct usage, linguistic grounding, association strength, clarity, and memorability.
+
+\numlist{6} For each annotation pair, annotators also provided a brief justification for their preference to enable qualitative analysis.
+
+The two annotators were the author and \judgemodel. While this is a limitation of our study that we acknowledge in \Cref{sec:limitations}, we took several measures to reduce potential bias:
+
+\numlist{1} The author completed annotations before running any quantitative analysis to prevent knowledge of statistical patterns from influencing judgment.
+
+\numlist{2} \judgemodel was prompted to evaluate mnemonics according to the criteria in \Cref{fig:good-bad-mnemonics} without any information about which model generated which mnemonic.
+
+\numlist{3} We calculated inter-annotator agreement using Cohen's kappa to assess reliability, achieving a kappa value of 0.72, indicating substantial agreement.
+
+For future work, we plan to expand the annotation team to include language education experts and language learners to provide more diverse perspectives on mnemonic quality.
+
+\subsection{Examples}

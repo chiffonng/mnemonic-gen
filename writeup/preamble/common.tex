@@ -1,0 +1,38 @@
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+\usepackage{inconsolata} % Use the Inconsolata font for monospace text
+\usepackage{amsmath}  % For math environments
+\usepackage{amssymb} % For math symbols
+\usepackage{amsfonts} % For math fonts
+\usepackage{graphicx} % For including graphics
+\usepackage{color} % For color text
+\usepackage{float} % For float placement, such as [H]
+\usepackage{tabularx} % For flexible-width columns
+\usepackage{booktabs} % For nicer table rules
+\usepackage{array}  % Extended col types if needed
+\usepackage{multirow}
+\usepackage{multicol} % For captions
+\usepackage{xspace} % Add space after only if needed
+
+\setlength{\parindent}{0pt} % No indentation
+%\setlength{\parskip}{0.1em} % Space between paragraphs
+% Congfigure the table of contents and section numbering
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+% Configure \Cref to use \S for sections and \S\S for subsections
+% \usepackage{hyperref} % must be loaded before cleveref
+\usepackage{cleveref}
+\usepackage[titletoc]{appendix}
+\AtBeginEnvironment{appendices}{\crefalias{section}{appendix}}
+\AtBeginEnvironment{appendices}{\crefalias{subsection}{appendix}}
+\AtBeginEnvironment{appendices}{\crefalias{subsubsection}{appendix}}
+
+% \crefnames{part,chapter,section}{\S}{\S\S}
+% \crefnames{paragraph}{\P}{\P\P}
+% \crefname{abstract}{abstract}{abstracts}
+
+\newcommand{\numlist}[1]{(\textbf{#1})}

@@ -7,7 +7,7 @@ repos:
         stages: [pre-merge-commit]
         language: system
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.0
+    rev: v0.11.4
     hooks:
       - id: ruff
         name: lint python code with ruff
@@ -16,6 +16,9 @@ repos:
         name: format python code with ruff
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
+    exclude:
+      - ^\.venv/
+      - ^writeup/
     hooks:
       - id: check-added-large-files
       - id: check-executables-have-shebangs

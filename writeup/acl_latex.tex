@@ -1,0 +1,100 @@
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[preprint]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\input{preamble/common}
+
+\usepackage[most]{tcolorbox} % For colored boxes
+\usepackage{enumitem} % For custom list styles, for tcolorbox
+\usepackage{xspace}
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+
+% need to add this to avoid "undefined control sequence" error in .bib
+% Holmes paper
+\newcommand{\recorder}{\textregistered}
+
+\definecolor{goodgreen}{RGB}{76,175,80}
+\definecolor{goodlight}{RGB}{232,245,233}
+\definecolor{badred}{RGB}{244,67,54}
+\definecolor{badlight}{RGB}{255,235,238}
+
+% specific to this paper
+\newcommand{\links}{\textbf{\textsc{Links}}\xspace}
+\newcommand{\linksys}{\textbf{\textsc{LinkSYS}}\xspace}
+\newcommand{\lgms}{linguistically grounded mnemonics\xspace}
+\newcommand{\lgm}{linguistically grounded mnemonic\xspace}
+\newcommand{\studentmodel}{Gemma-3-1b-it\xspace}
+\newcommand{\xstudentmodel}{gemma-3-4b-it\xspace}
+\newcommand{\teachermodel}{DeepSeek-R1\xspace}
+\newcommand{\xteachermodel}{DeepSeek-V3\xspace}
+\newcommand{\judgemodel}{OpenAI's o3-mini\xspace}
+\newcommand{\mnemonic}{\textcolor{orange}{mnemonic}\xspace}
+\newcommand{\vocabulary}{\textcolor{red}{vocabulary}\xspace}
+\newcommand{\association}{\textcolor{goodgreen}{association}\xspace}
+\newcommand{\mnem}{$m$\xspace}
+\newcommand{\vocab}{$v$\xspace}
+\newcommand{\assoc}{$a$\xspace}
+\newcommand{\eg}{$e$\xspace}
+
+\title{\textbf{LINKS}: Generate linguistically grounded mnemonic devices for English vocabulary learning with reasoning, multilingual LLMs
+}
+
+\author{%
+  My (Chiffon) Nguyen \\
+  College of Computational Sciences \\
+  Minerva University \\
+  chiffonng@uni.minerva.edu
+}
+
+\begin{document}
+\input{pages/00_title.tex}
+
+\maketitle
+\input{pages/01_abstract.tex}
+\input{pages/10_intro.tex}
+\input{pages/20_background.tex}
+
+\input{pages/30_icl.tex}
+\input{pages/40_distillation.tex}
+\input{pages/50_eval.tex}
+\input{pages/60_discussion.tex} % includes limitations, conclusion, future work
+
+\section*{Acknowledgements}
+I would like to express my gratitude to my capstone committee, Dr. Patrick Watson and Dr. Philip Sterne, for their guidance and support throughout this project. I also want to thank my classmates and friends for their encouragement and feedback during the development of this project.
+
+\section*{Ethics Statement}
+This project was conducted in accordance with the ethical guidelines of Minerva University. The dataset used for training and evaluation was generated using an LLM, and a \textbf{subset} of generated mnemonics were reviewed for quality and appropriateness. We acknowledge the potential biases present in the training data and the need for continuous monitoring and improvement of the model's outputs. The final model is designed to be deployed locally, ensuring user privacy and data security.
+
+The generated mnemonics are intended to be used as a supplementary tool for language learners and should \textbf{not} replace other language learning methods. We recommend that users critically evaluate the generated mnemonics and adapt them to their individual learning styles and preferences. We welcome feedback on any aspect of the paper to help improve the model's performance and address any ethical concerns that may arise.
+
+% References
+\bibliography{custom}
+
+\include{pages/90_appendix}
+\end{document}
