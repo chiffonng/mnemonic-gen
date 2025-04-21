@@ -64,7 +64,6 @@ def generate_ds(
     input_path: PathLike,
     excluded_terms: Optional[list[str]] = None,
     output_repo_id: Optional[str] = None,
-    sample_size: Optional[int] = None,
     dry_run: bool = True,
 ) -> Dataset | DatasetDict:
     """Generate mnemonics for vocabulary terms using OpenThoughts approach.
@@ -74,14 +73,13 @@ def generate_ds(
         input_path: Path to input vocabulary dataset
         excluded_terms: Path to a file with terms to exclude from the dataset
         output_repo_id: Hugging Face repo ID to push results. <user>/<repo>
-        sample_size: Number of samples to process. If None, process all samples.
         dry_run: If True, run with minimal samples for testing, and return Dataset.
 
     Returns:
         Dataset or DatasetDict: Generated mnemonics dataset
     """
     # Load vocabulary dataset
-    ds = load_txt_by_lines(input_path, sample_size=sample_size)
+    ds = load_txt_by_lines(input_path)
 
     # Deduplicate terms
     ds = deduplicate(ds)

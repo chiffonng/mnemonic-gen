@@ -9,24 +9,29 @@ Mnemonic devices (memory aids) are powerful tools to help individuals remember i
 Main steps:
 
 1. Generate synthetic dataset simulating traces of reasoning through linguistic features and grounding creative writing to arrive at a mnemonic device, using LLMs + chain-of-thought rationales, and few- or many-shot in-context learning, and
-2. Fine-tune a smaller language model to generate mnemonics for English vocabulary words, and
+2. Distill linguistic reasoning to a smaller language model, so it can generate mnemonics for English vocabulary words, and
 3. Evaluate the model's performance on a test set of vocabulary words, using human evaluation and LLM-as-a-judge approach.
-4. Test the fine-tuned model in a local web UI, input vocabulary words and receive mnemonics as output.
 
 ## Setup
 
-Requirements: Linux, Python >=3.10.
+Requirements: Linux, Python >=3.10 (>=3.11 recommended), PyTorch >=2.6, and a GPU with at least 16GB of VRAM.
 
-### Installation (In development)
+### Installation
 
 Prerequisites: Have [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html), [uv](https://docs.astral.sh/uv/), and git installed GLOBALLY (root user).
 
-If you have `conda`, you can create a new environment with the following command:
+Here is the suggested installation process (after cloning the repo):
 
 ```bash
 conda env create -n mnemonic-gen python=3.11 torch==2.6.0
 conda activate mnemonic-gen
 uv pip install -r pyproject.toml -e .
+```
+
+`requirements.txt` is also available, and is kept up to date with `pyproject.toml` using a pre-commit hook. The requirements don't include `jupyter` or `ipykernel`, but you can install them with:
+
+```bash
+uv pip install -r pyproject.toml -e .[dev]
 ```
 
 ### Secrets
@@ -35,7 +40,7 @@ Create a `.env` by cloning `.env.template`. You will need:
 
 - Hugging Face Access Token (see the [doc](https://huggingface.co/docs/hub/en/security-tokens)). You can get it from [here](https://huggingface.co/settings/token).
 - Wandb API key (optional: for logging experiments). You can get it from [here](https://wandb.ai/authorize).
-- OpenAI API & DeepSeek API keys. You can get keys from [OpenAI](https://platform.openai.com/account/api-keys) and [DeepSeek](https://platform.deepseek.com/api_keys).
+- DeepSeek API keys. You can get keys from [DeepSeek](https://platform.deepseek.com/api_keys).
 
 ## Scripts
 
@@ -47,7 +52,7 @@ python scripts/train.py
 
 ## Development
 
-Install development dependencies:
+Install and update development dependencies:
 
 ```bash
 bash scripts/setup-dev.sh

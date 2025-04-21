@@ -51,7 +51,7 @@ def load_local_dataset(file_path: PathLike, **kwargs) -> Dataset:
             na_values=[""],  # nan becomes empty string
             **kwargs,
         )
-    elif file_path.suffix == Extension.JSON or file_path.suffix == Extension.JSONL:
+    elif file_path.suffix in {Extension.JSON, Extension.JSONL}:
         dataset = load_dataset("json", data_files=str(file_path), **kwargs)
 
     logger.info("Loaded dataset", source=file_path)

@@ -1,3 +1,4 @@
+exclude: '(^\.venv/|^\.cache/|^\.tox/|^\.mypy_cache/|^.*\.egg-info/|^.*\.egg/|^.*\.log$|^writeup/)'
 repos:
   - repo: local
     hooks:
@@ -16,9 +17,6 @@ repos:
         name: format python code with ruff
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
-    exclude:
-      - ^\.venv/
-      - ^writeup/
     hooks:
       - id: check-added-large-files
       - id: check-executables-have-shebangs

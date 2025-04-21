@@ -1,23 +1,23 @@
 [project]
-name = "mnemonic-gen"
-version = "0.2.5"
-description = "Generate mnemonic sentences for English words"
+name = "links"
+version = "0.3.0"
+description = "Generate linguistically grounded mnemonics for English vocabulary"
 authors = [{ name = "My Chiffon Nguyen", email = "chiffonng136@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "bespokelabs-curator>=0.1.22",
+  "bespokelabs-curator>=0.1.23",
   "datasets>=3.5.0", # Hugging Face datasets
-  "huggingface-hub>=0.29.3",
-  "litellm>=1.61.3",
+  "huggingface-hub>=0.30.2",
   "matplotlib>=3.9.2",
-  "peft>=0.13.2 ; sys_platform == 'linux'",
+  "peft>=0.15.2 ; sys_platform == 'linux'",
   "pandas>=2.2.2",
+  "pre-commit>=3.2.0",
   "pydantic>=2.11.2",
   "python-dotenv>=1.1.0",
   "rich>=13.9.4", # format rich text
+  "ruff>=0.11.4",
   "structlog>=25.2.0",
-  "tenacity>=9.1.2", # retrying library for handling rate limits and transient errors
   "torch>=2.6.0 ; sys_platform == 'linux'",
   "transformers>=4.50.3 ; sys_platform == 'linux'",
   "trl>=0.11.4 ; sys_platform == 'linux'",
@@ -39,9 +39,7 @@ dataset    = "https://doi.org/10.57967/hf/3750"
 dev = [
     "deptry>=0.23.0",
     "ipykernel>=6.29.5",
-    "pre-commit>=4.1.0",
     "pytest>=8.3.5",
-    "ruff>=0.11.3",
 ]
 
 [tool.ruff]
@@ -59,12 +57,12 @@ extend-select = [
   "D",   # pydocstyle, all functions and classes must have docstrings
   "I",   # isort
   "N", # pep8-naming conventions
-#  "PL", # pylint # TODO: enable
+ "PL", # pylint
   "PT",  # flakes8-pytest-style, pytest fixtures and style
   "PTH", # flake8-use-pathlib, use pathlib instead of os.path
 ]
 extend-safe-fixes = [
-#  "ANN",  # missing type annotation # TODO: enable
+  "ANN",  # missing type annotation
   "D",    # pydocstyle docstrings
   "DOC",  # pydoclint docstring conventions
   "F",    # pyflakes
@@ -74,7 +72,12 @@ extend-safe-fixes = [
   "Q",    # flake8-quotes
 ]
 extend-fixable = ["B", "D"]
-ignore = ["T201", "T203", "F401"] # print, pprint statements OK, unused imports OK
+ignore = [
+  "T201", # print ok
+  "T203", # print statement ok
+  "F401", # unused imports ok
+  "PLR2004" # pylint numeric constants
+]
 flake8-type-checking.quote-annotations = true
 isort.case-sensitive = true
 pydocstyle.convention = "google"
