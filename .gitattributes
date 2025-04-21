@@ -1,4 +1,6 @@
 # Ignore Jupyter Notebooks from Github Linguist Stats
 *.ipynb linguist-vendored
+*.tex linguist-vendored
+*.bst linguist-vendored
 *.csv filter=lfs diff=lfs merge=lfs -text
 data/* filter=lfs diff=lfs merge=lfs -text

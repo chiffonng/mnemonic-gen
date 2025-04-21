@@ -41,7 +41,6 @@ dev = [
     "ipykernel>=6.29.5",
     "mypy>=1.15.0",
     "pandas-stubs",
-    "pytest>=8.3.5",
     "types-PyYAML"
 ]
 
@@ -60,7 +59,7 @@ extend-select = [
   "D",   # pydocstyle, all functions and classes must have docstrings
   "I",   # isort
   "N", # pep8-naming conventions
- "PL", # pylint
+  "PL", # pylint
   "PT",  # flakes8-pytest-style, pytest fixtures and style
   "PTH", # flake8-use-pathlib, use pathlib instead of os.path
 ]
