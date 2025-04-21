@@ -96,93 +96,87 @@ def validate_openai_file(input_path: PathLike) -> None:
         ValueError: If the input data is empty or not a list of dictionaries.
         TypeError: If the input data is not a list of dictionaries.
     """
+
+    def validate_message(message: dict, format_errors: defaultdict) -> None:
+        """Validate a single message."""
+        if "role" not in message or (
+            "content" not in message and "tool" not in message
+        ):
+            format_errors["message_missing_key"] += 1
+
+        if any(
+            k
+            not in (
+                "role",
+                "content",
+                "name",
+                "weight",
+                "refusal",
+                "audio",
+                "tool_calls",
+                "tool_call_id",
+            )
+            for k in message
+        ):
+            format_errors["message_unrecognized_key"] += 1
+
+        if message.get("role", None) not in (
+            "developer",
+            "system",
+            "user",
+            "assistant",
+            "tool",
+        ):
+            format_errors["unrecognized_role"] += 1
+
+        content = message.get("content")
+        tool = message.get("tool")
+        if (content is None and tool is None) or (
+            content is not None and not isinstance(content, str)
+        ):
+            format_errors["missing_content"] += 1
+
+    def validate_tools(tools: list, format_errors: defaultdict) -> None:
+        """Validate tools in the dataset."""
+        for tool in tools:
+            if not isinstance(tool, dict):
+                format_errors["tool_data_type"] += 1
+                continue
+            if any(k not in ("type", "function") for k in tool):
+                format_errors["tool_unrecognized_key"] += 1
+
     input_path = check_file_path(input_path, extensions=["jsonl"])
 
     with input_path.open("r", encoding="utf-8") as f:
         dataset = [json.loads(line) for line in f]
 
-    # Check data
     if not dataset:
         logger.error(f"{input_path} is empty.")
         raise ValueError(f"{input_path} is empty.")
-    elif not isinstance(dataset, list):
-        logger.error("Data cannot be read to a list.")
-        raise TypeError(
-            f"Data cannot be read to a list. Please review the data from {input_path}"
-        )
-    elif not all(isinstance(ex, dict) for ex in dataset):
+    elif not isinstance(dataset, list) or not all(
+        isinstance(ex, dict) for ex in dataset
+    ):
         logger.error("Data cannot be read as a list of dictionaries.")
-        return ValueError(
+        raise TypeError(
             f"Data cannot be read as a list of dictionaries. Please review the data from {input_path}"
         )
 
-    # Format error checks
     format_errors: defaultdict = defaultdict(int)
 
     for ex in dataset:
-        if not isinstance(ex, dict):
-            format_errors["data_type"] += 1
-            continue
-
-        # TODO: Refactor validating messages as a separate function
         messages = ex.get("messages", None)
         if not messages:
             format_errors["missing_messages_list"] += 1
-            continue
+        else:
+            for message in messages:
+                validate_message(message, format_errors)
 
-        for message in messages:
-            # Check that 'role' is present and at least one of 'content' or 'tool' is provided.
-            if "role" not in message or (
-                "content" not in message and "tool" not in message
-            ):
-                format_errors["message_missing_key"] += 1
-
-            # Validate that all keys in the message are recognized.
-            if any(
-                k
-                not in (
-                    "role",
-                    "content",
-                    "name",
-                    "weight",
-                    "refusal",
-                    "audio",
-                    "tool_calls",
-                    "tool_call_id",
-                )
-                for k in message
-            ):
-                format_errors["message_unrecognized_key"] += 1
-            if message.get("role", None) not in (
-                "developer",
-                "system",
-                "user",
-                "assistant",
-                "tool",
-            ):
-                format_errors["unrecognized_role"] += 1
-
-            # Check that either 'content' or 'tool' exists and that 'content', if present, is a string.
-            content = message.get("content")
-            tool = message.get("tool")
-            if (content is None and tool is None) or (
-                content is not None and not isinstance(content, str)
-            ):
-                format_errors["missing_content"] += 1
-
-        # Each example should have at least one assistant message.
-        if not any(msg.get("role") == "assistant" for msg in messages):
-            format_errors["example_missing_assistant_message"] += 1
-        # END TODO
+            if not any(msg.get("role") == "assistant" for msg in messages):
+                format_errors["example_missing_assistant_message"] += 1
 
         tools = ex.get("tools", None)
         if tools:
-            for tool in tools:
-                if not isinstance(tool, dict):
-                    format_errors["tool_data_type"] += 1
-                    continue
-                if any(k not in ("type", "function") for k in tool):
-                    format_errors["tool_unrecognized_key"] += 1
+            validate_tools(tools, format_errors)
 
     if format_errors:
         logger.exception(
