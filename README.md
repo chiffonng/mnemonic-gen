@@ -2,7 +2,7 @@
 
 [![Hugging Face](https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=huggingface&logoColor=000)](https://huggingface.co/collections/chiffonng/mnemonic-generation-67563a0a1ab91e84e9827579)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Linting: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv) [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/) [![wakatime](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365.svg)](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365)
+[![Linting: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv) ![mypy](https://img.shields.io/badge/type%20checked-mypy-039dfc) [![wakatime](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365.svg)](https://wakatime.com/badge/user/8256474a-d9a4-40f0-8879-659cd7b79a98/project/8890bf24-8c9d-4cb7-a5d1-bd438039c365)
 
 Mnemonic devices (memory aids) are powerful tools to help individuals remember information more effectively, such as acquiring new, abstract vocabulary fast. This project proposes to explore the potential of using large language models (LLMs) to generate linguisticaly-grounded mnemonics, with the goal of aiding vocabulary acquisition and retention. The system currently works for English-English mnemonics.
 
@@ -23,10 +23,10 @@ Prerequisites: Have [conda](https://docs.conda.io/projects/conda/en/latest/user-
 Here is the suggested installation process (after cloning the repo):
 
 ```bash
-conda env create -n mnemonic-gen python=3.11 torch==2.6.0
-conda activate mnemonic-gen
-uv pip install -r pyproject.toml -e .
+bash setup.sh
 ```
+
+You can also modify `setup.sh` script to your needs, or run the commands inside manually.
 
 `requirements.txt` is also available, and is kept up to date with `pyproject.toml` using a pre-commit hook. The requirements don't include `jupyter` or `ipykernel`, but you can install them with:
 
