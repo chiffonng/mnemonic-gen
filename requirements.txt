@@ -161,7 +161,7 @@ grpcio==1.71.0
     #   grpcio-status
 grpcio-status==1.48.2
     # via google-api-core
-h11==0.14.0
+h11==0.16.0
     # via httpcore
 hf-transfer==0.1.9
     # via
