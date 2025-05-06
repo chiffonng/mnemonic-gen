@@ -87,7 +87,7 @@ class PathMaker:
 
     def prompt_file(
         self,
-        category: Optional[Literal["reason", "judge", "finetune", "prompt"]] = None,
+        category: Optional[str] = None,
         name: str = "system",
         ext: str = "txt",
     ) -> Path:

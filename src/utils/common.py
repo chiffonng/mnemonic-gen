@@ -124,13 +124,13 @@ def read_prompt(
             "Either prompt_path or regex_pattern must be provided to read a prompt."
         )
     elif prompt_path:
-        prompt_path = check_file_path(prompt_path, extensions=["txt"])
+        prompt_path_obj: Path = check_file_path(prompt_path, extensions=["txt"])
     elif regex_pattern:
-        prompt_path = get_first_prompt_file(regex_pattern)
+        prompt_path_obj: Path = get_first_prompt_file(regex_pattern)
 
     logger.debug("Reading prompt from file", source=prompt_path)
 
-    with prompt_path.open("r") as file:
+    with prompt_path_obj.open("r") as file:
         prompt = file.read().strip()
 
     if vars_json_path:
@@ -144,7 +144,7 @@ def read_prompt(
             vars = vars_from_json
 
     elif vars_json_path is None and (
-        "system" in prompt_path.name and "_" not in prompt_path.name
+        "system" in prompt_path_obj.name and "_" not in prompt_path_obj.name
     ):
         vars = read_config(PROMPT_PATH.PLACEHOLDER_DICT)
 
@@ -221,7 +221,7 @@ def read_config(
         conf_path_obj = check_file_path(
             conf_path, extensions=[".json", ".yaml", ".yml"]
         )
-    else:
+    elif regex_pattern:
         conf_path_obj = get_first_config_file(regex_pattern)
 
     if conf_path_obj.suffix == ".json":
@@ -230,6 +230,10 @@ def read_config(
     elif conf_path_obj.suffix in [".yaml", ".yml"]:
         with conf_path_obj.open("r") as file:
             return yaml.safe_load(file) or {}
+    else:
+        raise ValueError(
+            f"Unsupported file format: {conf_path_obj.suffix}. Only .json and .yaml/.yml are supported."
+        )
 
 
 def update_config(config_filepath: PathLike, key: str, new_value: Any):

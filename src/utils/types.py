@@ -1,12 +1,16 @@
 """Module of type aliases for the project."""
 
 from pathlib import Path
-from typing import Any, TypeAlias, TypeVar
+from typing import Any, TypeAlias, TypeVar, Union
 
+import pandas as pd
 from pydantic import BaseModel
 
 PathLike: TypeAlias = str | Path
-ExtensionsType: TypeAlias = list[str] | str | None
-StrNoneType = TypeVar("StrNoneType", str, None)  # str or None
+ExtensionsType: TypeAlias = list[str] | str
+ExampleList: TypeAlias = list[dict[str, Any]]
 
-ModelT = TypeVar("ModelT", bound=BaseModel)  # subclass of BaseModel
+ModelType = TypeVar("ModelType", bound=BaseModel)  # subclass of BaseModel
+DataType: TypeAlias = Union[
+    pd.DataFrame, dict[str, dict[str, Any]], list[dict[str, Any]], str
+]

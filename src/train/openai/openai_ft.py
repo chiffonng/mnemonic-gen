@@ -89,7 +89,7 @@ def finetune_from_config(
         )
 
         # Save the fine-tuned model id to completion config
-        update_config(completion_config_path, key="model", value=finetuned_model_id)
+        update_config(completion_config_path, key="model", new_value=finetuned_model_id)
 
         return finetuned_model_id
     elif status == "failed":

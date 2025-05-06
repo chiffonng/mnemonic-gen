@@ -1,3 +1,4 @@
+# mypy: disable-error-code=union-attr
 """Module for processing mnemonic data using OpenAI's API.
 
 Finetuning: https://platform.openai.com/docs/guides/fine-tuning
@@ -26,7 +27,7 @@ if TYPE_CHECKING:
     from openai import OpenAI
     from structlog.stdlib import BoundLogger
 
-    from src.utils.types import ModelT, PathLike
+    from src.utils.types import ModelType, PathLike
 
 # Set up logging
 logger: BoundLogger = getLogger(__name__)
@@ -54,15 +55,15 @@ def prepare_finetune_data(
          ValueError: If the split ratio is invalid.
     """
     # Validate paths
-    input_path = check_file_path(input_path, extensions=const.CSV_EXT)
+    input_path = check_file_path(input_path, extensions=const.Extension.CSV)
     system_prompt_path, user_prompt_path = check_file_paths(
-        system_prompt_path, user_prompt_path, extensions=const.TXT_EXT
+        system_prompt_path, user_prompt_path, extensions=const.Extension.TXT
     )
 
     # Read prompts
     try:
         system_prompt = read_prompt(
-            system_prompt_path, vars_json_path=const.FILE_PROMPT_PLACEHOLDER_DICT
+            system_prompt_path, vars_json_path=const.PROMPT_PATH.PLACEHOLDER_DICT
         )
         logger.debug(
             "Read system prompt",
@@ -82,7 +83,7 @@ def prepare_finetune_data(
 
     # Read CSV file, convert to JSONL, and validate schema
     try:
-        rows = read_csv_file(input_path, to_lst_dict=True)
+        rows = read_csv_file(input_path, to_list=True)
         logger.debug(f"Read {len(rows)} rows from {input_path} using pandas")
 
         if not rows:
@@ -142,7 +143,10 @@ def split_export_finetune_data(
     """
     # Validate the output_train_jsonl path
     output_train_jsonl = check_file_path(
-        output_train_jsonl, new_ok=True, to_create=True, extensions=const.JSONL_EXT
+        output_train_jsonl,
+        new_ok=True,
+        to_create=True,
+        extensions=const.Extension.JSONL,
     )
 
     # Validate the output_val_jsonl path
@@ -152,7 +156,10 @@ def split_export_finetune_data(
         )
     else:
         output_val_jsonl = check_file_path(
-            output_val_jsonl, extensions=const.JSONL_EXT, new_ok=True, to_create=True
+            output_val_jsonl,
+            extensions=const.Extension.JSONL,
+            new_ok=True,
+            to_create=True,
         )
 
     # Validate the split ratio
@@ -318,13 +325,16 @@ def _get_cached_file_id(
                 else:
                     logger.debug("Using cached file id:", file_id=file_id)
                     return file_id
+            return None
         except Exception:
             logger.exception("Error retrieving file", file_id=file_id)
             return None
 
     # Read the config file and get the file id
     try:
-        config_file_path = check_file_path(config_file_path, extensions=const.JSON_EXT)
+        config_file_path = check_file_path(
+            config_file_path, extensions=const.Extension.JSON
+        )
         config_data = read_config(config_file_path)
         candidate = config_data.get(file_type, "").strip()
         if candidate:

@@ -174,7 +174,6 @@ def create_class_dataset(
     """
     # Create features specification
     mnemonic_type_labels: list[str] = LinguisticFeature.get_types()
-    mnemonic_type_labels.append(None)  # Add None for missing values
     num_mnemonic_types = len(mnemonic_type_labels)
 
     # Column names to select

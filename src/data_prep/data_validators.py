@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
     from structlog.stdlib import BoundLogger
 
-    from src.utils.types import ModelT, StrNoneType
+    from src.utils.types import ModelType
 
 logger: BoundLogger = getLogger(__name__)
 
@@ -34,11 +34,15 @@ class ExplicitEnum(str, Enum):
 
 
 def validate_enum_field(
-    enum_class: type[Enum],
-) -> Callable[[StrNoneType], StrNoneType]:
-    """Create a validator for enum fields."""
+    enum_class: type[ExplicitEnum],
+) -> Callable[[str | None], str | None]:
+    """Create a validator for enum fields.
 
-    def validator(value: StrNoneType) -> StrNoneType:
+    Returns:
+        validator: a callable that validates the enum field, taking a string or None as input and returning a string or None
+    """
+
+    def validator(value: str | None) -> str | None:
         """Validate the enum field."""
         if value is None or value == "":
             return None
@@ -52,9 +56,6 @@ def validate_enum_field(
                 # If value doesn't match enum, use the _missing_ method
                 if hasattr(enum_class, "_missing_"):
                     return enum_class._missing_(value)
-                raise ValueError(
-                    f"Invalid value '{value}' for {enum_class.__name__}"
-                ) from None
         return value
 
     return validator
@@ -81,7 +82,7 @@ def validate_mnemonic(value: str) -> str:
     return cleaned
 
 
-def validate_content_against_schema(content: Any, schema: type[ModelT]) -> ModelT:
+def validate_content_against_schema(content: Any, schema: type[ModelType]) -> ModelType:
     """Validate the content against the schema.
 
     Args:
@@ -195,6 +196,3 @@ def _attempt_fix_incomplete_json(content: str) -> str:
         fixed_content += "}" * open_braces
 
     return fixed_content
-
-
-# TODO: Validate content that it follows chat template, i.e. as list[dict[str, Any]], has keys "role" and "content", "role" must be one of "system", "user", "assistant", and "content" must be string OR a list of dicts with keys "type" and "content".

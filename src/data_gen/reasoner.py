@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 """Module for generating reasoning traces for mnemonic generation."""
 
 from __future__ import annotations

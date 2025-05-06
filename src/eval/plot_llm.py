@@ -171,7 +171,7 @@ def create_likert_distribution(
     # plt.suptitle("Likert Scale Distributions by Metric and Model", fontsize=16)
 
     # Adjust layout to make room for legend
-    plt.tight_layout(rect=[0, 0.1, 1, 0.95])
+    plt.tight_layout(rect=(0, 0.1, 1, 0.95))
 
     # Save if path provided
     if save_path:
