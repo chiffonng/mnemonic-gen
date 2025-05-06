@@ -26,16 +26,17 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 logger = getLogger(__name__)
 
 # LoRA and model config
+hf_username = "chiffonng"
+hf_base_model = "unsloth/gemma-3-1b-it"
 max_seq_length = 1024
 lora_rank = 8
-base_model = "unsloth/gemma-3-4b-it"
 per_device_batch_size = 16
 
 load_dotenv()
 
 wandb.login(key=os.getenv("WANDB_API_KEY"))
 run = wandb.init(
-    project="gemma-3-4b-it-vmm",
+    project=f"{hf_base_model}-links-grpo",
     job_type="training",
     anonymous="allow",
 )
@@ -45,8 +46,8 @@ login_hf_hub()
 # Load datasets
 required_columns = ["term", "prompt", "completion"]
 logger.info("Loading datasets")
-train_dataset = load_dataset(const.HF_CONST.RL_DATASET_NAME, split="train[:10%]")
-val_dataset = load_dataset(const.HF_CONST.RL_DATASET_NAME, split="val[:10%]")
+train_dataset = load_dataset(const.HF_CONST.RL_DATASET_NAME, split="train")
+val_dataset = load_dataset(const.HF_CONST.RL_DATASET_NAME, split="val")
 train_dataset = train_dataset.remove_columns(
     [col for col in train_dataset.column_names if col not in required_columns]
 )
@@ -55,9 +56,9 @@ val_dataset = val_dataset.remove_columns(
 )
 
 # Setup model with LoRA
-logger.info(f"Loading base model: {base_model}")
+logger.info(f"Loading base model: {hf_base_model}")
 model, tokenizer = FastModel.from_pretrained(
-    model_name=base_model,
+    model_name=hf_base_model,
     max_seq_length=max_seq_length,
     load_in_4bit=True,
     full_finetuning=False,
@@ -138,7 +139,7 @@ logger.info("Training complete")
 # Push models to HuggingFace Hub for vllm
 logger.info("Pushing models to HuggingFace Hub")
 model.push_to_hub_merged(
-    "chiffonng/gemma3-grpo",
+    f"{hf_username}/{hf_base_model}-links-grpo",
     tokenizer,
     save_method="merged_4bit",
     hf_token=get_hf_token(),
@@ -147,7 +148,7 @@ model.push_to_hub_merged(
 # Push GGUF model
 logger.info("Pushing GGUF model")
 model.push_to_hub_gguf(
-    "chiffonng/gemma3-vmm-grpo",
+    f"{hf_username}/{hf_base_model}-links-grpo",
     tokenizer,
     quantization_method=["q4_k_m", "f16"],
     token=get_hf_token(),
