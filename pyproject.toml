@@ -6,24 +6,24 @@ authors = [{ name = "My Chiffon Nguyen", email = "chiffonng136@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "bespokelabs-curator>=0.1.23",
-  "datasets>=3.5.0", # Hugging Face datasets
+  "bespokelabs-curator>=0.1.24",
+  "datasets>=3.5.1", # Hugging Face datasets
   "huggingface-hub>=0.30.2",
   "matplotlib>=3.9.2",
   "peft>=0.15.2 ; sys_platform == 'linux'",
   "pandas>=2.2.2",
   "pre-commit>=3.2.0",
-  "pydantic>=2.11.2",
+  "pydantic>=2.11.4",
   "python-dotenv>=1.1.0",
   "rich>=13.9.4", # format rich text
-  "ruff>=0.11.4",
-  "structlog>=25.2.0",
-  "torch>=2.6.0 ; sys_platform == 'linux'",
-  "transformers>=4.50.3 ; sys_platform == 'linux'",
+  "ruff>=0.11.8",
+  "structlog>=25.3.0",
+  "torch>=2.7.0; sys_platform == 'linux'",
+  "transformers>=4.50.3; sys_platform == 'linux'",
   "trl>=0.11.4 ; sys_platform == 'linux'",
-  "wandb>=0.19.0; sys_platform == 'linux'",
-  "unsloth==2025.3.18 ; sys_platform == 'linux'",
-  "unsloth_zoo==2025.3.16 ; sys_platform == 'linux'",
+  "wandb>=0.19.10; sys_platform == 'linux'",
+  "unsloth==2025.4.7 ; sys_platform == 'linux'",
+  "unsloth_zoo==2025.4.4 ; sys_platform == 'linux'",
   "rapidfuzz>=3.13.0",
   "scipy>=1.15.2",
 ]
@@ -32,14 +32,13 @@ keywords = ["mnemonic", "mnemonic generation", "LLM", "language model", "chain o
 
 [project.urls]
 repository = "https://github.com/chiffonng/mnemonic-gen"
-dataset    = "https://doi.org/10.57967/hf/3750"
+dataset    = "https://huggingface.co/collections/chiffonng/links-english-english-mnemonics-67563a0a1ab91e84e9827579"
 
 # Development dependencies
 [dependency-groups]
 dev = [
-    "deptry>=0.23.0",
     "ipykernel>=6.29.5",
-    "mypy>=1.15.0",
+    "mypy>=1.15.1",
     "pandas-stubs",
     "types-PyYAML"
 ]
