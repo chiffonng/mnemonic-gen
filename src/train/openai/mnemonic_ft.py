@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from openai import OpenAI
     from structlog.stdlib import BoundLogger
 
-    from src.utils.types import ModelT, PathLike
+    from src.utils.types import ModelType, PathLike
 
 # Set up logging
 logger: BoundLogger = getLogger(__name__)
@@ -325,6 +325,7 @@ def _get_cached_file_id(
                 else:
                     logger.debug("Using cached file id:", file_id=file_id)
                     return file_id
+            return None
         except Exception:
             logger.exception("Error retrieving file", file_id=file_id)
             return None

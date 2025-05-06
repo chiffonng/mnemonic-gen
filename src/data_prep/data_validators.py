@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
     from structlog.stdlib import BoundLogger
 
-    from src.utils.types import ModelT, StrNoneType
+    from src.utils.types import ModelType
 
 logger: BoundLogger = getLogger(__name__)
 
@@ -35,8 +35,12 @@ class ExplicitEnum(str, Enum):
 
 def validate_enum_field(
     enum_class: type[ExplicitEnum],
-) -> None | str:
-    """Create a validator for enum fields."""
+) -> Callable[[str | None], str | None]:
+    """Create a validator for enum fields.
+
+    Returns:
+        validator: a callable that validates the enum field, taking a string or None as input and returning a string or None
+    """
 
     def validator(value: str | None) -> str | None:
         """Validate the enum field."""
@@ -78,7 +82,7 @@ def validate_mnemonic(value: str) -> str:
     return cleaned
 
 
-def validate_content_against_schema(content: Any, schema: type[ModelT]) -> ModelT:
+def validate_content_against_schema(content: Any, schema: type[ModelType]) -> ModelType:
     """Validate the content against the schema.
 
     Args:
@@ -192,6 +196,3 @@ def _attempt_fix_incomplete_json(content: str) -> str:
         fixed_content += "}" * open_braces
 
     return fixed_content
-
-
-# TODO: Validate content that it follows chat template, i.e. as list[dict[str, Any]], has keys "role" and "content", "role" must be one of "system", "user", "assistant", and "content" must be string OR a list of dicts with keys "type" and "content".

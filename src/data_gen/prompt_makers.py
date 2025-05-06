@@ -12,11 +12,11 @@ from src.utils.common import read_prompt
 from src.utils.error_handlers import check_file_path
 
 if TYPE_CHECKING:
-    from typing import Any, Literal, Optional
+    from typing import Literal, Optional
 
     from structlog.stdlib import BoundLogger
 
-    from src.utils.types import PathLike
+    from src.utils.types import ExampleList, PathLike
 
 # Set up logging
 logger: BoundLogger = getLogger(__name__)
@@ -93,7 +93,8 @@ def get_system_prompt(
         # Add export_path to constants.py
         setattr(const.PROMPT_PATH, f"REASON_SYSTEM_{num_examples}SHOT", export_path)
 
-    return get_system_prompt_examples(prompt_path, **kwargs)
+    prompt, _ = get_system_prompt_examples(prompt_path, **kwargs)
+    return prompt
 
 
 def get_system_prompt_examples(
@@ -183,7 +184,7 @@ def get_system_prompt_examples(
 
 def load_examples(
     examples_path: PathLike,
-) -> list[dict[str, Any]]:
+) -> ExampleList:
     """Load examples from a CSV or JSONL file.
 
     Args:

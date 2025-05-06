@@ -90,32 +90,32 @@ def check_file_path(
         extensions (list[str], optional): A list of allowed file extensions. Defaults to []. If provided, the file must have one of the specified extensions.
 
     Returns:
-        path (Path): The path to the file.
+        val_path (Path): The path to the file.
 
     Raises:
         TypeError: If 'path' is not a string or a Path object OR if 'extensions' is not a string or a list of strings.
         FileNotFoundError: If the file does not exist and 'new_ok' is False.
         ValueError: If the file does not have the specified extensions
     """
-    path = validate_path(path)
-    if not new_ok and not path.exists():
-        raise FileNotFoundError(f"{path.resolve()}")
+    val_path = validate_path(path)
+    if not new_ok and not val_path.exists():
+        raise FileNotFoundError(f"{val_path.resolve()}")
     elif new_ok and to_create:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.touch()
+        val_path.parent.mkdir(parents=True, exist_ok=True)
+        val_path.touch()
 
     if extensions:
-        extensions = validate_and_normalize_extensions(extensions)
-        check_extension(path, extensions)
+        val_extensions = validate_and_normalize_extensions(extensions)
+        check_extension(val_path, val_extensions)
 
-    return path
+    return val_path
 
 
 def check_file_paths(
     *paths: PathLike,
     new_ok: bool = False,
     to_create: bool = False,
-    extensions: Optional[list[ExtensionsType]] = None,
+    extensions: Optional[ExtensionsType] = None,
 ) -> list[Path]:
     """Check if the file paths exist, convert them to Path objects if they are strings, and return them. Optionally, check if the files have one of the specified extensions.
 
@@ -123,21 +123,21 @@ def check_file_paths(
         paths (PathLike): The paths to the files.
         new_ok (bool, optional): If True, the files do not have to exist. Defaults to False.
         to_create (bool, optional): If True, the files will be created if they do not exist. Defaults to False. Ignored if 'new_ok' is False.
-        extensions (list[str], optional): A list of allowed file extensions. Defaults to []. If provided, all files must have one of the specified extensions.
+        extensions (list[str], optional): A list of allowed file extensions. If provided, all files must have one of the specified extensions.
 
     Returns:
-        paths (list[Path]): The paths to the files.
+        val_paths (list[Path]): The paths to the files.
 
     Raises (inherits from check_file_path):
         TypeError: If 'paths' is not a list of strings or Path objects OR if 'extensions' is not a string or a list of strings.
         FileNotFoundError: If the files do not exist.
         ValueError: If the extensions do not start with a dot OR if the files do not have the specified extension
     """
-    paths = (
+    val_paths = [
         check_file_path(path, new_ok=new_ok, to_create=to_create, extensions=extensions)
         for path in paths
-    )
-    return paths
+    ]
+    return val_paths
 
 
 def check_dir_path(
